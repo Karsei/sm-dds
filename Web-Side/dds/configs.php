@@ -1,0 +1,1 @@
+<? $constat = 0; $db_host = ''; $db_database = ''; $db_user = ''; $db_pass = ''; $adm_id = ''; $adm_pass = ''; ?>
