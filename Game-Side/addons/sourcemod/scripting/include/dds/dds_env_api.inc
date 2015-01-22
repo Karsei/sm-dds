@@ -1,5 +1,5 @@
 /************************************************************************
- * Dynamic Dollar Shop - MAIN INCLUDE (Sourcemod)
+ * Dynamic Dollar Shop - MAIN INCLUDE :: ENV API LIST (Sourcemod)
  * 
  * Copyright (C) 2012-2015 Karsei
  * 
@@ -17,7 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  * 
  ***********************************************************************/
-#include "dds/dds_env_info.inc"
-#include "dds/dds_env_api.inc"
-
-#pragma semicolon 1
+/**
+ * @brief	DDS 플러그인의 활성화 유무를 가져옵니다.
+ *			'dds_switch_plugin' Convar에 의하여 결정됩니다.
+ *
+ * @return	DDS 플러그인이 활성화되었다면 true, 그렇지 않다면 false
+ */
+native bool:DDS_IsPluginOn();
