@@ -170,6 +170,7 @@ public void SQL_ErrorProcess(Database db, DBResultSet results, const char[] erro
 
 	hData.Close();
 
+	// 오류코드 로그 작성
 	LogCodeError(client, errcode, anydata);
 }
 
