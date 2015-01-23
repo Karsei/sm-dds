@@ -23,4 +23,4 @@
  *
  * @return	DDS 플러그인이 활성화되었다면 true, 그렇지 않다면 false
  */
-native bool:DDS_IsPluginOn();
+native bool DDS_IsPluginOn();

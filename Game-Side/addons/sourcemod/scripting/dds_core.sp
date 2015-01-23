@@ -23,28 +23,25 @@
 /*******************************************************
  * E N U M S
 *******************************************************/
-enum Convar
-{
-	PluginSwitch,
-	SwitchLog
-}
+
 
 /*******************************************************
  * V A R I A B L E S
 *******************************************************/
 // SQL 데이터베이스
-new Handle:dds_hSQLDatabase = INVALID_HANDLE;
+Database dds_hSQLDatabase;
 
 // Log 파일
-new String:dds_sPluginLogFile[256];
+char dds_sPluginLogFile[256];
 
 // Convar 변수
-new dds_eConvar[Convar];
+ConVar dds_hCV_PluginSwtich;
+//ConVar dds_hCV_SwtichLog;
 
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
 *******************************************************/
-public Plugin:myinfo
+public Plugin:myinfo = 
 {
 	name = "Dynamic Dollar Shop",
 	author = DDS_ENV_CORE_AUTHOR,
@@ -59,17 +56,17 @@ public Plugin:myinfo
 /**
  * 플러그인 시작 시
  */
-public OnPluginStart()
+public void OnPluginStart()
 {
 	// Version 등록
 	CreateConVar("sm_dynamicdollarshop_version", DDS_ENV_CORE_VERSION, "Made By. Karsei", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 
 	// Convar 등록
-	dds_eConvar[PluginSwitch] = CreateConVar("dds_switch_plugin", "1", "본 플러그인의 작동 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
-	dds_eConvar[SwitchLog] = CreateConVar("dds_switch_log", "1", "로그 작성 여부입니다. 활성화를 권장합니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	dds_hCV_PluginSwtich = CreateConVar("dds_switch_plugin", "1", "본 플러그인의 작동 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	//dds_hCV_SwtichLog = CreateConVar("dds_switch_log", "1", "데이터 로그 작성 여부입니다. 활성화를 권장합니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 
 	// 플러그인 로그 작성 등록
-	BuildPath(Path_SM, dds_sPluginLogFile, sizeof(dds_sPluginLogFile), "logs/dynamicdollarshop.log")
+	BuildPath(Path_SM, dds_sPluginLogFile, sizeof(dds_sPluginLogFile), "logs/dynamicdollarshop.log");
 
 	// 번역 로드
 	LoadTranslations("dynamicdollarshop.phrases");
@@ -92,28 +89,43 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 /**
  * 설정이 로드되고 난 후
  */
-public OnConfigsExecuted()
+public void OnConfigsExecuted()
 {
 	// 플러그인이 꺼져 있을 때는 동작 안함
-	if (!GetConVarBool(dds_eConvar[PluginSwitch]))	return;
+	if (!dds_hCV_PluginSwtich.BoolValue)	return;
 
 	// SQL 데이터베이스 연결
-	SQL_TConnect(SQL_GetDatabase, "dynamicdollarshop");
+	Database.Connect(SQL_GetDatabase, "dynamicdollarshop");
 }
 
 /**
  * 맵이 종료된 후
  */
-public OnMapEnd()
+public void OnMapEnd()
 {
 	// SQL 데이터베이스 핸들 초기화
-	if (dds_hSQLDatabase != INVALID_HANDLE)
+	if (dds_hSQLDatabase != null)
 	{
-		CloseHandle(dds_hSQLDatabase);
+		dds_hSQLDatabase.Close();
 	}
-	dds_hSQLDatabase = INVALID_HANDLE;
+	dds_hSQLDatabase = null;
 }
 
+
+/*******************************************************
+ G E N E R A L   F U N C T I O N S
+*******************************************************/
+/**
+ * LOG :: 오류코드 구분 및 로그 작성
+ *
+ * @param client			클라이언트 인덱스
+ * @param errcode			오류코드
+ * @param anydata			추가값
+ */
+public void LogCodeError(int client, int errcode, const char[] anydata)
+{
+	// 
+}
 
 /*******************************************************
  * C A L L B A C K   F U N C T I O N S
@@ -121,27 +133,44 @@ public OnMapEnd()
 /**
  * SQL :: 데이터베이스 최초 연결
  */
-public SQL_GetDatabase(Handle:owner, Handle:hndl, const String:error[], any:data)
+public void SQL_GetDatabase(Database db, const char[] error, any data)
 {
 	// 데이터베이스 연결 안될 때
-	if ((hndl == INVALID_HANDLE) || (error[0]))
+	if ((db == null) || (error[0]))
 	{
 		return;
 	}
 
 	// SQL 데이터베이스 핸들 등록
-	dds_hSQLDatabase = hndl;
+	dds_hSQLDatabase = db;
 
 	// UTF-8 설정
-	SQL_SetCharset(, "utf8");
+	dds_hSQLDatabase.SetCharset("utf8");
 }
 
 /**
  * SQL :: SQL 관련 오류 발생 시
  */
-public SQL_ErrorProcess(Handle:owner, Handle:hndl, const String:error[], any:data)
+public void SQL_ErrorProcess(Database db, DBResultSet results, const char[] error, any data)
 {
-	// 
+	/******
+	 * @param data				Handle / ArrayList
+	 * 							0 - 클라이언트 인덱스(int), 1 - 오류코드(int), 2 - 추가값(char)
+	 ******/
+	// 타입 변환(*!*핸들 누수가 있는지?)
+	ArrayList hData = view_as<ArrayList>(data);
+
+	int client = hData.Get(0);
+	int errcode = hData.Get(1);
+	char anydata[256];
+
+	client = hData.Get(0);
+	errcode = hData.Get(1);
+	hData.GetString(2, anydata, sizeof(anydata));
+
+	hData.Close();
+
+	LogCodeError(client, errcode, anydata);
 }
 
 
@@ -153,7 +182,7 @@ public SQL_ErrorProcess(Handle:owner, Handle:hndl, const String:error[], any:dat
  *
  * @brief	DDS 플러그인의 활성화 여부
 */
-public Native_DDS_IsPluginOn(Handle:plugin, numParams)
+public int Native_DDS_IsPluginOn(Handle:plugin, numParams)
 {
-	return GetConVarBool(dds_eConvar[PluginSwitch]);
+	return dds_hCV_PluginSwtich.BoolValue;
 }
