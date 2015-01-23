@@ -124,7 +124,19 @@ public void OnMapEnd()
  */
 public void LogCodeError(int client, int errcode, const char[] anydata)
 {
-	// 
+	char usrauth[32];
+
+	// 실제 클라이언트 구분 후 고유번호 추출
+	if (client > 0)	GetClientAuthString(client, usrauth, sizeof(usrauth));
+
+	// 오류코드 구분
+	switch (errcode)
+	{
+		case 1000:
+		{
+			// SQL 데이터베이스 연결 실패
+		}
+	}
 }
 
 /*******************************************************
@@ -138,6 +150,7 @@ public void SQL_GetDatabase(Database db, const char[] error, any data)
 	// 데이터베이스 연결 안될 때
 	if ((db == null) || (error[0]))
 	{
+		LogCodeError(0, 1000, "");
 		return;
 	}
 
@@ -163,9 +176,6 @@ public void SQL_ErrorProcess(Database db, DBResultSet results, const char[] erro
 	int client = hData.Get(0);
 	int errcode = hData.Get(1);
 	char anydata[256];
-
-	client = hData.Get(0);
-	errcode = hData.Get(1);
 	hData.GetString(2, anydata, sizeof(anydata));
 
 	hData.Close();
