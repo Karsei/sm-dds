@@ -95,7 +95,7 @@ public void OnConfigsExecuted()
 	if (!dds_hCV_PluginSwtich.BoolValue)	return;
 
 	// SQL 데이터베이스 연결
-	Database.Connect(SQL_GetDatabase, "dynamicdollarshop");
+	Database.Connect(SQL_GetDatabase, "dds");
 }
 
 /**
@@ -155,7 +155,7 @@ public void SQL_ErrorProcess(Database db, DBResultSet results, const char[] erro
 {
 	/******
 	 * @param data				Handle / ArrayList
-	 * 							0 - 클라이언트 인덱스(int), 1 - 오류코드(int), 2 - 추가값(char)
+	 * 						0 - 클라이언트 인덱스(int), 1 - 오류코드(int), 2 - 추가값(char)
 	 ******/
 	// 타입 변환(*!*핸들 누수가 있는지?)
 	ArrayList hData = view_as<ArrayList>(data);
