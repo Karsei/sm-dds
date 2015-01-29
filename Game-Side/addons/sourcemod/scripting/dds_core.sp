@@ -193,6 +193,87 @@ public void LogCodeError(int client, int errcode, const char[] anydata)
 	}
 }
 
+
+/**
+ * 메뉴 :: 메인 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+ * @param args				기타
+*/
+public Action:Menu_Main(int client, int args)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwtich.BoolValue)	return Plugin_Continue;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlMain);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n ", "menu common title");
+	mMain.SetTitle(buffer);
+
+	// '내 프로필'
+	Format(buffer, sizeof(buffer), "%t", "menu main myprofile");
+	mMain.AddItem("1", buffer);
+	// '내 장착 아이템'
+	Format(buffer, sizeof(buffer), "%t", "menu main mycuritem");
+	mMain.AddItem("2", buffer);
+	// '내 인벤토리'
+	Format(buffer, sizeof(buffer), "%t", "menu main myinven");
+	mMain.AddItem("3", buffer);
+	// '아이템 구매'
+	Format(buffer, sizeof(buffer), "%t", "menu main buy category");
+	mMain.AddItem("4", buffer);
+	// '설정'
+	Format(buffer, sizeof(buffer), "%t\n ", "menu main setting");
+	mMain.AddItem("5", buffer);
+	// '플러그인 정보'
+	Format(buffer, sizeof(buffer), "%t", "menu main plugininfo");
+	mMain.AddItem("9", buffer);
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+
+	return Plugin_Continue;
+}
+
+/**
+ * 메뉴 :: 프로필 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+ * @param args				기타
+*/
+public Action:Menu_Profile(int client, int args)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwtich.BoolValue)	return Plugin_Continue;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlProfile);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main myprofile");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton(true);
+
+	// 필요 정보
+	char sUsrName[32];
+	char sUsrAuthId[20];
+
+	GetClientName(client, sUsrName, sizeof(sUsrName));
+	GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
+
+	Format(buffer, sizeof(buffer), 
+		"%t: %s\n%t: %s", 
+		"global nickname", sUsrName, "global authid", sUsrAuthId);
+	mMain.AddItem("1", buffer, ITEMDRAW_DISABLED);
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+
+	return Plugin_Continue;
+}
+
 /*******************************************************
  * C A L L B A C K   F U N C T I O N S
 *******************************************************/
@@ -277,6 +358,98 @@ public void SQL_ErrorProcess(Database db, DBResultSet results, const char[] erro
 
 	// 오류코드 로그 작성
 	LogCodeError(client, errcode, anydata);
+}
+
+
+/**
+ * 메뉴 핸들 :: 메인 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlMain(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
+		{
+			case 1:
+			{
+				// 내 프로필
+				Menu_Profile(client, 0);
+			}
+			case 2:
+			{
+				// 내 장착 아이템
+			}
+			case 3:
+			{
+				// 내 인벤토리
+			}
+			case 4:
+			{
+				// 아이템 구매
+			}
+			case 5:
+			{
+				// 설정
+			}
+			case 9:
+			{
+				// 플러그인 정보
+			}
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 프로필 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlProfile(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
+		{
+			default:
+			{
+				// 없음
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_Main(client, 0);
+		}
+	}
 }
 
 

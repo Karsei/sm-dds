@@ -8,14 +8,65 @@
 		"en"				"Item"
 	}
 
+	"global nickname"
+	{
+		"en"				"Nickname"
+	}
+
+	"global authid"
+	{
+		"en"				"AuthID"
+	}
+
 	/*************************************
 	 * 메뉴 (Menu)
 	 *************************************/
 	/*** 공통 ***/
+	"menu common title"
+	{
+		"en"				"======== DDS ========"
+	}
+
+	"menu common curpos"
+	{
+		"en"				"Pos: "
+	}
+
+	/** 메인 메뉴 **/
+	"menu main myprofile"
+	{
+		"en"				"My Profile"
+	}
+
+	"menu main mycuritem"
+	{
+		"en"				"My Applied Item"
+	}
+
+	"menu main myinven"
+	{
+		"en"				"My Inventory"
+	}
+
+	"menu main buy category"
+	{
+		"en"				"Buy Items"
+	}
+
+	"menu main setting"
+	{
+		"en"				"Settings"
+	}
+
+	"menu main plugininfo"
+	{
+		"en"				"Plugin Information"
+	}
 
 	/*************************************
 	 * 오류 (Error)
 	 *************************************/
+	/*** 공통 ***/
 	"error occurred"
 	{
 		"en"				"Error Occurred"
@@ -25,4 +76,6 @@
 	{
 		"en"				"Error Desc"
 	}
+
+	/** 오류 종류 **/
 }
