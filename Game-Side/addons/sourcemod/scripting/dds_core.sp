@@ -31,12 +31,15 @@
 // SQL 데이터베이스
 Database dds_hSQLDatabase;
 
-// Log 파일
+// 로그 파일
 char dds_sPluginLogFile[256];
 
 // Convar 변수
 ConVar dds_hCV_PluginSwtich;
 //ConVar dds_hCV_SwtichLog;
+
+// 팀 채팅
+bool dds_bTeamChat[MAXPLAYERS + 1];
 
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
@@ -70,6 +73,10 @@ public void OnPluginStart()
 
 	// 번역 로드
 	LoadTranslations("dynamicdollarshop.phrases");
+
+	// 콘솔 커맨트 연결
+	RegConsoleCmd("say", Command_Say);
+	RegConsoleCmd("say_team", Command_TeamSay);
 }
 
 /**
@@ -124,10 +131,30 @@ public void OnMapEnd()
  */
 public void LogCodeError(int client, int errcode, const char[] anydata)
 {
-	char usrauth[32];
+	char usrauth[20];
 
 	// 실제 클라이언트 구분 후 고유번호 추출
-	if (client > 0)	GetClientAuthString(client, usrauth, sizeof(usrauth));
+	if (client > 0)	GetClientAuthId(client, AuthId_SteamID64, usrauth, sizeof(usrauth));
+
+	// 클라이언트와 서버 구분하여 접두 메세지 설정
+	char sDetOutput[512];
+	char sOutput[512];
+	char sPrefix[128];
+	char sErrDesc[1024];
+
+	if (client > 0) // 클라이언트
+	{
+		Format(sPrefix, sizeof(sPrefix), "%s [Error :: ID %d]", DDS_ENV_CORE_CHAT_GLOPREFIX, errcode);
+		if (strlen(sErrDesc) > 0) Format(sErrDesc, sizeof(sErrDesc), "%s [Error Desc :: ID %d]", DDS_ENV_CORE_CHAT_GLOPREFIX, errcode);
+	}
+	else if (client == 0) // 서버
+	{
+		Format(sPrefix, sizeof(sPrefix), "%s [%t :: ID %d]", DDS_ENV_CORE_CHAT_GLOPREFIX, "error occurred", errcode);
+		if (strlen(sErrDesc) > 0) Format(sErrDesc, sizeof(sErrDesc), "%s [%t :: ID %d]", DDS_ENV_CORE_CHAT_GLOPREFIX, "error desc", errcode);
+	}
+
+	Format(sDetOutput, sizeof(sDetOutput), "%s", sPrefix);
+	Format(sOutput, sizeof(sOutput), "%s", sPrefix);
 
 	// 오류코드 구분
 	switch (errcode)
@@ -135,7 +162,34 @@ public void LogCodeError(int client, int errcode, const char[] anydata)
 		case 1000:
 		{
 			// SQL 데이터베이스 연결 실패
+			Format(sDetOutput, sizeof(sDetOutput), "%s Connecting Database is Failure!", sDetOutput);
 		}
+	}
+
+	// 클라이언트와 서버 구분하여 로그 출력
+	if (client > 0) // 클라이언트
+	{
+		// 클라이언트 메세지 전송
+		DDS_PrintToChat(client, sOutput);
+		if (strlen(sErrDesc) > 0) DDS_PrintToChat(client, sErrDesc);
+
+		// 서버 메세지 전송
+		DDS_PrintToServer("%s (client: %N)", sDetOutput, client);
+		if (strlen(sErrDesc) > 0) DDS_PrintToServer("%s (client: %N)", sErrDesc, client);
+
+		// 로그 파일 작성
+		LogToFile(dds_sPluginLogFile, "%s (client: %N)", sDetOutput, client);
+		if (strlen(sErrDesc) > 0) LogToFile(dds_sPluginLogFile, "%s (client: %N)", sErrDesc, client);
+	}
+	else if (client == 0) // 서버
+	{
+		// 서버 메세지 전송
+		DDS_PrintToServer(sDetOutput);
+		if (strlen(sErrDesc) > 0) DDS_PrintToServer(sErrDesc);
+
+		// 로그 파일 작성
+		LogToFile(dds_sPluginLogFile, "%s (Server)", sDetOutput);
+		if (strlen(sErrDesc) > 0) LogToFile(dds_sPluginLogFile, "%s (Server)", sErrDesc);
 	}
 }
 
@@ -143,14 +197,50 @@ public void LogCodeError(int client, int errcode, const char[] anydata)
  * C A L L B A C K   F U N C T I O N S
 *******************************************************/
 /**
+ * 커맨드 :: 전체 채팅
+ *
+ * @param client				클라이언트 인덱스
+ * @param args					기타
+ */
+public Action:Command_Say(int client, int args)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwtich.BoolValue)	return Plugin_Continue;
+
+	return Plugin_Handled;
+}
+
+/**
+ * 커맨드 :: 팀 채팅
+ *
+ * @param client				클라이언트 인덱스
+ * @param args					기타
+ */
+public Action:Command_TeamSay(int client, int args)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwtich.BoolValue)	return Plugin_Continue;
+
+	// 팀 채팅을 했다는 변수를 남기고 일반 채팅과 동일하게 간주
+	dds_bTeamChat[client] = true;
+	Command_Say(client, args);
+
+	return Plugin_Handled;
+}
+
+/**
  * SQL :: 데이터베이스 최초 연결
+ *
+ * @param db					데이터베이스 연결 핸들
+ * @param error					오류 문자열
+ * @param data					기타
  */
 public void SQL_GetDatabase(Database db, const char[] error, any data)
 {
 	// 데이터베이스 연결 안될 때
 	if ((db == null) || (error[0]))
 	{
-		LogCodeError(0, 1000, "");
+		LogCodeError(0, 1000, error);
 		return;
 	}
 
@@ -163,12 +253,17 @@ public void SQL_GetDatabase(Database db, const char[] error, any data)
 
 /**
  * SQL :: SQL 관련 오류 발생 시
+ *
+ * @param db					데이터베이스 연결 핸들
+ * @param results				결과 쿼리
+ * @param error					오류 문자열
+ * @param data					기타
  */
 public void SQL_ErrorProcess(Database db, DBResultSet results, const char[] error, any data)
 {
 	/******
 	 * @param data				Handle / ArrayList
-	 * 						0 - 클라이언트 인덱스(int), 1 - 오류코드(int), 2 - 추가값(char)
+	 * 					0 - 클라이언트 인덱스(int), 1 - 오류코드(int), 2 - 추가값(char)
 	 ******/
 	// 타입 변환(*!*핸들 누수가 있는지?)
 	ArrayList hData = view_as<ArrayList>(data);
@@ -178,7 +273,7 @@ public void SQL_ErrorProcess(Database db, DBResultSet results, const char[] erro
 	char anydata[256];
 	hData.GetString(2, anydata, sizeof(anydata));
 
-	hData.Close();
+	delete hData;
 
 	// 오류코드 로그 작성
 	LogCodeError(client, errcode, anydata);

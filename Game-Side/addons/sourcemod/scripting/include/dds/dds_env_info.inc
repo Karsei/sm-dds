@@ -20,3 +20,5 @@
 #define DDS_ENV_CORE_AUTHOR						"Karsei"
 #define DDS_ENV_CORE_VERSION					"2.0.0"
 #define DDS_ENV_CORE_HOMEPAGE					"http://karsei.pe.kr"
+
+#define DDS_ENV_CORE_CHAT_GLOPREFIX				"[DDS]"

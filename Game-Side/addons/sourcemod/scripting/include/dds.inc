@@ -19,5 +19,6 @@
  ***********************************************************************/
 #include "dds/dds_env_info.inc"
 #include "dds/dds_env_api.inc"
+#include "dds/dds_stock.inc"
 
 #pragma semicolon 1
