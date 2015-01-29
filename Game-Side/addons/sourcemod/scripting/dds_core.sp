@@ -266,8 +266,8 @@ public Action:Menu_Profile(int client, int args)
 	GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
 
 	Format(buffer, sizeof(buffer), 
-		"%t: %s\n%t: %s", 
-		"global nickname", sUsrName, "global authid", sUsrAuthId);
+		"%t\n \n%t: %s\n%t: %s", 
+		"menu introduce myprofile", "global nickname", sUsrName, "global authid", sUsrAuthId);
 	mMain.AddItem("1", buffer, ITEMDRAW_DISABLED);
 
 	// 메뉴 출력
@@ -316,6 +316,9 @@ public Action:Command_Say(int client, int args)
 	{
 		Menu_Main(client, 0);
 	}
+
+	// 팀 채팅 기록 초기화
+	dds_bTeamChat[client] = false;
 
 	return dds_hCV_SwitchDisplayChat.BoolValue ? Plugin_Continue : Plugin_Handled;
 }

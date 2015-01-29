@@ -29,13 +29,18 @@
 
 	"menu common curpos"
 	{
-		"en"				"Pos: "
+		"en"				"Pos"
 	}
 
 	/** 메인 메뉴 **/
 	"menu main myprofile"
 	{
 		"en"				"My Profile"
+	}
+
+	"menu introduce myprofile"
+	{
+		"en"				"This is your Profile page"
 	}
 
 	"menu main mycuritem"

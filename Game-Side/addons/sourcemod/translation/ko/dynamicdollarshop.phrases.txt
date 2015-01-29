@@ -29,13 +29,18 @@
 
 	"menu common curpos"
 	{
-		"ko"				"위치: "
+		"ko"				"위치"
 	}
 
 	/** 메인 메뉴 **/
 	"menu main myprofile"
 	{
 		"ko"				"내 프로필"
+	}
+
+	"menu introduce myprofile"
+	{
+		"ko"				"프로필 정보입니다."
 	}
 
 	"menu main mycuritem"
