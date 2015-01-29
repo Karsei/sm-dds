@@ -35,7 +35,8 @@ Database dds_hSQLDatabase;
 char dds_sPluginLogFile[256];
 
 // Convar 변수
-ConVar dds_hCV_PluginSwtich;
+ConVar dds_hCV_PluginSwitch;
+ConVar dds_hCV_SwitchDisplayChat;
 //ConVar dds_hCV_SwtichLog;
 
 // 팀 채팅
@@ -65,7 +66,8 @@ public void OnPluginStart()
 	CreateConVar("sm_dynamicdollarshop_version", DDS_ENV_CORE_VERSION, "Made By. Karsei", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY);
 
 	// Convar 등록
-	dds_hCV_PluginSwtich = CreateConVar("dds_switch_plugin", "1", "본 플러그인의 작동 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	dds_hCV_PluginSwitch = CreateConVar("dds_switch_plugin", "1", "본 플러그인의 작동 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	dds_hCV_SwitchDisplayChat = CreateConVar("dds_switch_chat", "0", "채팅을 할 때 메세지 출력 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	//dds_hCV_SwtichLog = CreateConVar("dds_switch_log", "1", "데이터 로그 작성 여부입니다. 활성화를 권장합니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 
 	// 플러그인 로그 작성 등록
@@ -99,7 +101,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 public void OnConfigsExecuted()
 {
 	// 플러그인이 꺼져 있을 때는 동작 안함
-	if (!dds_hCV_PluginSwtich.BoolValue)	return;
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
 
 	// SQL 데이터베이스 연결
 	Database.Connect(SQL_GetDatabase, "dds");
@@ -203,7 +205,7 @@ public void LogCodeError(int client, int errcode, const char[] anydata)
 public Action:Menu_Main(int client, int args)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
-	if (!dds_hCV_PluginSwtich.BoolValue)	return Plugin_Continue;
+	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
 
 	char buffer[256];
 	Menu mMain = new Menu(Main_hdlMain);
@@ -246,7 +248,7 @@ public Action:Menu_Main(int client, int args)
 public Action:Menu_Profile(int client, int args)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
-	if (!dds_hCV_PluginSwtich.BoolValue)	return Plugin_Continue;
+	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
 
 	char buffer[256];
 	Menu mMain = new Menu(Main_hdlProfile);
@@ -254,7 +256,7 @@ public Action:Menu_Profile(int client, int args)
 	// 제목 설정
 	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main myprofile");
 	mMain.SetTitle(buffer);
-	mMain.ExitBackButton(true);
+	mMain.ExitBackButton = true;
 
 	// 필요 정보
 	char sUsrName[32];
@@ -286,9 +288,36 @@ public Action:Menu_Profile(int client, int args)
 public Action:Command_Say(int client, int args)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
-	if (!dds_hCV_PluginSwtich.BoolValue)	return Plugin_Continue;
+	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
 
-	return Plugin_Handled;
+	// 서버 채팅은 통과
+	if (client == 0)	return Plugin_Continue;
+
+	// 메세지 받고 맨 끝 따옴표 제거
+	char sMsg[256];
+
+	GetCmdArgString(sMsg, sizeof(sMsg));
+	sMsg[strlen(sMsg)-1] = '\x0';
+
+	// 파라메터 추출 후 분리
+	char sMainCmd[32];
+	char sParamStr[4][64];
+	int sParamIdx;
+
+	sParamIdx = SplitString(sMsg[1], " ", sMainCmd, sizeof(sMainCmd));
+	ExplodeString(sMsg[1 + sParamIdx], " ", sParamStr, sizeof(sParamStr), sizeof(sParamStr[]));
+
+	// 느낌표나 슬래시가 있다면 제거
+	ReplaceString(sMainCmd, sizeof(sMainCmd), "!", "", false);
+	ReplaceString(sMainCmd, sizeof(sMainCmd), "/", "", false);
+
+	// 메인 메뉴
+	if (StrEqual(sMainCmd, DDS_ENV_USER_MAINMENU, false))
+	{
+		Menu_Main(client, 0);
+	}
+
+	return dds_hCV_SwitchDisplayChat.BoolValue ? Plugin_Continue : Plugin_Handled;
 }
 
 /**
@@ -300,7 +329,7 @@ public Action:Command_Say(int client, int args)
 public Action:Command_TeamSay(int client, int args)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
-	if (!dds_hCV_PluginSwtich.BoolValue)	return Plugin_Continue;
+	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
 
 	// 팀 채팅을 했다는 변수를 남기고 일반 채팅과 동일하게 간주
 	dds_bTeamChat[client] = true;
@@ -463,5 +492,5 @@ public Main_hdlProfile(Menu menu, MenuAction action, int client, int item)
 */
 public int Native_DDS_IsPluginOn(Handle:plugin, numParams)
 {
-	return dds_hCV_PluginSwtich.BoolValue;
+	return dds_hCV_PluginSwitch.BoolValue;
 }

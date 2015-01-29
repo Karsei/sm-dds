@@ -1,5 +1,5 @@
 /************************************************************************
- * Dynamic Dollar Shop - MAIN INCLUDE (Sourcemod)
+ * Dynamic Dollar Shop - MAIN INCLUDE :: ENV User Information (Sourcemod)
  * 
  * Copyright (C) 2012-2015 Karsei
  * 
@@ -17,9 +17,4 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  * 
  ***********************************************************************/
-#include "dds/dds_env_info.inc"
-#include "dds/dds_env_api.inc"
-#include "dds/dds_env_user.inc"
-#include "dds/dds_stock.inc"
-
-#pragma semicolon 1
+#define DDS_ENV_USER_MAINMENU					"달러샵"
