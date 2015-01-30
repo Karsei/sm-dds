@@ -18,7 +18,10 @@
  * 
  ***********************************************************************/
 #include <sourcemod>
+#include <geoip>
 #include <dds>
+
+#define _DEBUG_
 
 /*******************************************************
  * E N U M S
@@ -65,6 +68,10 @@ int dds_eItem[DDS_ENV_ITEM_MAX + 1][Item];
 // 아이템 종류
 int dds_iItemCategoryCount;
 int dds_eItemCategory[DDS_ENV_ITEMCG_MAX + 1][ItemCG];
+
+// 유저 소유
+int dds_iUserMoney[MAXPLAYERS + 1];
+int dds_iUserAppliedItem[MAXPLAYERS + 1][DDS_ENV_ITEMCG_MAX + 1];
 
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
@@ -168,7 +175,7 @@ public void Init_ServerData()
 		Format(dds_eItem[i][Env], 256, "");
 	}
 	// 아이템 0번 'X' 설정
-	Format(dds_eItem[0][Name], 64, "X");
+	Format(dds_eItem[0][Name], 64, "en:X");
 
 	/** 아이템 종류 **/
 	// 아이템 종류 갯수
@@ -181,7 +188,7 @@ public void Init_ServerData()
 		Format(dds_eItemCategory[i][Env], 256, "");
 	}
 	// 아이템 종류 0번 '전체' 설정
-	Format(dds_eItemCategory[0][Name], 64, "전체Total");
+	Format(dds_eItemCategory[0][Name], 64, "en:Total||ko:전체");
 }
 
 /**
@@ -189,11 +196,19 @@ public void Init_ServerData()
  */
 public void Init_UserData()
 {
-	/** 채팅 **/
-	for (int i = 1; i < MAXPLAYERS; i++)
+	for (int i = 0; i <= MAXPLAYERS; i++)
 	{
 		// 팀 채팅
 		dds_bTeamChat[i] = false;
+
+		// 금액
+		dds_iUserMoney[i] = 0;
+
+		// 장착 아이템
+		for (int k = 0; k <= DDS_ENV_ITEMCG_MAX; k++)
+		{
+			dds_iUserAppliedItem[i][k] = 0;
+		}
 	}
 }
 
@@ -254,6 +269,10 @@ public void LogCodeError(int client, int errcode, const char[] anydata)
 		{
 			// SQL 데이터베이스 초기화 시 아이템 목록 로드
 			Format(sDetOutput, sizeof(sDetOutput), "%s Retriving Item List DB is Failure!", sDetOutput);
+		}
+		case 1004:
+		{
+			//
 		}
 	}
 
@@ -374,8 +393,8 @@ public Action:Menu_Profile(int client, int args)
 	GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
 
 	Format(buffer, sizeof(buffer), 
-		"%t\n \n%t: %s\n%t: %s", 
-		"menu introduce myprofile", "global nickname", sUsrName, "global authid", sUsrAuthId);
+		"%t\n \n%t: %s\n%t: %s\n%t: %d", 
+		"menu myprofile introduce", "global nickname", sUsrName, "global authid", sUsrAuthId, "global money", dds_iUserMoney[client]);
 	mMain.AddItem("1", buffer, ITEMDRAW_DISABLED);
 
 	// 메뉴 출력
@@ -383,6 +402,293 @@ public Action:Menu_Profile(int client, int args)
 
 	return Plugin_Continue;
 }
+
+/**
+ * 메뉴 :: 내 장착 아이템 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+*/
+public Menu_CurItem(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlCurItem);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main mycuritem");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 갯수 파악
+	int count;
+
+	// 정보 작성
+	for (int i = 0; i <= dds_iItemCategoryCount; i++)
+	{
+		// '전체' 통과
+		if (i == 0)	continue;
+
+		// 번호를 문자열로 치환
+		char sTempIdx[4];
+		IntToString(i, sTempIdx, sizeof(sTempIdx));
+
+		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
+		char sCGName[16];
+		char sItemName[32];
+		SelectedGeoNameToString(client, dds_eItemCategory[i][Name], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItem[dds_iUserAppliedItem[client][i]][Name], sItemName, sizeof(sItemName));
+
+		// 메뉴 아이템 등록
+		Format(buffer, sizeof(buffer), "%t %s %t: %s", "menu mycuritem applied", sCGName, "global item", sItemName);
+		mMain.AddItem(sTempIdx, buffer);
+
+		// 갯수 증가
+		count++;
+
+		#if defined _DEBUG_
+		DDS_PrintToChat(client, "\x05:: DEBUG ::\x01 My CurItem Menu ~ CG (ID: %d, CateName: %s, ItemName: %s, Count: %d)", i, sCGName, sItemName, count);
+		#endif
+	}
+
+	// 아이템 종류가 없을 때
+	if (count == 0)
+	{
+		// '없음' 출력
+		Format(buffer, sizeof(buffer), "%t", "global none");
+		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 내 인벤토리 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+*/
+public Menu_Inven(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlInven);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main myinven");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 갯수 파악
+	int count;
+
+	// 정보 작성
+	for (int i = 0; i <= dds_iItemCategoryCount; i++)
+	{
+		// 번호를 문자열로 치환
+		char sTempIdx[4];
+		IntToString(i, sTempIdx, sizeof(sTempIdx));
+
+		// 클라이언트 국가에 따른 아이템 종류 이름 추출
+		char sCGName[16];
+		SelectedGeoNameToString(client, dds_eItemCategory[i][Name], sCGName, sizeof(sCGName));
+
+		// 메뉴 아이템 등록
+		Format(buffer, sizeof(buffer), "%s %t", sCGName, "global item");
+		mMain.AddItem(sTempIdx, buffer);
+
+		// 갯수 증가
+		count++;
+
+		#if defined _DEBUG_
+		DDS_PrintToChat(client, "\x05:: DEBUG ::\x01 My Inven Menu ~ CG (ID: %d, CateName: %s, Count: %d)", i, sCGName, count);
+		#endif
+	}
+
+	// 아이템 종류가 없을 때
+	if (count == 0)
+	{
+		// '없음' 출력
+		Format(buffer, sizeof(buffer), "%t", "global none");
+		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 아이템 구매 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+*/
+public Menu_BuyItem(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlBuyItem);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main buy category");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 갯수 파악
+	int count;
+
+	// 정보 작성
+	for (int i = 0; i <= dds_iItemCategoryCount; i++)
+	{
+		// 번호를 문자열로 치환
+		char sTempIdx[4];
+		IntToString(i, sTempIdx, sizeof(sTempIdx));
+
+		// 클라이언트 국가에 따른 아이템 종류 이름 추출
+		char sCGName[16];
+		SelectedGeoNameToString(client, dds_eItemCategory[i][Name], sCGName, sizeof(sCGName));
+
+		// 메뉴 아이템 등록
+		Format(buffer, sizeof(buffer), "%s %t", sCGName, "global item");
+		mMain.AddItem(sTempIdx, buffer);
+
+		// 갯수 증가
+		count++;
+
+		#if defined _DEBUG_
+		DDS_PrintToChat(client, "\x05:: DEBUG ::\x01 Buy Item Menu ~ CG (ID: %d, CateName: %s, Count: %d)", i, sCGName, count);
+		#endif
+	}
+
+	// 아이템 종류가 없을 때
+	if (count == 0)
+	{
+		// '없음' 출력
+		Format(buffer, sizeof(buffer), "%t", "global none");
+		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 설정 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+*/
+public Menu_Setting(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlSetting);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main setting");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 메뉴 아이템 등록
+	Format(buffer, sizeof(buffer), "%t", "menu setting system");
+	mMain.AddItem("1", buffer);
+	Format(buffer, sizeof(buffer), "%t", "menu setting item");
+	mMain.AddItem("2", buffer);
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 설정-시스템 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+*/
+public Menu_Setting_System(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlSetting_System);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu setting system");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 메뉴 아이템 등록
+	Format(buffer, sizeof(buffer), "%t", "global none");
+	mMain.AddItem("1", buffer, ITEMDRAW_DISABLED);
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 설정-아이템 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+*/
+public Menu_Setting_Item(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlSetting_Item);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu setting item");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 갯수 파악
+	int count;
+
+	// 정보 작성
+	for (int i = 0; i <= dds_iItemCategoryCount; i++)
+	{
+		// '전체' 통과
+		if (i == 0)	continue;
+		
+		// 번호를 문자열로 치환
+		char sTempIdx[4];
+		IntToString(i, sTempIdx, sizeof(sTempIdx));
+
+		// 클라이언트 국가에 따른 아이템 종류 이름 추출
+		char sCGName[16];
+		SelectedGeoNameToString(client, dds_eItemCategory[i][Name], sCGName, sizeof(sCGName));
+
+		// 메뉴 아이템 등록
+		Format(buffer, sizeof(buffer), "%s %t", sCGName, "global item");
+		mMain.AddItem(sTempIdx, buffer);
+
+		// 갯수 증가
+		count++;
+
+		#if defined _DEBUG_
+		DDS_PrintToChat(client, "\x05:: DEBUG ::\x01 Setting-Item Menu ~ CG (ID: %d, CateName: %s, Count: %d)", i, sCGName, count);
+		#endif
+	}
+
+	// 아이템 종류가 없을 때
+	if (count == 0)
+	{
+		// '없음' 출력
+		Format(buffer, sizeof(buffer), "%t", "global none");
+		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
 
 /*******************************************************
  * C A L L B A C K   F U N C T I O N S
@@ -539,8 +845,12 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 		if (!results.FetchRow())	continue;
 
 		// 데이터 추가
-		dds_eItemCategory[dds_iItemCategoryCount][Code] = results.FetchInt(0);
-		results.FetchString(1, dds_eItemCategory[dds_iItemCategoryCount][Name], 64);
+		dds_eItemCategory[dds_iItemCategoryCount + 1][Code] = results.FetchInt(0);
+		results.FetchString(1, dds_eItemCategory[dds_iItemCategoryCount + 1][Name], 64);
+
+		#if defined _DEBUG_
+		DDS_PrintToServer(":: DEBUG :: Category Loaded (ID: %d, GloName: %s, TotalCount: %d)", dds_eItemCategory[dds_iItemCategoryCount + 1][Code], dds_eItemCategory[dds_iItemCategoryCount + 1][Name], dds_iItemCategoryCount + 1);
+		#endif
 
 		// 아이템 종류 등록 갯수 증가
 		dds_iItemCategoryCount++;
@@ -571,12 +881,16 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 		if (!results.FetchRow())	continue;
 
 		// 데이터 추가
-		dds_eItem[dds_iItemCount][Index] = results.FetchInt(0);
-		results.FetchString(1, dds_eItem[dds_iItemCount][Name], 64);
-		dds_eItem[dds_iItemCount][CateCode] = results.FetchInt(2);
-		dds_eItem[dds_iItemCount][Money] = results.FetchInt(3);
-		dds_eItem[dds_iItemCount][HavTime] = results.FetchInt(4);
-		results.FetchString(5, dds_eItem[dds_iItemCount][Env], 256);
+		dds_eItem[dds_iItemCount + 1][Index] = results.FetchInt(0);
+		results.FetchString(1, dds_eItem[dds_iItemCount + 1][Name], 64);
+		dds_eItem[dds_iItemCount + 1][CateCode] = results.FetchInt(2);
+		dds_eItem[dds_iItemCount + 1][Money] = results.FetchInt(3);
+		dds_eItem[dds_iItemCount + 1][HavTime] = results.FetchInt(4);
+		results.FetchString(5, dds_eItem[dds_iItemCount + 1][Env], 256);
+
+		#if defined _DEBUG_
+		DDS_PrintToServer(":: DEBUG :: Item Loaded (ID: %d, GloName: %s, CateCode: %d, Money: %d, Time: %d, TotalCount: %d)", dds_eItem[dds_iItemCount + 1][Index], dds_eItem[dds_iItemCount + 1][Name], dds_eItem[dds_iItemCount + 1][CateCode], dds_eItem[dds_iItemCount + 1][Money], dds_eItem[dds_iItemCount + 1][HavTime], dds_iItemCount + 1);
+		#endif
 
 		// 아이템 등록 갯수 증가
 		dds_iItemCount++;
@@ -615,18 +929,22 @@ public Main_hdlMain(Menu menu, MenuAction action, int client, int item)
 			case 2:
 			{
 				// 내 장착 아이템
+				Menu_CurItem(client);
 			}
 			case 3:
 			{
 				// 내 인벤토리
+				Menu_Inven(client);
 			}
 			case 4:
 			{
 				// 아이템 구매
+				Menu_BuyItem(client);
 			}
 			case 5:
 			{
 				// 설정
+				Menu_Setting(client);
 			}
 			case 9:
 			{
@@ -671,6 +989,276 @@ public Main_hdlProfile(Menu menu, MenuAction action, int client, int item)
 		if (item == MenuCancel_ExitBack)
 		{
 			Menu_Main(client, 0);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 내 장착 아이템 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlCurItem(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
+		{
+			/**
+			 * iInfo
+			 * 
+			 * @Desc 등록된 아이템 종류 번호(코드 아님, '전체' 없음)
+			 */
+			default:
+			{
+				// 아직 없음
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_Main(client, 0);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 내 인벤토리 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlInven(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
+		{
+			/**
+			 * iInfo
+			 * 
+			 * @Desc 등록된 아이템 종류 번호(코드 아님)
+			 */
+			default:
+			{
+				// 아직 없음
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_Main(client, 0);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 아이템 구매 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlBuyItem(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
+		{
+			/**
+			 * iInfo
+			 * 
+			 * @Desc 등록된 아이템 종류 번호(코드 아님)
+			 */
+			default:
+			{
+				// 아직 없음
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_Main(client, 0);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 설정 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlSetting(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
+		{
+			/**
+			 * iInfo
+			 * 
+			 * @Desc 1 - 시스템 설정, 2 - 아이템 활성화 상태 설정
+			 */
+			case 1:
+			{
+				// 시스템 설정
+				Menu_Setting_System(client);
+			}
+			case 2:
+			{
+				// 아이템 설정
+				Menu_Setting_Item(client);
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_Main(client, 0);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 설정-시스템 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlSetting_System(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
+		{
+			/**
+			 * iInfo
+			 * 
+			 * @Desc 아직 없음
+			 */
+			case 1:
+			{
+				// 아직 없음
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_Setting(client);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 설정-아이템 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlSetting_Item(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
+		{
+			/**
+			 * iInfo
+			 * 
+			 * @Desc 등록된 아이템 종류 번호(코드 아님)
+			 */
+			case 1:
+			{
+				// 아직 없음
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_Setting(client);
 		}
 	}
 }

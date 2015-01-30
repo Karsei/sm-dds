@@ -5,17 +5,27 @@
 	 *************************************/
 	"global item"
 	{
-		"en"				"Item"
+		"ko"				"아이템"
 	}
 
 	"global nickname"
 	{
-		"en"				"Nickname"
+		"ko"				"닉네임"
 	}
 
 	"global authid"
 	{
-		"en"				"AuthID"
+		"ko"				"인증번호"
+	}
+
+	"global money"
+	{
+		"ko"				"금액"
+	}
+
+	"global none"
+	{
+		"ko"				"없음"
 	}
 
 	/*************************************
@@ -24,48 +34,63 @@
 	/*** 공통 ***/
 	"menu common title"
 	{
-		"en"				"======== DDS ========"
+		"ko"				"======== DDS ========"
 	}
 
 	"menu common curpos"
 	{
-		"en"				"Pos"
+		"ko"				"위치"
 	}
 
 	/** 메인 메뉴 **/
 	"menu main myprofile"
 	{
-		"en"				"My Profile"
+		"ko"				"내 프로필"
 	}
 
-	"menu introduce myprofile"
+	"menu myprofile introduce"
 	{
-		"en"				"This is your Profile page"
+		"ko"				"프로필 정보입니다."
 	}
 
 	"menu main mycuritem"
 	{
-		"en"				"My Applied Item"
+		"ko"				"내 장착한 아이템"
+	}
+
+	"menu mycuritem applied"
+	{
+		"ko"				"장착한"
 	}
 
 	"menu main myinven"
 	{
-		"en"				"My Inventory"
+		"ko"				"내 인벤토리"
 	}
 
 	"menu main buy category"
 	{
-		"en"				"Buy Items"
+		"ko"				"아이템 구매"
 	}
 
 	"menu main setting"
 	{
-		"en"				"Settings"
+		"ko"				"설정"
+	}
+
+	"menu setting system"
+	{
+		"ko"				"시스템 설정"
+	}
+
+	"menu setting item"
+	{
+		"ko"				"아이템 설정"
 	}
 
 	"menu main plugininfo"
 	{
-		"en"				"Plugin Information"
+		"ko"				"플러그인 정보"
 	}
 
 	/*************************************
@@ -74,12 +99,12 @@
 	/*** 공통 ***/
 	"error occurred"
 	{
-		"en"				"Error Occurred"
+		"ko"				"오류 발생"
 	}
 
 	"error desc"
 	{
-		"en"				"Error Desc"
+		"ko"				"오류 원인"
 	}
 
 	/** 오류 종류 **/

@@ -160,3 +160,66 @@ stock DDS_PrintToServer(const char[] message, any:...)
 
 	PrintToServer(sMsg);
 }
+
+/**
+ * 추출 :: 특정 문자열 항목의 값 추출
+ *
+ * @param findStr					대상 문자열
+ * @param wantStr					찾을 문자열
+ * @param lineCut					항목을 잘라낼 문자
+ * @param valueCut					값을 잘라낼 문자
+ * @param output					저장할 문자열
+ * @param len						저장할 문자열 길이
+ */
+stock SelectedStuffToString(const char[] findStr, const char[] wantStr, const char[] lineCut, const char[] valueCut,  char[] output, int len)
+{
+	// 값이 없는 경우엔 생략
+	if (strlen(lineCut) <= 0)	return;
+	if (strlen(valueCut) <= 0)	return;
+
+	int envPos;
+	char bufValue[64];
+	char value[2][512];
+
+	// 찾을 문자열이 어느 위치에 있는지 파악
+	if ((envPos = StrContains(findStr, wantStr, false)) != -1)
+	{
+		char tmpStr[512];
+
+		// 찾은 문자열 위치부터 항목을 잘라낼 문자까지 따로 값을 분리
+		SplitString(findStr[envPos], lineCut, tmpStr, sizeof(tmpStr));
+		// 값을 잘라낼 문자로 위에서 구한 값을 분리
+		ExplodeString(tmpStr, valueCut, value, sizeof(value), sizeof(value[]));
+	}
+	strcopy(output, len, value[1]);
+}
+
+/**
+ * 추출 :: 유저 별 언어 환경에 따른 특정 문자열 항목의 값 추출
+ *
+ * @param client					클라이언트 인덱스
+ * @param findStr					대상 문자열
+ * @param output					저장할 문자열
+ * @param len						저장할 문자열 길이
+ *
+ * @ref '||'로 항목을 자르고, ':'로 값을 잘라냄. 국가 코드는 두 글자.
+ */
+stock SelectedGeoNameToString(int client, const char[] findStr, char[] output, int len)
+{
+	// 클라이언트가 없는 경우는 생략
+	if (!IsClientInGame(client))	return;
+
+	char usrip[32];
+	char usrGeo[3];
+	char value[128];
+
+	// 클라이언트의 IP 파악
+	GetClientIP(client, usrip, sizeof(usrip));
+	// IP로 국가 구분(국가 코드는 두 글자)
+	GeoipCode2(usrip, usrGeo);
+
+	// 값 추출
+	SelectedStuffToString(findStr, usrGeo, "||", ":", value, sizeof(value));
+
+	strcopy(output, len, value);
+}
