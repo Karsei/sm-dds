@@ -122,7 +122,12 @@ if (defined('ENVIRONMENT'))
  */
 	// $assign_to_config['name_of_config_item'] = 'value of config item';
 
-
+/*
+ * --------------------------------------------------------------------
+ * LOAD DYNAMIC DOLLAR SHOP CONFIG
+ * --------------------------------------------------------------------
+ */
+	define('DDS_CONFIG_PATH', './config.php');
 
 // --------------------------------------------------------------------
 // END OF USER CONFIGURABLE SETTINGS.  DO NOT EDIT BELOW THIS LINE
