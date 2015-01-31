@@ -1,0 +1,104 @@
+/**
+ * Stylesheet - Main
+ *
+ * Author By. Karsei
+ * http://karsei.pe.kr
+ * 
+ * This Stylesheet is for dynamic dollar shop web panel.
+ *
+ */
+@import "reset.css";
+@import "common.css";
+
+/*************************************
+ * LAYOUT POSITION
+**************************************/
+header {
+    position: relative;
+}
+
+header #title,
+header #gnb {
+    position: absolute;
+}
+header #title {
+    top: 35px;
+    left: 40px;
+}
+header #gnb {
+    top: 20px;
+    right: 20px;
+}
+
+section {
+    top: 80px;
+}
+
+/*************************************
+ * DEFAULT MAIN SET
+**************************************/
+body {
+    font-family: "맑은 고딕", "돋음";
+}
+
+/*************************************
+ * [header]
+**************************************/
+header {
+    min-height: 100px;
+    border-bottom: 1px solid #ededed;
+}
+
+/*******************
+ * Title
+********************/
+#title {
+    font-size: 1.6em;
+    cursor: default;
+}
+
+/*******************
+ * Navi
+********************/
+#gnb {
+    margin: 0px;
+    padding: 0px;
+}
+#gnb li {
+    float: left;
+    padding: 20px;
+    border-right: 1px solid #ededed;
+    cursor: pointer;
+}
+#gnb li:last-child {
+    border: 0px;
+}
+#gnb li:hover {
+    background-color: #ededed;
+}
+
+/*************************************
+ * [section]
+**************************************/
+
+/*******************
+ * Article
+********************/
+article {
+    margin: 20px;
+    padding: 20px;
+    background-color: #ededed;
+}
+article h3 {
+    font-size: 1.2em;
+    font-weight: bold;;
+}
+
+
+/*************************************
+ * [footer]
+**************************************/
+footer {
+    padding: 10px;
+    border-top: 1px solid #ededed;
+}

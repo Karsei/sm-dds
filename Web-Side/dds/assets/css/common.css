@@ -1,0 +1,36 @@
+/**
+ * Stylesheet - Common
+ *
+ * Author By. Karsei
+ * http://karsei.pe.kr
+ * 
+ * This Stylesheet is for dynamic dollar shop web panel.
+ *
+ */
+@charset "utf8";
+
+/*************************************
+ * CLEARFIX
+**************************************/
+.clearfix:before,
+.clearfix:after {
+    content: " ";
+    display: table;
+}
+.clearfix:after {
+    clear: both;
+}
+
+/* For IE6, 7 */
+.clearfix {
+    *zoom: 1;
+}
+
+/*************************************
+ * Response Page
+**************************************/
+.row {
+    margin: 0px auto;
+    width: 100%;
+    max-width: 950px;
+}

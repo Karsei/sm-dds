@@ -1,0 +1,71 @@
+/**
+ * Stylesheet - Login
+ *
+ * Author By. Karsei
+ * http://karsei.pe.kr
+ * 
+ * This Stylesheet is for dynamic dollar shop web panel.
+ *
+ */
+@import "reset.css";
+@import "common.css";
+
+/*************************************
+ * LAYOUT POSITION
+**************************************/
+#header,
+#login {
+    position: absolute;
+}
+
+#header {
+    top: 200px;
+    left: 100px;
+}
+
+#login {
+    bottom: 200px;
+    right: 80px;
+}
+
+/*************************************
+ * DEFAULT MAIN SET
+**************************************/
+body {
+    font-family: "맑은 고딕", "돋음";
+}
+
+
+/*******************
+ * [header]
+********************/
+#header h1 {
+    font-size: 3em;
+}
+
+/*******************
+ * [login]
+********************/
+#login {
+    max-width: 500px;
+    padding: 15px;
+    border: 1px solid #ededed;
+}
+#login p {
+    margin-bottom: 20px;
+}
+#login button {
+    margin-top: 20px;
+}
+#login li {
+    margin-bottom: 10px;
+}
+
+/*******************
+ * [copyright]
+********************/
+#copyright {
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+}
