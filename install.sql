@@ -51,3 +51,17 @@ CREATE TABLE IF NOT EXISTS `dds_item_list` (
 	`status` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
 	PRIMARY KEY (`ilidx`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+/**
+ * Codeigniter
+ */
+CREATE TABLE IF NOT EXISTS  `dds_sessions` (
+	`session_id` VARCHAR(40) NOT NULL DEFAULT '0',
+	`ip_address` VARCHAR(16) NOT NULL DEFAULT '0',
+	`user_agent` VARCHAR(120) NOT NULL,
+	`last_activity` INT(10) UNSIGNED NOT NULL DEFAULT 0,
+	`user_data` TEXT NOT NULL,
+	PRIMARY KEY (`session_id`),
+	KEY `last_activity_idx` (`last_activity`)
+);
