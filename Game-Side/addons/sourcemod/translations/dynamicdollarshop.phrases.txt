@@ -28,6 +28,21 @@
 		"en"				"Nothing"
 	}
 
+	"global name"
+	{
+		"en"				"Name"
+	}
+
+	"global confirm"
+	{
+		"en"				"Confirm"
+	}
+
+	"global cancel"
+	{
+		"en"				"Cancel"
+	}
+
 	/*************************************
 	 * 메뉴 (Menu)
 	 *************************************/
@@ -68,9 +83,24 @@
 		"en"				"My Inventory"
 	}
 
-	"menu main buy category"
+	"menu main buyitem"
 	{
 		"en"				"Buy Items"
+	}
+
+	"menu main buyitem category"
+	{
+		"en"				"Category"
+	}
+
+	"menu main buyitem check"
+	{
+		"en"				"Check"
+	}
+
+	"menu buyitem willbuy"
+	{
+		"en"				"You will buy this item."
 	}
 
 	"menu main setting"
@@ -93,6 +123,31 @@
 		"en"				"Plugin Information"
 	}
 
+	"menu plugininfo cmd"
+	{
+		"en"				"Command Info"
+	}
+
+	"menu plugininfo cmd desc main"
+	{
+		"en"				"Opens a Main Menu"
+	}
+
+	"menu plugininfo author"
+	{
+		"en"				"Author Info"
+	}
+
+	"menu plugininfo license"
+	{
+		"en"				"License Info"
+	}
+
+	"menu plugininfo license detail"
+	{
+		"en"				"Detail"
+	}
+
 	/*************************************
 	 * 오류 (Error)
 	 *************************************/
@@ -108,4 +163,28 @@
 	}
 
 	/** 오류 종류 **/
+	"error sql usrprofile load"
+	{
+		"en"				"An error has occurred while loading the user profile information."
+	}
+
+	"error sql usrprofile make"
+	{
+		"en"				"An error has occurred trying to create the user profile information."
+	}
+
+	"error sql usrprofile cnupdate"
+	{
+		"en"				"An error has occurred while connecting and updating the user profile information."
+	}
+
+	"error sql usrprofile dnupdate"
+	{
+		"en"				"An error has occurred while disconnecting and updating the user profile information."
+	}
+
+	"error sql usrprofile invalid"
+	{
+		"en"				"Inappropriate data has occurred while loading a user profile information."
+	}
 }

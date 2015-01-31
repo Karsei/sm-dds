@@ -28,6 +28,21 @@
 		"ko"				"없음"
 	}
 
+	"global name"
+	{
+		"ko"				"이름"
+	}
+
+	"global confirm"
+	{
+		"ko"				"확인"
+	}
+
+	"global cancel"
+	{
+		"ko"				"취소"
+	}
+
 	/*************************************
 	 * 메뉴 (Menu)
 	 *************************************/
@@ -68,9 +83,24 @@
 		"ko"				"내 인벤토리"
 	}
 
-	"menu main buy category"
+	"menu main buyitem"
 	{
 		"ko"				"아이템 구매"
+	}
+
+	"menu main buyitem category"
+	{
+		"ko"				"항목"
+	}
+
+	"menu main buyitem check"
+	{
+		"ko"				"확인"
+	}
+
+	"menu buyitem willbuy"
+	{
+		"ko"				"선택한 아이템을 구매합니다."
 	}
 
 	"menu main setting"
@@ -93,6 +123,31 @@
 		"ko"				"플러그인 정보"
 	}
 
+	"menu plugininfo cmd"
+	{
+		"ko"				"명령어 정보"
+	}
+
+	"menu plugininfo cmd desc main"
+	{
+		"ko"				"메인 메뉴를 엽니다"
+	}
+
+	"menu plugininfo author"
+	{
+		"ko"				"개발자 정보"
+	}
+
+	"menu plugininfo license"
+	{
+		"ko"				"저작권 정보"
+	}
+
+	"menu plugininfo license detail"
+	{
+		"ko"				"자세한 사항"
+	}
+
 	/*************************************
 	 * 오류 (Error)
 	 *************************************/
@@ -108,4 +163,28 @@
 	}
 
 	/** 오류 종류 **/
+	"error sql usrprofile load"
+	{
+		"ko"				"유저 프로필 정보를 로드하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql usrprofile make"
+	{
+		"ko"				"유저 프로필 정보를 생성하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql usrprofile cnupdate"
+	{
+		"ko"				"유저가 접속 후 프로필을 갱신하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql usrprofile dnupdate"
+	{
+		"ko"				"유저가 접속 해제 후 프로필을 갱신하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql usrprofile invalid"
+	{
+		"ko"				"유저 프로필 정보를 로드하면서 적절하지 않은 데이터가 발생했습니다."
+	}
 }

@@ -78,7 +78,7 @@ int dds_iUserAppliedItem[MAXPLAYERS + 1][DDS_ENV_ITEMCG_MAX + 1];
 *******************************************************/
 public Plugin:myinfo = 
 {
-	name = "Dynamic Dollar Shop",
+	name = DDS_ENV_CORE_NAME,
 	author = DDS_ENV_CORE_AUTHOR,
 	description = "DOLLAR SHOP",
 	version = DDS_ENV_CORE_VERSION,
@@ -134,9 +134,13 @@ public void OnConfigsExecuted()
 	// 플러그인이 꺼져 있을 때는 동작 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
 
-	// SQL 데이터베이스 연결
+	/** SQL 데이터베이스 연결 **/
 	//Database.Connect(SQL_GetDatabase, "dds");
 	SQL_TConnect(SQL_GetDatabase, "dds");
+
+	/** 단축키 연결 **/
+	// N 키
+	RegConsoleCmd("nightvision", Menu_Main);
 }
 
 /**
@@ -150,6 +154,64 @@ public void OnMapEnd()
 		delete dds_hSQLDatabase;
 	}
 	dds_hSQLDatabase = null;
+}
+
+/**
+ * 클라이언트가 접속하면서 스팀 고유번호를 받았을 때
+ *
+ * @param client			클라이언트 인덱스
+ * @param auth				클라이언트 고유 번호(타입 2)
+ */
+public void OnClientAuthorized(client, const String:auth[])
+{
+	// 플러그인이 꺼져 있을 때는 동작 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	// 봇은 제외
+	if (IsFakeClient(client))	return;
+
+	// 유저 데이터 초기화
+	Init_UserData(client, 2);
+
+	// 유저 정보 확인
+	CreateTimer(0.4, SQL_Timer_UserLoad, client);
+}
+
+/**
+ * 클라이언트가 서버로부터 나가고 있을 때
+ *
+ * @param client			클라이언트 인덱스
+ */
+public void OnClientDisconnect(client)
+{
+	// 게임에 없으면 통과
+	if (!IsClientInGame(client))	return;
+
+	// 봇은 제외
+	if (IsFakeClient(client))	return;
+
+	// 클라이언트 고유 번호 추출
+	char sUsrAuthId[20];
+	GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
+
+	// 오류 검출 생성
+	ArrayList hMakeErr = CreateArray(8);
+	hMakeErr.Push(client);
+	hMakeErr.Push(1013);
+	hMakeErr.PushString("");
+
+	// 유저 정보 갱신
+	char sSendQuery[256];
+
+	Format(sSendQuery, sizeof(sSendQuery), "UPDATE `dds_user_profile` SET `ingame` = '0' WHERE `authid` = '%s'", sUsrAuthId);
+	dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
+
+	// 유저 데이터 초기화
+	Init_UserData(client, 2);
+
+	#if defined _DEBUG_
+	DDS_PrintToServer(":: DEBUG :: User Disconnect - Update (client: %N)", client);
+	#endif
 }
 
 
@@ -175,7 +237,7 @@ public void Init_ServerData()
 		Format(dds_eItem[i][Env], 256, "");
 	}
 	// 아이템 0번 'X' 설정
-	Format(dds_eItem[0][Name], 64, "en:X");
+	Format(dds_eItem[0][Name], 64, "EN:X");
 
 	/** 아이템 종류 **/
 	// 아이템 종류 갯수
@@ -188,28 +250,61 @@ public void Init_ServerData()
 		Format(dds_eItemCategory[i][Env], 256, "");
 	}
 	// 아이템 종류 0번 '전체' 설정
-	Format(dds_eItemCategory[0][Name], 64, "en:Total||ko:전체");
+	Format(dds_eItemCategory[0][Name], 64, "EN:Total||KO:전체");
+
+	#if defined _DEBUG_
+	DDS_PrintToServer(":: DEBUG :: Server Data Initialization Complete");
+	#endif
 }
 
 /**
  * 초기화 :: 유저 데이터
+ *
+ * @param client			클라이언트 인덱스
+ * @param mode				처리 모드(1 - 전체 초기화, 2 - 특정 클라이언트 초기화)
  */
-public void Init_UserData()
+public void Init_UserData(int client, int mode)
 {
-	for (int i = 0; i <= MAXPLAYERS; i++)
+	switch (mode)
 	{
-		// 팀 채팅
-		dds_bTeamChat[i] = false;
-
-		// 금액
-		dds_iUserMoney[i] = 0;
-
-		// 장착 아이템
-		for (int k = 0; k <= DDS_ENV_ITEMCG_MAX; k++)
+		case 1:
 		{
-			dds_iUserAppliedItem[i][k] = 0;
+			/** 전체 초기화 **/
+			for (int i = 0; i <= MAXPLAYERS; i++)
+			{
+				// 팀 채팅
+				dds_bTeamChat[i] = false;
+
+				// 금액
+				dds_iUserMoney[i] = 0;
+
+				// 장착 아이템
+				for (int k = 0; k <= DDS_ENV_ITEMCG_MAX; k++)
+				{
+					dds_iUserAppliedItem[i][k] = 0;
+				}
+			}
+		}
+		case 2:
+		{
+			/** 특정 클라이언트 초기화 **/
+			// 팀 채팅
+			dds_bTeamChat[client] = false;
+
+			// 금액
+			dds_iUserMoney[client] = 0;
+
+			// 장착 아이템
+			for (int i = 0; i <= DDS_ENV_ITEMCG_MAX; i++)
+			{
+				dds_iUserAppliedItem[client][i] = 0;
+			}
 		}
 	}
+
+	#if defined _DEBUG_
+	DDS_PrintToServer(":: DEBUG :: User Data Initialization Complete (client: %N, mode: %d)", client, mode);
+	#endif
 }
 
 
@@ -270,9 +365,35 @@ public void LogCodeError(int client, int errcode, const char[] anydata)
 			// SQL 데이터베이스 초기화 시 아이템 목록 로드
 			Format(sDetOutput, sizeof(sDetOutput), "%s Retriving Item List DB is Failure!", sDetOutput);
 		}
-		case 1004:
+		case 1010:
 		{
-			//
+			// 유저가 접속하여 정보를 로드할 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usrprofile load");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Retriving User Profile DB is Failure! (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 1011:
+		{
+			// 유저 체크 후 레코드가 없어 레코드를 만들 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usrprofile make");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Making User Profile is Failure! (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 1012:
+		{
+			// 유저 체크 후 레코드가 있어 정보를 갱신할 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usrprofile cnupdate");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Updating User Profile is Failure! (C&U) (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 1013:
+		{
+			// 유저가 서버로부터 나가면서 갱신 처리할 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usrprofile dnupdate");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Updating User Profile is Failure! (D&U) (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 1014:
+		{
+			// 유저 체크하면서 프로필 목록이 잘못되었을 경우
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usrprofile invalid");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Retrived User Profile DB is invalid. (AuthID: %s)", sDetOutput, usrauth);
 		}
 	}
 
@@ -313,13 +434,17 @@ public void SQL_DDSDatabaseInit()
 	// 서버
 	Init_ServerData();
 	// 유저
-	Init_UserData();
+	Init_UserData(0, 1);
 
 	/** 데이터 로드 **/
+	char sSendQuery[512];
+
 	// 아이템 카테고리 로드
-	dds_hSQLDatabase.Query(SQL_LoadItemCategory, "SELECT * FROM `dds_item_category` WHERE `status`='1' ORDER BY `orderidx` ASC", 0, DBPrio_High);
+	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_item_category` WHERE `status` = '1' ORDER BY `orderidx` ASC");
+	dds_hSQLDatabase.Query(SQL_LoadItemCategory, sSendQuery, 0, DBPrio_High);
 	// 아이템 목록 로드
-	dds_hSQLDatabase.Query(SQL_LoadItemList, "SELECT * FROM `dds_item_list` ORDER BY `ilidx` ASC", 0, DBPrio_High);
+	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_item_list` ORDER BY `ilidx` ASC");
+	dds_hSQLDatabase.Query(SQL_LoadItemList, sSendQuery, 0, DBPrio_High);
 }
 
 
@@ -351,7 +476,7 @@ public Action:Menu_Main(int client, int args)
 	Format(buffer, sizeof(buffer), "%t", "menu main myinven");
 	mMain.AddItem("3", buffer);
 	// '아이템 구매'
-	Format(buffer, sizeof(buffer), "%t", "menu main buy category");
+	Format(buffer, sizeof(buffer), "%t", "menu main buyitem");
 	mMain.AddItem("4", buffer);
 	// '설정'
 	Format(buffer, sizeof(buffer), "%t\n ", "menu main setting");
@@ -432,7 +557,7 @@ public Menu_CurItem(int client)
 
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
-		IntToString(i, sTempIdx, sizeof(sTempIdx));
+		IntToString(dds_eItemCategory[i][Code], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
@@ -490,7 +615,7 @@ public Menu_Inven(int client)
 	{
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
-		IntToString(i, sTempIdx, sizeof(sTempIdx));
+		IntToString(dds_eItemCategory[i][Code], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
 		char sCGName[16];
@@ -534,7 +659,7 @@ public Menu_BuyItem(int client)
 	Menu mMain = new Menu(Main_hdlBuyItem);
 
 	// 제목 설정
-	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main buy category");
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main buyitem");
 	mMain.SetTitle(buffer);
 	mMain.ExitBackButton = true;
 
@@ -546,7 +671,7 @@ public Menu_BuyItem(int client)
 	{
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
-		IntToString(i, sTempIdx, sizeof(sTempIdx));
+		IntToString(dds_eItemCategory[i][Code], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
 		char sCGName[16];
@@ -571,6 +696,124 @@ public Menu_BuyItem(int client)
 		Format(buffer, sizeof(buffer), "%t", "global none");
 		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
 	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 아이템 구매-종류 세부 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+ * @param catecode			아이템 종류 코드
+*/
+public Menu_BuyItem_CateIn(int client, int catecode)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlBuyItem_CateIn);
+
+	// 클라이언트 국가에 따른 아이템 종류 이름 추출
+	char sCGName[16];
+	for (int i = 0; i <= dds_iItemCategoryCount; i++)
+	{
+		if (catecode != dds_eItemCategory[i][Code])	continue;
+
+		SelectedGeoNameToString(client, dds_eItemCategory[i][Name], sCGName, sizeof(sCGName));
+		break;
+	}
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t-%s\n ", "menu common title", "menu common curpos", "menu main buyitem", sCGName);
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 갯수 파악
+	int count;
+
+	// 정보 작성
+	for (int i = 0; i <= dds_iItemCount; i++)
+	{
+		// 0번은 제외
+		if (i == 0)	continue;
+
+		// '전체'' 항목이 아니면서 선택한 아이템 종류가 아닌 아이템은 제외
+		if ((catecode != dds_eItem[i][CateCode]) && catecode != 0)	continue;
+
+		// 번호를 문자열로 치환
+		char sTempIdx[4];
+		IntToString(i, sTempIdx, sizeof(sTempIdx));
+
+		// 클라이언트 국가에 따른 아이템 이름 추출
+		char sItemName[32];
+		SelectedGeoNameToString(client, dds_eItem[i][Name], sItemName, sizeof(sItemName));
+
+		// 메뉴 아이템 등록
+		Format(buffer, sizeof(buffer), "%s - %d %t", sItemName, dds_eItem[i][Money], "global money");
+		mMain.AddItem(sTempIdx, buffer);
+
+		// 갯수 증가
+		count++;
+
+		#if defined _DEBUG_
+		DDS_PrintToChat(client, "\x05:: DEBUG ::\x01 Buy Item-CateIn Menu ~ CG (CateCode: %d, ItemName: %s, ItemIdx: %d, Count: %d)", catecode, sItemName, i, count);
+		#endif
+	}
+
+	// 아이템 종류가 없을 때
+	if (count == 0)
+	{
+		// '없음' 출력
+		Format(buffer, sizeof(buffer), "%t", "global none");
+		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 아이템 구매-정보 세부 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+ * @param itemidx			아이템 번호
+*/
+public Menu_BuyItem_ItemDetail(int client, int itemidx)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlBuyItem_ItemDetail);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t-%t\n ", "menu common title", "menu common curpos", "menu main buyitem", "menu main buyitem check");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 전달 파라메터 기초 생성
+	char sParam[8];
+	Format(sParam, sizeof(sParam), "%d||%d||", itemidx, dds_eItem[itemidx][CateCode]);
+
+	// 클라이언트 국가에 따른 아이템 종류 이름 추출
+	char sItemName[32];
+	SelectedGeoNameToString(client, dds_eItem[itemidx][Name], sItemName, sizeof(sItemName));
+
+	// 메뉴 아이템 등록
+	Format(buffer, sizeof(buffer), "%t", "global confirm");
+	Format(sParam, sizeof(sParam), "%s%d", sParam, 1);
+	mMain.AddItem(sParam, buffer);
+	Format(buffer, sizeof(buffer), "%t\n ", "global cancel");
+	Format(sParam, sizeof(sParam), "%s%d", sParam, 2);
+	mMain.AddItem(sParam, buffer);
+	Format(buffer, sizeof(buffer), "%t\n \n%t: %s\n%t: %d", "menu buyitem willbuy", "global name", sItemName, "global money", dds_eItem[itemidx][Money]);
+	mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+
+	#if defined _DEBUG_
+	DDS_PrintToChat(client, "\x05:: DEBUG ::\x01 Buy Item-ItemDetail Menu ~ CG (ItemIdx: %d, ItemName: %s)", itemidx, sItemName);
+	#endif
 
 	// 메뉴 출력
 	mMain.Display(client, MENU_TIME_FOREVER);
@@ -659,7 +902,7 @@ public Menu_Setting_Item(int client)
 		
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
-		IntToString(i, sTempIdx, sizeof(sTempIdx));
+		IntToString(dds_eItemCategory[i][Code], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
 		char sCGName[16];
@@ -683,6 +926,103 @@ public Menu_Setting_Item(int client)
 		// '없음' 출력
 		Format(buffer, sizeof(buffer), "%t", "global none");
 		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 플러그인 정보 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+*/
+public Menu_PluginInfo(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlPluginInfo);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main plugininfo");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 메뉴 아이템 등록
+	Format(buffer, sizeof(buffer), "%t", "menu plugininfo cmd");
+	mMain.AddItem("1", buffer);
+	Format(buffer, sizeof(buffer), "%t", "menu plugininfo author");
+	mMain.AddItem("2", buffer);
+	Format(buffer, sizeof(buffer), "%t", "menu plugininfo license");
+	mMain.AddItem("3", buffer);
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 플러그인 정보-세부 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+*/
+public Menu_PluginInfo_Detail(int client, int select)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlPluginInfo_Detail);
+
+	// 세부 제목 설정
+	char sDetailTitle[32];
+	switch (select)
+	{
+		case 1:
+		{
+			Format(sDetailTitle, sizeof(sDetailTitle), "%t", "menu plugininfo cmd");
+		}
+		case 2:
+		{
+			Format(sDetailTitle, sizeof(sDetailTitle), "%t", "menu plugininfo author");
+		}
+		case 3:
+		{
+			Format(sDetailTitle, sizeof(sDetailTitle), "%t", "menu plugininfo license");
+		}
+	}
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %s\n ", "menu common title", "menu common curpos", sDetailTitle);
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 메뉴 아이템 등록
+	switch (select)
+	{
+		case 1:
+		{
+			// 명령어 정보
+			Format(buffer, sizeof(buffer), "!%s: %t", DDS_ENV_USER_MAINMENU, "menu plugininfo cmd desc main");
+			mMain.AddItem("1", buffer);
+		}
+		case 2:
+		{
+			// 개발자 정보
+			Format(buffer, sizeof(buffer), "%s - v%s\n ", DDS_ENV_CORE_NAME, DDS_ENV_CORE_VERSION);
+			mMain.AddItem("1", buffer);
+			Format(buffer, sizeof(buffer), "Made By. Karsei\n(http://karsei.pe.kr)");
+			mMain.AddItem("2", buffer);
+		}
+		case 3:
+		{
+			// 저작권 정보
+			Format(buffer, sizeof(buffer), "GNU General Public License 3 (GNU GPL v3)\n ");
+			mMain.AddItem("1", buffer);
+			Format(buffer, sizeof(buffer), "%t: http://www.gnu.org/licenses/", "menu plugininfo license detail");
+			mMain.AddItem("2", buffer);
+		}
 	}
 
 	// 메뉴 출력
@@ -897,6 +1237,121 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 	}
 }
 
+/**
+ * SQL 유저 :: 유저 정보 로드 딜레이
+ *
+ * @param timer					타이머 핸들
+ * @param client				클라이언트 인덱스
+ */
+public Action:SQL_Timer_UserLoad(Handle timer, any client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Stop;
+
+	// 클라이언트 고유 번호 추출
+	char sUsrAuthId[20];
+	GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
+
+	// 데이터 로드
+	char sSendQuery[512];
+
+	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_profile` WHERE `authid` = '%s'", sUsrAuthId);
+	dds_hSQLDatabase.Query(SQL_UserLoad, sSendQuery, client);
+
+	return Plugin_Stop;
+}
+
+/**
+ * SQL 유저 :: 유저 정보 로드
+ *
+ * @param db					데이터베이스 연결 핸들
+ * @param results				결과 쿼리
+ * @param error					오류 문자열
+ * @param client				클라이언트 인덱스
+ */
+public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, any client)
+{
+	// 쿼리 오류 검출
+	if (db == null || error[0])
+	{
+		LogCodeError(client, 1010, error);
+		return;
+	}
+
+	// 갯수 파악
+	int count;
+
+	// 임시 정보 저장
+	int iTempMoney;
+
+	// 쿼리 결과
+	while (results.MoreRows)
+	{
+		// 제시할 행이 없다면 통과
+		if (!results.FetchRow())	continue;
+
+		// 데이터 추가
+		iTempMoney = results.FetchInt(2);
+
+		// 유저 파악 갯수 증가
+		count++;
+
+		#if defined _DEBUG_
+		DDS_PrintToServer(":: DEBUG :: User Load - Checked (client: %N, Money: %d)", client, iTempMoney);
+		#endif
+	}
+
+	/** 추후 작업 **/
+	char sSendQuery[256];
+
+	// 클라이언트 고유 번호 추출
+	char sUsrAuthId[20];
+	GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
+
+	if (count == 0)
+	{
+		/** 등록된 것이 없다면 정보 생성 **/
+		// 오류 검출 생성
+		ArrayList hMakeErr = CreateArray(8);
+		hMakeErr.Push(client);
+		hMakeErr.Push(1011);
+		hMakeErr.PushString("");
+
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), "INSERT INTO `dds_user_profile` (`idx`, `authid`, `money`, `ingame`) VALUES (NULL, '%s', '0', '1')", sUsrAuthId);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
+
+		#if defined _DEBUG_
+		DDS_PrintToServer(":: DEBUG :: User Load - Make (client: %N)", client);
+		#endif
+	}
+	else if (count == 1)
+	{
+		/** 등록된 것이 있다면 정보 로드 및 갱신 **/
+		// 오류 검출 생성
+		ArrayList hMakeErr = CreateArray(8);
+		hMakeErr.Push(client);
+		hMakeErr.Push(1012);
+		hMakeErr.PushString("");
+
+		// 금액 로드
+		dds_iUserMoney[client] = iTempMoney;
+
+		// 인게임 처리
+		Format(sSendQuery, sizeof(sSendQuery), "UPDATE `dds_user_profile` SET `ingame` = '1' WHERE `authid` = '%s'", sUsrAuthId);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
+
+		#if defined _DEBUG_
+		DDS_PrintToServer(":: DEBUG :: User Load - Update (client: %N)", client);
+		#endif
+	}
+	else
+	{
+		/** 잘못된 정보 **/
+		LogCodeError(client, 1014, "The number of this user profile db must be one.");
+	}
+}
+
 
 /**
  * 메뉴 핸들 :: 메인 메뉴 핸들러
@@ -949,6 +1404,7 @@ public Main_hdlMain(Menu menu, MenuAction action, int client, int item)
 			case 9:
 			{
 				// 플러그인 정보
+				Menu_PluginInfo(client);
 			}
 		}
 	}
@@ -1019,7 +1475,7 @@ public Main_hdlCurItem(Menu menu, MenuAction action, int client, int item)
 			/**
 			 * iInfo
 			 * 
-			 * @Desc 등록된 아이템 종류 번호(코드 아님, '전체' 없음)
+			 * @Desc 등록된 아이템 종류 코드 ('전체' 없음)
 			 */
 			default:
 			{
@@ -1063,7 +1519,7 @@ public Main_hdlInven(Menu menu, MenuAction action, int client, int item)
 			/**
 			 * iInfo
 			 * 
-			 * @Desc 등록된 아이템 종류 번호(코드 아님)
+			 * @Desc 등록된 아이템 종류 코드
 			 */
 			default:
 			{
@@ -1102,18 +1558,12 @@ public Main_hdlBuyItem(Menu menu, MenuAction action, int client, int item)
 		menu.GetItem(item, sInfo, sizeof(sInfo));
 		int iInfo = StringToInt(sInfo);
 
-		switch (iInfo)
-		{
-			/**
-			 * iInfo
-			 * 
-			 * @Desc 등록된 아이템 종류 번호(코드 아님)
-			 */
-			default:
-			{
-				// 아직 없음
-			}
-		}
+		/**
+		 * iInfo
+		 * 
+		 * @Desc 등록된 아이템 종류 코드
+		 */
+		Menu_BuyItem_CateIn(client, iInfo);
 	}
 
 	if (action == MenuAction_Cancel)
@@ -1124,6 +1574,97 @@ public Main_hdlBuyItem(Menu menu, MenuAction action, int client, int item)
 		}
 	}
 }
+
+/**
+ * 메뉴 핸들 :: 아이템 구매-종류 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlBuyItem_CateIn(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		/**
+		 * iInfo
+		 * 
+		 * @Desc 등록된 아이템 번호
+		 */
+		Menu_BuyItem_ItemDetail(client, iInfo);
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_BuyItem(client);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 아이템 구매-정보 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlBuyItem_ItemDetail(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	char sInfo[32];
+	menu.GetItem(item, sInfo, sizeof(sInfo));
+
+	// 파라메터 분리
+	char sGetParam[3][8];
+	ExplodeString(sInfo, "||", sGetParam, sizeof(sGetParam), sizeof(sGetParam[]));
+
+	if (action == MenuAction_Select)
+	{
+		/**
+		 * sGetParam
+		 * 
+		 * @Desc [1] - 아이템 번호, [2] - 아이템 종류 코드, [3] 1 - 확인 / 2- 취소 
+		 */
+		switch (StringToInt(sGetParam[2]))
+		{
+			case 1:
+			{
+				// 확인
+			}
+			case 2:
+			{
+				// 취소
+				// 없음(그냥 닫게 만듬)
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_BuyItem_CateIn(client, StringToInt(sGetParam[1]));
+		}
+	}
+}
+
 
 /**
  * 메뉴 핸들 :: 설정 메뉴 핸들러
@@ -1245,7 +1786,7 @@ public Main_hdlSetting_Item(Menu menu, MenuAction action, int client, int item)
 			/**
 			 * iInfo
 			 * 
-			 * @Desc 등록된 아이템 종류 번호(코드 아님)
+			 * @Desc 등록된 아이템 종류 코드
 			 */
 			case 1:
 			{
@@ -1259,6 +1800,91 @@ public Main_hdlSetting_Item(Menu menu, MenuAction action, int client, int item)
 		if (item == MenuCancel_ExitBack)
 		{
 			Menu_Setting(client);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 플러그인 정보 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlPluginInfo(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		/**
+		 * iInfo
+		 * 
+		 * @Desc 1 - 명령어 정보, 2 - 개발자 정보, 3 - 저작권 정보
+		 */
+		if ((iInfo > 0) && (iInfo < 4))
+		{
+			Menu_PluginInfo_Detail(client, iInfo);
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_Main(client, 0);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 플러그인 정보-세부 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlPluginInfo_Detail(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
+		{
+			/**
+			 * iInfo
+			 * 
+			 * @Desc 없음
+			 */
+			default:
+			{
+				// 없음
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_PluginInfo(client);
 		}
 	}
 }

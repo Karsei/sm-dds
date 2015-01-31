@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  * 
  ***********************************************************************/
+#define DDS_ENV_CORE_NAME						"Dynamic Dollar Shop"
 #define DDS_ENV_CORE_AUTHOR						"Karsei"
 #define DDS_ENV_CORE_VERSION					"2.0.0"
 #define DDS_ENV_CORE_HOMEPAGE					"http://karsei.pe.kr"
