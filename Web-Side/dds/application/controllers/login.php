@@ -21,7 +21,7 @@ class Login extends CI_Controller {
 
 		// 스팀 Web API는 OpenID 2.0을 사용하고 있으므로 라이브러리 로드
 		$oid = $this->lightopenid;
-
+		
 		// 상황별 구분
 		if (!$oid->mode)
 		{
@@ -34,13 +34,13 @@ class Login extends CI_Controller {
 		}
 		else if ($oid->mode == 'cancel')
 		{
-			var_dump("No");
+			redirect('/login/');
 		}
 		else
 		{
 			if ($oid->validate())
 			{
-				preg_match("/^http:\/\/steamcommunity\.com\/openid\/id\/(7[0-9]{15,25}+)$/", $openid->identity, $stid);
+				preg_match("/^http:\/\/steamcommunity\.com\/openid\/id\/(7[0-9]{15,25}+)$/", $oid->identity, $stid);
 				$this->session->set_userdata('auth_id', $stid[1]);
 				redirect('/login/');
 			}
