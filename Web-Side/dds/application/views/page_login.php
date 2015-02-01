@@ -6,6 +6,7 @@
         
         <title><? echo PRODUCT_NAME; ?> :: Login</title>
         <link rel="stylesheet" href="<? echo assets_url(); ?>css/login.css">
+        <link rel="shortcut icon" type="image/x-icon" href="<? echo images_url(); ?>favicon.ico">
     </head>
     
     <body>
