@@ -13,7 +13,7 @@ class Install_m extends CI_Model {
 	{
 		$stepList = array(
 			array(1, '라이센스 확인'),
-			array(2, '퍼미션 확인'),
+			array(2, '퍼미션 및 환경 확인'),
 			array(3, '설치 준비'),
 			array(4, '설치'),
 			array(5, '필요 정보 입력'),
@@ -59,24 +59,80 @@ class Install_m extends CI_Model {
 			{
 				$attr = array('step' => '3');
 				$rval .= form_open('install', '', $attr);
-				$rval .= '<p>설치를 계속 진행하기 위해서는 다음 폴더의 권한이 <strong>707</strong> 또는 <strong>777</strong> 이어야 합니다.</p>';
+				$rval .= '<p>설치를 진행하기 위해서는 다음 두 가지 사항이 먼저 마련되어야 합니다.</p>';
+				$rval .= '<p> - \'conf\' 폴더의 권한이 <strong>707</strong> 또는 <strong>777</strong> 이어야 합니다.<br>';
+				$rval .= ' - 웹 서버에서 <strong>cUrl</strong>의 <strong>HTTPS 프로토콜</strong>을 지원해야 합니다. 이는 웹 패널에서의 인증과 관련이 있습니다.</p>';
 				$rval .= '<p><ul><li>\'conf\' 폴더: ';
 
 				// 폴더 권한 확인
+				$totalChk = FALSE;
 				$dirChk = octal_permissions(fileperms('./conf'));
 				if ($dirChk == "707" || $dirChk == "777") {
 					$rval .= '<strong class="green">' . $dirChk . '</strong> (' . symbolic_permissions(fileperms('./conf')) . ')';
-					$rval .= '</li></ul>';
-					$rval .= '</p>';
+					$rval .= '</li>';
+					$totalChk = TRUE;
+				} else {
+					$rval .= '<strong class="red">' . $dirChk . '</strong> (' . symbolic_permissions(fileperms('./conf')) . ')';
+					$rval .= '</li>';
+					$totalChk = FALSE;
+				}
+
+				// cUrl 기능 확인(HTTPS)
+				$rval .= '<li>cUrl의 HTTPS 프로토콜 지원: ';
+				$getcurl = FALSE;
+				$getExt = get_loaded_extensions();
+				for ($i = 0; $i < count($getExt); $i++)
+				{
+					if (strcmp($getExt[$i], 'curl') == 0)
+					{
+						// cUrl 라이브러리 파악
+						$getcurl = TRUE;
+
+						// 테스트 시작
+						$testCurl = curl_init();
+
+						// 역시 구글이 체고!
+						curl_setopt($testCurl, CURLOPT_URL, 'https://www.google.co.kr/');
+						curl_setopt($testCurl, CURLOPT_SSL_VERIFYPEER, FALSE);
+						curl_setopt($testCurl, CURLOPT_SSLVERSION, 3);
+						curl_setopt($testCurl, CURLOPT_HEADER, 0);
+						curl_setopt($testCurl, CURLOPT_RETURNTRANSFER, 1);
+						curl_setopt($testCurl, CURLOPT_POST, 0);
+						curl_setopt($testCurl, CURLOPT_TIMEOUT, 3);
+						$testBuf = curl_exec($testCurl);
+						$testInfo = curl_getinfo($testCurl);
+
+						// 정상 작동(200)
+						if ($testInfo['http_code'] != 200)
+						{
+							if (curl_errno($testCurl))
+							{
+								$rval .= '<strong class="red">미지원</strong></li>';
+								$totalChk = FALSE;
+								break;
+							}
+						}
+						curl_close($testCurl);
+
+						$rval .= '<strong class="green">지원</strong></li>';
+						$totalChk = TRUE;
+						break;
+					}
+				}
+
+				if (!$getcurl) {
+					$rval .= '<strong class="red">cUrl Extension 없음</strong></li>';
+				}
+
+				$rval .= '</ul></p>';
+				
+				if ($totalChk) {
 					$rval .= '<div class="buttongrp">';
 					$rval .= form_button(array('name' => 'submit', 'type' => 'submit', 'content' => '<i class="fa fa-chevron-right"></i>'));
 					$rval .= '</div>';
 				} else {
-					$rval .= '<strong class="red">' . $dirChk . '</strong> (' . symbolic_permissions(fileperms('./conf')) . ')';
-					$rval .= '</li></ul>';
-					$rval .= '</p>';
 					$rval .= '<div class="buttongrp">';
-					$rval .= form_button(array('name' => 'nosubmit', 'type' => 'submit', 'content' => '<i class="fa fa-chevron-right"></i>'));
+					$rval .= form_button(array('name' => 'nosubmit', 'type' => 'button', 'content' => '<i class="fa fa-chevron-right"></i>'));
 					$rval .= '</div>';
 				}
 				$rval .= form_close();
@@ -103,6 +159,8 @@ class Install_m extends CI_Model {
 
 				// 데이터베이스 설치
 				$rval .= '<p>데이터베이스 설치: ';
+
+				$totalChk = FALSE;
 				$sqlPath = read_file(CONFIG_PATH . '/install.sql');
 				if (!$sqlPath) {
 					$rval .= '<strong class="red">SQL 파일이 없습니다.</strong></p>';
@@ -119,15 +177,23 @@ class Install_m extends CI_Model {
 					}
 
 					if (!$qRst) {
+						$totalChk = FALSE;
 						$rval .= '<strong class="red">설치 도중 오류가 발생했습니다.</strong></p>';
 					} else {
+						$totalChk = TRUE;
 						$rval .= '<strong class="green">정상적으로 설치되었습니다.</strong></p>';
 					}
 				}
 
-				$rval .= '<div class="buttongrp">';
-				$rval .= form_button(array('name' => 'submit', 'type' => 'submit', 'content' => '<i class="fa fa-chevron-right"></i>'));
-				$rval .= '</div>';
+				if ($totalChk) {
+					$rval .= '<div class="buttongrp">';
+					$rval .= form_button(array('name' => 'submit', 'type' => 'submit', 'content' => '<i class="fa fa-chevron-right"></i>'));
+					$rval .= '</div>';
+				} else {
+					$rval .= '<div class="buttongrp">';
+					$rval .= form_button(array('name' => 'nosubmit', 'type' => 'button', 'content' => '<i class="fa fa-chevron-right"></i>'));
+					$rval .= '</div>';
+				}
 				$rval .= form_close();
 				break;
 			}
