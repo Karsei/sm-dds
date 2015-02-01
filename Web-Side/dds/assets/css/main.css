@@ -37,8 +37,12 @@ section {
 /*************************************
  * DEFAULT MAIN SET
 **************************************/
-body {
-    font-family: "맑은 고딕", "돋음";
+a,
+a:visited,
+a:link,
+a:active,
+a:hover {
+    color: black;
 }
 
 /*************************************
@@ -73,7 +77,8 @@ header {
 #gnb li:last-child {
     border: 0px;
 }
-#gnb li:hover {
+#gnb li:hover,
+#gnb .focus {
     background-color: #ededed;
 }
 
@@ -89,9 +94,23 @@ article {
     padding: 20px;
     background-color: #ededed;
 }
-article h3 {
-    font-size: 1.2em;
-    font-weight: bold;;
+article .title {
+    margin-bottom: 13px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #919191;
+}
+article .title h3 {
+    display: inline;
+    font-size: 1.6em;
+    font-weight: bold;
+}
+article .title i {
+    float: left;
+    margin-right: 10px;
+}
+
+article .detail {
+    //
 }
 
 

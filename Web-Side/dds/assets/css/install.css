@@ -50,7 +50,7 @@
  * DEFAULT MAIN SET
 **************************************/
 body {
-    font-family: "맑은 고딕", "돋음";
+    background: url('../../images/install_bg.jpg');
 }
 
 strong {
@@ -124,6 +124,14 @@ strong {
     margin: 10px;
 }
 
+#setup .contents label {
+    margin-right: 10px;
+}
+
+#setup .contents input {
+    width: 260px;
+}
+
 #setup .contents .buttongrp {
     width: 100%;
     max-width: 670px;
@@ -132,7 +140,7 @@ strong {
     text-align: right;
     border-top: 1px solid #9b9b9b;
 }
-#setup .contents .buttongrp input[name="nosubmit"] {
+#setup .contents .buttongrp button[name="nosubmit"] {
     width: 70px;
     height: 30px;
     border: 1px solid gray;
@@ -141,13 +149,13 @@ strong {
     background-color: #EEEEEE;
     cursor: not-allowed;
 }
-#setup .contents .buttongrp input[name="submit"] {
+#setup .contents .buttongrp button[name="submit"] {
     width: 70px;
     height: 30px;
     border: 1px solid gray;
     border-radius: 5px;
     cursor: pointer;
 }
-#setup .contents .buttongrp input[name="submit"]:hover {
+#setup .contents .buttongrp button[name="submit"]:hover {
     background-color: #d5d5d5;
 }

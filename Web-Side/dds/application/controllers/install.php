@@ -10,7 +10,7 @@ class Install extends CI_Controller {
 		$this->load->model('install_m');
 
 		// 이미 설치가 되어 있다면 기본 페이지로 이동
-		if (file_exists(DDS_CONFIG_PATH . '/config.php'))
+		if (file_exists(CONFIG_PATH . '/config.php'))
 		{
 			redirect('/home/');
 		}
@@ -33,11 +33,6 @@ class Install extends CI_Controller {
 		$this->load->view('install/_top');
 		$this->load->view('install/main', $data);
 		$this->load->view('install/_foot');
-	}
-
-	public function get()
-	{
-		// 
 	}
 }
 

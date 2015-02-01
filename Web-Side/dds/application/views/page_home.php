@@ -1,14 +1,10 @@
         <section id="contents" class="row">
-            <article id="home">
-                <h3>홈</h3>
-                메인 페이지입니다.
-            </article>
-            <article id="myacc">
-                <h3>내 정보</h3>
-                내 정보입니다.
-            </article>
-            <article id="itemad">
-                <h3>아이템 관리</h3>
-                아이템 관리입니다.
+            <article>
+                <div class="title">
+                    <i class="fa fa-home fa-2x"></i><h3 class="clearfix">홈</h3>
+                </div>
+                <div class="detail">
+                    <p>메인 페이지입니다.</p>
+                </div>
             </article>
         </section>
