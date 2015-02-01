@@ -227,7 +227,7 @@ $config['cache_path'] = '';
 | MUST set an encryption key.  See the user guide for info.
 |
 */
-$config['encryption_key'] = 'dds_ohyeah';
+$config['encryption_key'] = 'ddstr4T$%df(!mkAm$#&msk@g+.4@Sam';
 
 /*
 |--------------------------------------------------------------------------
@@ -250,10 +250,10 @@ $config['encryption_key'] = 'dds_ohyeah';
 $config['sess_cookie_name']		= 'dds_session';
 $config['sess_expiration']		= 7200;
 $config['sess_expire_on_close']	= FALSE;
-$config['sess_encrypt_cookie']	= TRUE;
+$config['sess_encrypt_cookie']	= FALSE;
 $config['sess_use_database']	= TRUE;
 $config['sess_table_name']		= 'dds_sessions';
-$config['sess_match_ip']		= FALSE;
+$config['sess_match_ip']		= TRUE;
 $config['sess_match_useragent']	= TRUE;
 $config['sess_time_to_update']	= 300;
 

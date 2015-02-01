@@ -8,7 +8,7 @@ class Home extends CI_Controller {
 
 		// 설치가 되지 않은 경우 설치 페이지로 이동
 		$this->load->helper('url');
-		if (!file_exists(DDS_CONFIG_PATH))
+		if (!file_exists(DDS_CONFIG_PATH . '/config.php'))
 		{
 			redirect('/install/');
 		}

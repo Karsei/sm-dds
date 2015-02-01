@@ -127,7 +127,7 @@ if (defined('ENVIRONMENT'))
  * LOAD DYNAMIC DOLLAR SHOP CONFIG
  * --------------------------------------------------------------------
  */
-	define('DDS_CONFIG_PATH', './config.php');
+	define('DDS_CONFIG_PATH', './conf');
 
 // --------------------------------------------------------------------
 // END OF USER CONFIGURABLE SETTINGS.  DO NOT EDIT BELOW THIS LINE
