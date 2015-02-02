@@ -28,6 +28,11 @@
 		"ko"				"없음"
 	}
 
+	"global nothing"
+	{
+		"ko"				"없음"
+	}
+
 	"global name"
 	{
 		"ko"				"이름"
@@ -41,6 +46,31 @@
 	"global cancel"
 	{
 		"ko"				"취소"
+	}
+
+	"global use"
+	{
+		"ko"				"사용하기"
+	}
+
+	"global resell"
+	{
+		"ko"				"되팔기"
+	}
+
+	"global gift"
+	{
+		"ko"				"선물하기"
+	}
+
+	"global drop"
+	{
+		"ko"				"버리기"
+	}
+
+	"global applied"
+	{
+		"ko"				"장착중"
 	}
 
 	/*************************************
@@ -78,9 +108,24 @@
 		"ko"				"장착한"
 	}
 
+	"menu mycuritem apply cancel"
+	{
+		"ko"				"장착 해제"
+	}
+
 	"menu main myinven"
 	{
 		"ko"				"내 인벤토리"
+	}
+
+	"menu main myinven check"
+	{
+		"ko"				"확인"
+	}
+
+	"menu myinven info"
+	{
+		"ko"				"해당 아이템 정보입니다."
 	}
 
 	"menu main buyitem"
@@ -149,6 +194,35 @@
 	}
 
 	/*************************************
+	 * 시스템 (System)
+	 *************************************/
+	"system user buy"
+	{
+	 	"ko"				"'[{1}] {2}' 아이템을 구매하였습니다."
+	}
+
+	"system user curitem cancel"
+	{
+		"#format"			"{1:s},{2:s}"
+		"ko"				"'[{1}] {2}' 아이템을 장착 해제하였습니다."
+	}
+
+	"system user inven use prev"
+	{
+		"ko"				"'[{1}] {2}' 아이템을 장착 해제하였습니다."
+	}
+
+	"system user inven use after"
+	{
+		"ko"				"'[{1}] {2}' 아이템을 장착했습니다."
+	}
+
+	"system user inven drop"
+	{
+		"ko"				"'[{1}] {2}' 아이템을 버렸습니다."
+	}
+
+	/*************************************
 	 * 오류 (Error)
 	 *************************************/
 	/*** 공통 ***/
@@ -186,5 +260,45 @@
 	"error sql usrprofile invalid"
 	{
 		"ko"				"유저 프로필 정보를 로드하면서 적절하지 않은 데이터가 발생했습니다."
+	}
+
+	"error sql usritem curitem"
+	{
+		"ko"				"유저 아이템 정보를 로드하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql usritem inventory"
+	{
+		"ko"				"유저 아이템 정보를 로드하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql itemproc buy"
+	{
+		"ko"				"구입하는 아이템 정보를 저장하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc buy money"
+	{
+		"ko"				"유저의 금액을 갱신하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc inven use prev"
+	{
+		"ko"				"기존 아이템의 장착 해제 정보를 갱신하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc inven use after"
+	{
+		"ko"				"해당 아이템의 장착 정보를 갱신하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc curitem cancel"
+	{
+		"ko"				"기존 아이템의 장착 해제 정보를 갱신하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc inven drop"
+	{
+		"ko"				"해당 아이템을 삭제하면서 오류가 발생했습니다."
 	}
 }

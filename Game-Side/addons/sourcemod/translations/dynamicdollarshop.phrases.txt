@@ -25,6 +25,11 @@
 
 	"global none"
 	{
+		"en"				"None"
+	}
+
+	"global nothing"
+	{
 		"en"				"Nothing"
 	}
 
@@ -41,6 +46,31 @@
 	"global cancel"
 	{
 		"en"				"Cancel"
+	}
+
+	"global use"
+	{
+		"en"				"Use"
+	}
+
+	"global resell"
+	{
+		"en"				"Resell"
+	}
+
+	"global gift"
+	{
+		"en"				"Gift"
+	}
+
+	"global drop"
+	{
+		"en"				"Drop"
+	}
+
+	"global applied"
+	{
+		"en"				"Applied"
 	}
 
 	/*************************************
@@ -78,9 +108,24 @@
 		"en"				"Applied"
 	}
 
+	"menu mycuritem apply cancel"
+	{
+		"en"				"Cancel Applied"
+	}
+
 	"menu main myinven"
 	{
 		"en"				"My Inventory"
+	}
+
+	"menu main myinven check"
+	{
+		"en"				"Check"
+	}
+
+	"menu myinven info"
+	{
+		"en"				"Here is this item info."
 	}
 
 	"menu main buyitem"
@@ -149,6 +194,39 @@
 	}
 
 	/*************************************
+	 * 시스템 (System)
+	 *************************************/
+	"system user buy"
+	{
+	 	"#format"			"{1:s},{2:s}"
+	 	"en"				"You buy '[{1}] {2}' Item."
+	}
+
+	"system user curitem cancel"
+	{
+		"#format"			"{1:s},{2:s}"
+		"en"				"You have canceled '[{1}] {2}' Item."
+	}
+
+	"system user inven use prev"
+	{
+		"#format"			"{1:s},{2:s}"
+		"en"				"You have canceled '[{1}] {2}' Item."
+	}
+
+	"system user inven use after"
+	{
+		"#format"			"{1:s},{2:s}"
+		"en"				"You have applied '[{1}] {2}' Item."
+	}
+
+	"system user inven drop"
+	{
+		"#format"			"{1:s},{2:s}"
+		"en"				"You have dropped '[{1}] {2}' Item."
+	}
+
+	/*************************************
 	 * 오류 (Error)
 	 *************************************/
 	/*** 공통 ***/
@@ -186,5 +264,45 @@
 	"error sql usrprofile invalid"
 	{
 		"en"				"Inappropriate data has occurred while loading a user profile information."
+	}
+
+	"error sql usritem curitem"
+	{
+		"en"				"An error has occurred while loading the user items."
+	}
+
+	"error sql usritem inventory"
+	{
+		"en"				"An error has occurred while loading the user items."
+	}
+
+	"error sql itemproc buy"
+	{
+		"en"				"An error has occurred trying to insert user item db with buy."
+	}
+
+	"error sql itemproc buy money"
+	{
+		"en"				"An error has occurred while updating the user's money."
+	}
+
+	"error sql itemproc inven use prev"
+	{
+		"en"				"An error has occurred while updating the previous applied user item."
+	}
+
+	"error sql itemproc inven use after"
+	{
+		"en"				"An error has occurred while updating apply user item."
+	}
+
+	"error sql itemproc curitem cancel"
+	{
+		"en"				"An error has occurred while updating the previous applied user item."
+	}
+
+	"error sql itemproc inven drop"
+	{
+		"en"				"An error has occurred while deleting user item."
 	}
 }
