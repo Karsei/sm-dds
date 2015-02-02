@@ -199,7 +199,7 @@
 	"system user buy"
 	{
 	 	"#format"			"{1:s},{2:s}"
-	 	"en"				"You buy '[{1}] {2}' Item."
+	 	"en"				"You have bought '[{1}] {2}' Item."
 	}
 
 	"system user curitem cancel"
@@ -218,6 +218,23 @@
 	{
 		"#format"			"{1:s},{2:s}"
 		"en"				"You have applied '[{1}] {2}' Item."
+	}
+
+	"system user inven gift send"
+	{
+		"#format"			"{1:s},{2:s},{3:s}"
+		"en"				"You have gifted '[{1}] {2}' Item to '{3}'."
+	}
+
+	"system user inven gift take"
+	{
+		"#format"			"{1:s},{2:s},{3:s}"
+		"en"				"You have taked '[{1}] {2}' Item from '{3}'."
+	}
+
+	"system user inven gift tarerr"
+	{
+		"en"				"Target client is not in game."
 	}
 
 	"system user inven drop"
@@ -304,5 +321,15 @@
 	"error sql itemproc inven drop"
 	{
 		"en"				"An error has occurred while deleting user item."
+	}
+
+	"error sql itemproc inven gift"
+	{
+		"en"				"An error has occurred while sending a gift."
+	}
+
+	"error sql itemproc inven gift target"
+	{
+		"en"				"An error has occurred while taking a gift."
 	}
 }

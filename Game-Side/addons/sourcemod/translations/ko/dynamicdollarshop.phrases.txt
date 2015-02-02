@@ -217,6 +217,21 @@
 		"ko"				"'[{1}] {2}' 아이템을 장착했습니다."
 	}
 
+	"system user inven gift send"
+	{
+		"ko"				"'{3}'님에게 '[{1}] {2}' 아이템을 선물하였습니다."
+	}
+
+	"system user inven gift take"
+	{
+		"ko"				"'{3}'님으로부터 '[{1}] {2}' 아이템을 받았습니다."
+	}
+
+	"system user inven gift tarerr"
+	{
+		"ko"				"대상 클라이언트가 게임 내에 없습니다."
+	}
+
 	"system user inven drop"
 	{
 		"ko"				"'[{1}] {2}' 아이템을 버렸습니다."
@@ -300,5 +315,15 @@
 	"error sql itemproc inven drop"
 	{
 		"ko"				"해당 아이템을 삭제하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc inven gift"
+	{
+		"ko"				"선물을 위해 해당 아이템을 삭제하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc inven gift target"
+	{
+		"ko"				"선물을 받아 아이템을 등록하면서 오류가 발생했습니다."
 	}
 }

@@ -319,13 +319,13 @@ public void Init_UserData(int client, int mode)
 
 
 /**
- * System :: 아이템 처리 시스템
+ * System :: 데이터 처리 시스템
  *
  * @param client			클라이언트 인덱스
  * @param process			행동 구별
  * @param data				추가 파라메터
  */
-public void System_ItemProcess(int client, const char[] process, const char[] data)
+public void System_DataProcess(int client, const char[] process, const char[] data)
 {
 	/******************************************************************************
 	 * A T T E N S I O N  / 주의
@@ -334,7 +334,7 @@ public void System_ItemProcess(int client, const char[] process, const char[] da
 	 * 중요 부분이니 함부로 건들지 말 것
 	 * 데이터가지고 놀기 때문에 잘못하면 엄청나게 잘못될 수 있으므로 주의
 	 *
-	 * 아이템을 처리할 때는 행동별로 다양하고 동적인게 많으므로 배열로
+	 * 데이터를 처리할 때는 행동별로 다양하고 동적인게 많으므로 배열로
 	 * 처리하는 것보다는 문자열로 값을 하나하나 항목별로 전해주어
 	 * 원하는 항목을 잘라 처리하는게 좋아 보여 'data' 파라메터를 만들어 
 	 * 처리해야 하는 항목만 전달할 수 있도록 변경
@@ -370,6 +370,10 @@ public void System_ItemProcess(int client, const char[] process, const char[] da
 	 * 'inven-drop' - 인벤토리에서의 아이템 버리기
 	 * 'curitem-cancel' - 내 장착 아이템에서의 장착 해제
 	 * 'curitem-use' - 내 장착 아이템에서의 장착('inven-use'와 함께 사용)
+	 *
+	 * 'money-up' - 금액 증가
+	 * 'money-down' - 금액 감소
+	 * 'money-gift' - 금액 선물
 	 *
 	*******************************************************************************/
 	if (StrEqual(process, "buy", false))
@@ -539,7 +543,79 @@ public void System_ItemProcess(int client, const char[] process, const char[] da
 
 		/*************************
 		 * 전달 파라메터 구분
+		 *
+		 * [0] - 데이터베이스 번호
+		 * [1] - 아이템 번호
+		 * [2] - 대상 클라이언트 유저ID
 		**************************/
+		char sTempStr[3][20];
+		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+		int iDBIdx = StringToInt(sTempStr[0]);
+		int iItemIdx = StringToInt(sTempStr[1]);
+		int iTargetUid = StringToInt(sTempStr[2]);
+
+		/*************************
+		 * 대상 클라이언트 검증
+		**************************/
+		int iTarget = GetClientOfUserId(iTargetUid);
+		if (!IsClientInGame(iTarget))
+		{
+			Format(sBuffer, sizeof(sBuffer), "%t", "system user inven gift tarerr", sCGName, sItemName);
+			DDS_PrintToChat(client, sBuffer);
+			return;
+		}
+
+		/*************************
+		 * 본인 아이템 정보 삭제
+		**************************/
+		// 오류 검출 생성
+		ArrayList hMakeErrIf = CreateArray(8);
+		hMakeErrIf.Push(client);
+		hMakeErrIf.Push(2016);
+
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"DELETE FROM `dds_user_item` WHERE `idx` = '%d' and `authid` = '%s' and `ilidx` = '%d'", 
+			iDBIdx, sClient_AuthId, iItemIdx);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIf);
+
+		/*************************
+		 * 대상 아이템 정보 등록
+		**************************/
+		// 대상 클라이언트 고유번호 추출
+		char sTargetAuthId[20];
+		GetClientAuthId(iTarget, AuthId_SteamID64, sTargetAuthId, sizeof(sTargetAuthId));
+
+		// 오류 검출 생성
+		ArrayList hMakeErrIt = CreateArray(8);
+		hMakeErrIt.Push(iTarget);
+		hMakeErrIt.Push(2017);
+
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"INSERT INTO `dds_user_item` (`idx`, `authid`, `ilidx`, `aplied`, `buydate`) VALUES (NULL, '%s', '%d', '0', '%s')", 
+			sTargetAuthId, iItemIdx, GetTime());
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIt);
+
+		/*************************
+		 * 화면 출력
+		**************************/
+		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
+		char sCGName[16];
+		char sItemName[32];
+		SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItem[iItemIdx][NAME], sItemName, sizeof(sItemName));
+
+		// 클라이언트와 대상 클라이언트 이름 추출
+		char sUsrName[2][32];
+		GetClientName(client, sUsrName[0], sizeof(sUsrName[0]));
+		GetClientName(iTarget, sUsrName[1], sizeof(sUsrName[1]));
+
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven gift send", sCGName, sItemName, sUsrName[1]);
+		DDS_PrintToChat(client, sBuffer);
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven gift take", sCGName, sItemName, sUsrName[0]);
+		DDS_PrintToChat(iTarget, sBuffer);
 	}
 	else if (StrEqual(process, "inven-drop", false))
 	{
@@ -632,6 +708,70 @@ public void System_ItemProcess(int client, const char[] process, const char[] da
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user curitem cancel", sCGName, sItemName);
 		DDS_PrintToChat(client, sBuffer);
+	}
+	else if (StrEqual(process, "money-up", false))
+	{
+		/*************************************************
+		 *
+		 * [금액 증가]
+		 *
+		**************************************************/
+
+		/*************************
+		 * 전달 파라메터 구분
+		 *
+		 * [0] - 증가할 금액
+		**************************/
+		int iTarMoney = StringToInt(data);
+
+		/*************************
+		 * 금액 정보 갱신
+		**************************/
+		// 오류 검출 생성
+		ArrayList hMakeErrIf = CreateArray(8);
+		hMakeErrIf.Push(client);
+		hMakeErrIf.Push(2100);
+		
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"UPDATE `dds_user_profile` SET `money` = `money` + '%d' WHERE `authid` = '%s'", 
+			iTarMoney, sClient_AuthId);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIf);
+
+		// 실제 금액 갱신
+		dds_iUserMoney[client] += iTarMoney;
+	}
+	else if (StrEqual(process, "money-down", false))
+	{
+		/*************************************************
+		 *
+		 * [금액 감소]
+		 *
+		**************************************************/
+
+		/*************************
+		 * 전달 파라메터 구분
+		 *
+		 * [0] - 감소할 금액
+		**************************/
+		int iTarMoney = StringToInt(data);
+
+		/*************************
+		 * 금액 정보 갱신
+		**************************/
+		// 오류 검출 생성
+		ArrayList hMakeErrIf = CreateArray(8);
+		hMakeErrIf.Push(client);
+		hMakeErrIf.Push(2101);
+		
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"UPDATE `dds_user_profile` SET `money` = `money` - '%d' WHERE `authid` = '%s'", 
+			iTarMoney, sClient_AuthId);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIf);
+
+		// 실제 금액 갱신
+		dds_iUserMoney[client] -= iTarMoney;
 	}
 }
 
@@ -774,6 +914,18 @@ public void LogCodeError(int client, int errcode, const char[] errordec)
 			// [아이템 처리 시스템] 내 인벤토리에서 아이템을 버릴 때
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc inven drop");
 			Format(sDetOutput, sizeof(sDetOutput), "%s Deleting User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 2016:
+		{
+			// [아이템 처리 시스템] 내 인벤토리에서 아이템을 선물할 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc inven gift");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Deleting User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 2017:
+		{
+			// [아이템 처리 시스템] 내 인벤토리를 이용하여 대상이 아이템을 선물받을 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc inven gift target");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Inserting User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
 		}
 	}
 
@@ -2269,14 +2421,14 @@ public Main_hdlCurItem_CateIn(Menu menu, MenuAction action, int client, int item
 			case 0:
 			{
 				// 장착 해제
-				System_ItemProcess(client, "curitem-cancel", sExpStr[1]);
+				System_DataProcess(client, "curitem-cancel", sExpStr[1]);
 			}
 			case 1:
 			{
 				// 장착 가능한 것들
 				char sSendParam[32];
 				Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sExpStr[0]), StringToInt(sExpStr[1]));
-				System_ItemProcess(client, "curitem-use", sSendParam);
+				System_DataProcess(client, "curitem-use", sSendParam);
 			}
 		}
 	}
@@ -2417,7 +2569,7 @@ public Main_hdlInven_ItemDetail(Menu menu, MenuAction action, int client, int it
 				// 사용
 				char sSendParam[32];
 				Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sExpStr[0]), StringToInt(sExpStr[1]));
-				System_ItemProcess(client, "inven-use", sSendParam);
+				System_DataProcess(client, "inven-use", sSendParam);
 			}
 			case 2:
 			{
@@ -2432,7 +2584,7 @@ public Main_hdlInven_ItemDetail(Menu menu, MenuAction action, int client, int it
 				// 버리기
 				char sSendParam[32];
 				Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sExpStr[0]), StringToInt(sExpStr[1]));
-				System_ItemProcess(client, "inven-drop", sSendParam);
+				System_DataProcess(client, "inven-drop", sSendParam);
 			}
 		}
 	}
@@ -2578,7 +2730,7 @@ public Main_hdlBuyItem_ItemDetail(Menu menu, MenuAction action, int client, int 
 				// 확인
 				char sSendParam[32];
 				Format(sSendParam, sizeof(sSendParam), "%d", StringToInt(sGetParam[0]));
-				System_ItemProcess(client, "buy", sSendParam);
+				System_DataProcess(client, "buy", sSendParam);
 			}
 			case 2:
 			{
