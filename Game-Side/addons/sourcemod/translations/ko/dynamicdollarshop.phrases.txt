@@ -217,6 +217,11 @@
 		"ko"				"'[{1}] {2}' 아이템을 장착했습니다."
 	}
 
+	"system user inven gift function"
+	{
+		"ko"				"서버 설정에서 아이템 선물 기능이 활성화되지 않았습니다."
+	}
+
 	"system user inven gift send"
 	{
 		"ko"				"'{3}'님에게 '[{1}] {2}' 아이템을 선물하였습니다."
@@ -235,6 +240,21 @@
 	"system user inven drop"
 	{
 		"ko"				"'[{1}] {2}' 아이템을 버렸습니다."
+	}
+
+	"system user money gift function"
+	{
+		"ko"				"서버 설정에서 금액 선물 기능이 활성화되지 않았습니다."
+	}
+
+	"system user money gift send"
+	{
+		"ko"				"'{3}'님에게 {1} {2}을(를) 선물하였습니다."
+	}
+
+	"system user money gift take"
+	{
+		"ko"				"'{3}'님으로부터 {1} {2}을(를) 받았습니다."
 	}
 
 	/*************************************
@@ -275,6 +295,11 @@
 	"error sql usrprofile invalid"
 	{
 		"ko"				"유저 프로필 정보를 로드하면서 적절하지 않은 데이터가 발생했습니다."
+	}
+
+	"error sql usritem applied"
+	{
+		"ko"				"유저 장착 아이템 정보를 로드하는 도중 오류가 발생했습니다."
 	}
 
 	"error sql usritem curitem"
@@ -325,5 +350,15 @@
 	"error sql itemproc inven gift target"
 	{
 		"ko"				"선물을 받아 아이템을 등록하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc money gift"
+	{
+		"ko"				"선물을 위해 금액을 갱신하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc money gift target"
+	{
+		"ko"				"선물을 받아 금액을 갱신하면서 오류가 발생했습니다."
 	}
 }

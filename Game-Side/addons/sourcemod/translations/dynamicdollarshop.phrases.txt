@@ -220,6 +220,11 @@
 		"en"				"You have applied '[{1}] {2}' Item."
 	}
 
+	"system user inven gift function"
+	{
+		"en"				"Item gift function is not available due to plugin settings."
+	}
+
 	"system user inven gift send"
 	{
 		"#format"			"{1:s},{2:s},{3:s}"
@@ -241,6 +246,23 @@
 	{
 		"#format"			"{1:s},{2:s}"
 		"en"				"You have dropped '[{1}] {2}' Item."
+	}
+
+	"system user money gift function"
+	{
+		"en"				"Money gift function is not available due to plugin settings."
+	}
+
+	"system user money gift send"
+	{
+		"#format"			"{1:d},{2:t},{3:s}"
+		"en"				"You have gifted {1} {2} to '{3}'."
+	}
+
+	"system user money gift take"
+	{
+		"#format"			"{1:d},{2:t},{3:s}"
+		"en"				"You have taked {1} {2} from '{3}'."
 	}
 
 	/*************************************
@@ -281,6 +303,11 @@
 	"error sql usrprofile invalid"
 	{
 		"en"				"Inappropriate data has occurred while loading a user profile information."
+	}
+
+	"error sql usritem applied"
+	{
+		"en"				"An error has occurred while loading a user applied item information."
 	}
 
 	"error sql usritem curitem"
@@ -325,11 +352,21 @@
 
 	"error sql itemproc inven gift"
 	{
-		"en"				"An error has occurred while sending a gift."
+		"en"				"An error has occurred while sending a item gift."
 	}
 
 	"error sql itemproc inven gift target"
 	{
-		"en"				"An error has occurred while taking a gift."
+		"en"				"An error has occurred while taking a item gift."
+	}
+
+	"error sql itemproc money gift"
+	{
+		"en"				"An error has occurred while sending a money gift."
+	}
+
+	"error sql itemproc money gift target"
+	{
+		"en"				"An error has occurred while sending a money gift."
 	}
 }
