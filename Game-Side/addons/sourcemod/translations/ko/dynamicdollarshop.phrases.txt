@@ -163,6 +163,16 @@
 		"ko"				"아이템 설정"
 	}
 
+	"menu setting status active"
+	{
+		"ko"				"활성화"
+	}
+
+	"menu setting status inactive"
+	{
+		"ko"				"비활성화"
+	}
+
 	"menu main plugininfo"
 	{
 		"ko"				"플러그인 정보"
@@ -193,28 +203,47 @@
 		"ko"				"자세한 사항"
 	}
 
+	"menu itemgift"
+	{
+		"ko"				"아이템 선물"
+	}
+
+	"menu itemgift select target"
+	{
+		"ko"				"대상"
+	}
+
 	/*************************************
 	 * 시스템 (System)
 	 *************************************/
 	"system user buy"
 	{
-	 	"ko"				"'[{1}] {2}' 아이템을 구매하였습니다."
+	 	"ko"				"'[{1}] {2}' {3}을 구매하였습니다."
 	}
 
 	"system user curitem cancel"
 	{
-		"#format"			"{1:s},{2:s}"
-		"ko"				"'[{1}] {2}' 아이템을 장착 해제하였습니다."
+		"ko"				"'[{1}] {2}' {3}을 장착 해제하였습니다."
 	}
 
 	"system user inven use prev"
 	{
-		"ko"				"'[{1}] {2}' 아이템을 장착 해제하였습니다."
+		"ko"				"'[{1}] {2}' {3}을 장착 해제하였습니다."
 	}
 
 	"system user inven use after"
 	{
-		"ko"				"'[{1}] {2}' 아이템을 장착했습니다."
+		"ko"				"'[{1}] {2}' {3}을 장착했습니다."
+	}
+
+	"system user inven resell"
+	{
+		"ko"				"'[{1}] {2}' {5}을 되팔아 {3} {4}을(를) 얻었습니다."
+	}
+
+	"system user inven resell function"
+	{
+		"ko"				"서버 설정에서 아이템 되팔기 기능이 활성화되지 않았습니다."
 	}
 
 	"system user inven gift function"
@@ -224,12 +253,12 @@
 
 	"system user inven gift send"
 	{
-		"ko"				"'{3}'님에게 '[{1}] {2}' 아이템을 선물하였습니다."
+		"ko"				"'{3}'님에게 '[{1}] {2}' {4}을 선물하였습니다."
 	}
 
 	"system user inven gift take"
 	{
-		"ko"				"'{3}'님으로부터 '[{1}] {2}' 아이템을 받았습니다."
+		"ko"				"'{3}'님으로부터 '[{1}] {2}' {4}을 받았습니다."
 	}
 
 	"system user inven gift tarerr"
@@ -239,7 +268,7 @@
 
 	"system user inven drop"
 	{
-		"ko"				"'[{1}] {2}' 아이템을 버렸습니다."
+		"ko"				"'[{1}] {2}' {3}을 버렸습니다."
 	}
 
 	"system user money gift function"
@@ -271,6 +300,11 @@
 		"ko"				"오류 원인"
 	}
 
+	"error money nid"
+	{
+		"ko"				"{1} {2}이(가) 부족합니다."
+	}
+
 	/** 오류 종류 **/
 	"error sql usrprofile load"
 	{
@@ -280,6 +314,11 @@
 	"error sql usrprofile make"
 	{
 		"ko"				"유저 프로필 정보를 생성하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql usrprofile make setting"
+	{
+		"ko"				"유저 설정 정보를 생성하는 도중 오류가 발생했습니다."
 	}
 
 	"error sql usrprofile cnupdate"
@@ -312,6 +351,16 @@
 		"ko"				"유저 아이템 정보를 로드하는 도중 오류가 발생했습니다."
 	}
 
+	"error sql usrsetting load"
+	{
+		"ko"				"유저 설정 정보를 로드하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql usrsetting set"
+	{
+		"ko"				"유저 설정 정보를 갱신하는 도중 오류가 발생했습니다."
+	}
+
 	"error sql itemproc buy"
 	{
 		"ko"				"구입하는 아이템 정보를 저장하면서 오류가 발생했습니다."
@@ -339,7 +388,7 @@
 
 	"error sql itemproc inven drop"
 	{
-		"ko"				"해당 아이템을 삭제하면서 오류가 발생했습니다."
+		"ko"				"해당 아이템을 버리려고 삭제하는 도중 오류가 발생했습니다."
 	}
 
 	"error sql itemproc inven gift"
@@ -360,5 +409,15 @@
 	"error sql itemproc money gift target"
 	{
 		"ko"				"선물을 받아 금액을 갱신하면서 오류가 발생했습니다."
+	}
+
+	"error sql itemproc inven resell"
+	{
+		"ko"				"해당 아이템을 되팔려고 삭제하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql itemproc inven resell money"
+	{
+		"ko"				"해당 아이템을 되팔고 금액을 얻는 도중 오류가 발생했습니다."
 	}
 }

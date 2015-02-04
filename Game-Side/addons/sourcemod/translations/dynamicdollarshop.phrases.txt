@@ -163,6 +163,16 @@
 		"en"				"Item Settings"
 	}
 
+	"menu setting status active"
+	{
+		"en"				"Active"
+	}
+
+	"menu setting status inactive"
+	{
+		"en"				"Inactive"
+	}
+
 	"menu main plugininfo"
 	{
 		"en"				"Plugin Information"
@@ -193,31 +203,52 @@
 		"en"				"Detail"
 	}
 
+	"menu itemgift"
+	{
+		"en"				"Item Gift"
+	}
+
+	"menu itemgift select target"
+	{
+		"en"				"Target"
+	}
+
 	/*************************************
 	 * 시스템 (System)
 	 *************************************/
 	"system user buy"
 	{
-	 	"#format"			"{1:s},{2:s}"
-	 	"en"				"You have bought '[{1}] {2}' Item."
+	 	"#format"			"{1:s},{2:s},{3:t}"
+	 	"en"				"You have bought '[{1}] {2}' {3}."
 	}
 
 	"system user curitem cancel"
 	{
-		"#format"			"{1:s},{2:s}"
-		"en"				"You have canceled '[{1}] {2}' Item."
+		"#format"			"{1:s},{2:s},{3:t}"
+		"en"				"You have canceled '[{1}] {2}' {3}."
 	}
 
 	"system user inven use prev"
 	{
-		"#format"			"{1:s},{2:s}"
-		"en"				"You have canceled '[{1}] {2}' Item."
+		"#format"			"{1:s},{2:s},{3:t}"
+		"en"				"You have canceled '[{1}] {2}' {3}."
 	}
 
 	"system user inven use after"
 	{
-		"#format"			"{1:s},{2:s}"
-		"en"				"You have applied '[{1}] {2}' Item."
+		"#format"			"{1:s},{2:s},{3:t}"
+		"en"				"You have applied '[{1}] {2}' {3}."
+	}
+
+	"system user inven resell"
+	{
+		"#format"			"{1:s},{2:s},{3:d},{4:t},{5:t}"
+		"en"				"You have taken {3} {4} by reselling '[{1}] {2}' {5}."
+	}
+
+	"system user inven resell function"
+	{
+		"en"				"Item resell function is not available due to plugin settings."
 	}
 
 	"system user inven gift function"
@@ -227,14 +258,14 @@
 
 	"system user inven gift send"
 	{
-		"#format"			"{1:s},{2:s},{3:s}"
-		"en"				"You have gifted '[{1}] {2}' Item to '{3}'."
+		"#format"			"{1:s},{2:s},{3:s},{4:t}"
+		"en"				"You have gifted '[{1}] {2}' {4} to '{3}'."
 	}
 
 	"system user inven gift take"
 	{
-		"#format"			"{1:s},{2:s},{3:s}"
-		"en"				"You have taked '[{1}] {2}' Item from '{3}'."
+		"#format"			"{1:s},{2:s},{3:s},{4:t}"
+		"en"				"You have taken '[{1}] {2}' {4} from '{3}'."
 	}
 
 	"system user inven gift tarerr"
@@ -244,8 +275,8 @@
 
 	"system user inven drop"
 	{
-		"#format"			"{1:s},{2:s}"
-		"en"				"You have dropped '[{1}] {2}' Item."
+		"#format"			"{1:s},{2:s},{3:t}"
+		"en"				"You have dropped '[{1}] {2}' {3}."
 	}
 
 	"system user money gift function"
@@ -262,7 +293,7 @@
 	"system user money gift take"
 	{
 		"#format"			"{1:d},{2:t},{3:s}"
-		"en"				"You have taked {1} {2} from '{3}'."
+		"en"				"You have taken {1} {2} from '{3}'."
 	}
 
 	/*************************************
@@ -279,6 +310,12 @@
 		"en"				"Error Desc"
 	}
 
+	"error money nid"
+	{
+		"#format"			"{1:d},{2:t}"
+		"en"				"You need {1} {2} more."
+	}
+
 	/** 오류 종류 **/
 	"error sql usrprofile load"
 	{
@@ -288,6 +325,11 @@
 	"error sql usrprofile make"
 	{
 		"en"				"An error has occurred trying to create the user profile information."
+	}
+
+	"error sql usrprofile make setting"
+	{
+		"en"				"An error has occurred trying to create the user setting information."
 	}
 
 	"error sql usrprofile cnupdate"
@@ -302,12 +344,12 @@
 
 	"error sql usrprofile invalid"
 	{
-		"en"				"Inappropriate data has occurred while loading a user profile information."
+		"en"				"Inappropriate data has occurred while loading user profile information."
 	}
 
 	"error sql usritem applied"
 	{
-		"en"				"An error has occurred while loading a user applied item information."
+		"en"				"An error has occurred while loading user applied item information."
 	}
 
 	"error sql usritem curitem"
@@ -318,6 +360,16 @@
 	"error sql usritem inventory"
 	{
 		"en"				"An error has occurred while loading the user items."
+	}
+
+	"error sql usrsetting load"
+	{
+		"en"				"An error has occurred while loading user setting information."
+	}
+
+	"error sql usrsetting set"
+	{
+		"en"				"An error has occurred while updating user setting information."
 	}
 
 	"error sql itemproc buy"
@@ -368,5 +420,15 @@
 	"error sql itemproc money gift target"
 	{
 		"en"				"An error has occurred while sending a money gift."
+	}
+
+	"error sql itemproc inven resell"
+	{
+		"en"				"An error has occurred while selling this item and deleting."
+	}
+
+	"error sql itemproc inven resell money"
+	{
+		"en"				"An error has occurred while updating user money."
 	}
 }

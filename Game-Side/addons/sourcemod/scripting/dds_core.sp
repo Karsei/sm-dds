@@ -32,6 +32,12 @@ enum Apply
 	ITEMIDX
 }
 
+enum SettingItem
+{
+	CATECODE,
+	bool:VALUE
+}
+
 enum Item
 {
 	INDEX,
@@ -67,6 +73,9 @@ ConVar dds_hCV_SwitchQuickCmdF1;
 ConVar dds_hCV_SwitchQuickCmdF2;
 ConVar dds_hCV_SwitchGiftMoney;
 ConVar dds_hCV_SwitchGiftItem;
+ConVar dds_hCV_SwitchResellItem;
+ConVar dds_hCV_ItemMoneyMultiply;
+ConVar dds_hCV_ItemResellRatio;
 //ConVar dds_hCV_SwtichLog;
 
 // 팀 채팅
@@ -78,11 +87,12 @@ int dds_eItem[DDS_ENV_ITEM_MAX + 1][Item];
 
 // 아이템 종류
 int dds_iItemCategoryCount;
-int dds_eItemCategory[DDS_ENV_ITEMCG_MAX + 1][ItemCG];
+int dds_eItemCategoryList[DDS_ENV_ITEMCG_MAX + 1][ItemCG];
 
 // 유저 소유
 int dds_iUserMoney[MAXPLAYERS + 1];
 int dds_iUserAppliedItem[MAXPLAYERS + 1][DDS_ENV_ITEMCG_MAX + 1][Apply];
+bool dds_eUserItemCGStatus[MAXPLAYERS + 1][DDS_ENV_ITEMCG_MAX + 1][SettingItem];
 
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
@@ -115,6 +125,9 @@ public void OnPluginStart()
 	dds_hCV_SwitchQuickCmdF2 = CreateConVar("dds_switch_quick_f2", "0", "F2키의 단축키 설정입니다. 0 - 작동 해제 / 1 - 메인 메뉴 / 2 - 인벤토리 메뉴", FCVAR_PLUGIN, true, 0.0, true, 2.0);
 	dds_hCV_SwitchGiftMoney = CreateConVar("dds_switch_gift_money", "1", "금액 선물 기능을 기본적으로 허용할 것인지의 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	dds_hCV_SwitchGiftItem = CreateConVar("dds_switch_gift_item", "1", "아이템 선물 기능을 기본적으로 허용할 것인지의 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	dds_hCV_SwitchResellItem = CreateConVar("dds_switch_item_resell", "0", "아이템 되팔기 기능을 기본적으로 허용할 것인지의 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	dds_hCV_ItemMoneyMultiply = CreateConVar("dds_item_money_multiply", "1.0", "모든 아이템을 각 아이템 금액의 몇 배의 비율로 설정할 것인지 적어주세요. 처음 아이템 목록을 로드할 때 반영됩니다.", FCVAR_PLUGIN);
+	dds_hCV_ItemResellRatio = CreateConVar("dds_item_resell_ratio", "0.2", "아이템 되팔기 기능을 사용할 때 해당 아이템 금액의 어느 정도의 비율로 설정할 것인지 적어주세요.", FCVAR_PLUGIN);
 	//dds_hCV_SwtichLog = CreateConVar("dds_switch_log", "1", "데이터 로그 작성 여부입니다. 활성화를 권장합니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 
 	// 플러그인 로그 작성 등록
@@ -159,14 +172,14 @@ public void OnConfigsExecuted()
 
 	/** 단축키 연결 **/
 	// N 키
-	if (dds_hCV_SwitchQuickCmdN.IntValue == "1")	RegConsoleCmd("nightvision", Menu_Main);
-	else if (dds_hCV_SwitchQuickCmdN.IntValue == "2")	RegConsoleCmd("nightvision", Menu_Inven);
+	if (dds_hCV_SwitchQuickCmdN.IntValue == 1)	RegConsoleCmd("nightvision", Menu_Main);
+	else if (dds_hCV_SwitchQuickCmdN.IntValue == 2)	RegConsoleCmd("nightvision", Menu_Inven);
 	// F1키
-	if (dds_hCV_SwitchQuickCmdF1.IntValue == "1")	RegConsoleCmd("autobuy", Menu_Main);
-	else if (dds_hCV_SwitchQuickCmdF1.IntValue == "2")	RegConsoleCmd("autobuy", Menu_Inven);
+	if (dds_hCV_SwitchQuickCmdF1.IntValue == 1)	RegConsoleCmd("autobuy", Menu_Main);
+	else if (dds_hCV_SwitchQuickCmdF1.IntValue == 2)	RegConsoleCmd("autobuy", Menu_Inven);
 	// F2키
-	if (dds_hCV_SwitchQuickCmdF2.IntValue == "1")	RegConsoleCmd("rebuy", Menu_Main);
-	else if (dds_hCV_SwitchQuickCmdF2.IntValue == "2")	RegConsoleCmd("rebuy", Menu_Inven);
+	if (dds_hCV_SwitchQuickCmdF2.IntValue == 1)	RegConsoleCmd("rebuy", Menu_Main);
+	else if (dds_hCV_SwitchQuickCmdF2.IntValue == 2)	RegConsoleCmd("rebuy", Menu_Inven);
 }
 
 /**
@@ -270,12 +283,12 @@ public void Init_ServerData()
 	// 아이템 종류 목록
 	for (int i = 0; i <= DDS_ENV_ITEMCG_MAX; i++)
 	{
-		Format(dds_eItemCategory[i][NAME], 64, "");
-		dds_eItemCategory[i][CODE] = 0;
-		Format(dds_eItemCategory[i][ENV], 256, "");
+		Format(dds_eItemCategoryList[i][NAME], 64, "");
+		dds_eItemCategoryList[i][CODE] = 0;
+		Format(dds_eItemCategoryList[i][ENV], 256, "");
 	}
 	// 아이템 종류 0번 '전체' 설정
-	Format(dds_eItemCategory[0][NAME], 64, "EN:Total||KO:전체");
+	Format(dds_eItemCategoryList[0][NAME], 64, "EN:Total||KO:전체");
 
 	#if defined _DEBUG_
 	DDS_PrintToServer(":: DEBUG :: Server Data Initialization Complete");
@@ -303,11 +316,16 @@ public void Init_UserData(int client, int mode)
 				// 금액
 				dds_iUserMoney[i] = 0;
 
-				// 장착 아이템
+				// 아이템 관련
 				for (int k = 0; k <= DDS_ENV_ITEMCG_MAX; k++)
 				{
+					// 아이템 장착 상태
 					dds_iUserAppliedItem[i][k][DBIDX] = 0;
 					dds_iUserAppliedItem[i][k][ITEMIDX] = 0;
+
+					// 아이템 종류 활성 상태
+					dds_eUserItemCGStatus[i][k][CATECODE] = 0;
+					dds_eUserItemCGStatus[i][k][VALUE] = false;
 				}
 			}
 		}
@@ -320,11 +338,16 @@ public void Init_UserData(int client, int mode)
 			// 금액
 			dds_iUserMoney[client] = 0;
 
-			// 장착 아이템
+			// 아이템 관련
 			for (int i = 0; i <= DDS_ENV_ITEMCG_MAX; i++)
 			{
+				// 아이템 장착 상태
 				dds_iUserAppliedItem[client][i][DBIDX] = 0;
 				dds_iUserAppliedItem[client][i][ITEMIDX] = 0;
+
+				// 아이템 종류 활성 상태
+				dds_eUserItemCGStatus[client][i][CATECODE] = 0;
+				dds_eUserItemCGStatus[client][i][VALUE] = false;
 			}
 		}
 	}
@@ -407,7 +430,24 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * [0] - 아이템 번호
 		**************************/
 		int iItemIdx = StringToInt(data);
-		int iItemMny = 0;
+
+		// 아이템 금액 확인
+		int iItemMny = dds_eItem[iItemIdx][MONEY];
+
+		/*************************
+		 * 조건 및 환경 변수 확인
+		**************************/
+		/** 환경 변수 확인(유저단) **/
+		//
+
+		/** 조건 확인 **/
+		// 돈 부족
+		if ((dds_iUserMoney[client] - iItemMny) < 0)
+		{
+			Format(sBuffer, sizeof(sBuffer), "%t", "error money nid", (iItemMny - dds_iUserMoney[client]), "global money");
+			DDS_PrintToChat(client, sBuffer);
+			return;
+		}
 
 		/*************************
 		 * 아이템 정보 삽입
@@ -426,19 +466,9 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		/*************************
 		 * 금액 정보 갱신
 		**************************/
-		// 금액 갱신 조건 확인
-		iItemMny = dds_eItem[iItemIdx][MONEY];
-
-		// 오류 검출 생성
-		ArrayList hMakeErrM = CreateArray(8);
-		hMakeErrM.Push(client);
-		hMakeErrM.Push(2011);
-		
-		// 쿼리 전송
-		Format(sSendQuery, sizeof(sSendQuery), 
-			"UPDATE `dds_user_profile` SET `money` = `money` - '%d' WHERE `authid` = '%s'", 
-			iItemMny, sClient_AuthId);
-		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrM);
+		char sSendParam[32];
+		Format(sSendParam, sizeof(sSendParam), "%d||%d", 2011, iItemMny);
+		System_DataProcess(client, "money-down", sSendParam);
 
 		/*************************
 		 * 화면 출력
@@ -446,10 +476,10 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItem[iItemIdx][NAME], sItemName, sizeof(sItemName));
 
-		Format(sBuffer, sizeof(sBuffer), "%t", "system user buy", sCGName, sItemName);
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user buy", sCGName, sItemName, "global item");
 		DDS_PrintToChat(client, sBuffer);
 	}
 	else if (StrEqual(process, "inven-use", false) || StrEqual(process, "curitem-use", false))
@@ -524,18 +554,18 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 기존 아이템 출력
 		if (iPrevItemIdx > 0)
 		{
-			SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[iPrevItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
+			SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[iPrevItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
 			SelectedGeoNameToString(client, dds_eItem[iPrevItemIdx][NAME], sItemName, sizeof(sItemName));
 
-			Format(sBuffer, sizeof(sBuffer), "%t", "system user inven use prev", sCGName, sItemName);
+			Format(sBuffer, sizeof(sBuffer), "%t", "system user inven use prev", sCGName, sItemName, "global item");
 			DDS_PrintToChat(client, sBuffer);
 		}
 
 		// 대상 아이템 출력
-		SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItem[iItemIdx][NAME], sItemName, sizeof(sItemName));
 
-		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven use after", sCGName, sItemName);
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven use after", sCGName, sItemName, "global item");
 		DDS_PrintToChat(client, sBuffer);
 	}
 	else if (StrEqual(process, "inven-resell", false))
@@ -548,7 +578,74 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		/*************************
 		 * 전달 파라메터 구분
+		 *
+		 * [0] - 데이터베이스 번호
+		 * [1] - 아이템 번호
 		**************************/
+		char sTempStr[2][16];
+		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+		int iDBIdx = StringToInt(sTempStr[0]);
+		int iItemIdx = StringToInt(sTempStr[1]);
+
+		// 합할 금액 갱신 조건 확인
+		int iItemMny = RoundToFloor(dds_eItem[iItemIdx][MONEY] * dds_hCV_ItemResellRatio.FloatValue);
+
+		/*************************
+		 * 기능 사용 여부
+		**************************/
+		if (!dds_hCV_SwitchResellItem.BoolValue)
+		{
+			Format(sBuffer, sizeof(sBuffer), "%t", "system user inven resell function");
+			DDS_PrintToChat(client, sBuffer);
+			return;
+		}
+
+		/*************************
+		 * 조건 및 환경 변수 확인
+		**************************/
+		/** 환경 변수 확인(유저단) **/
+
+		/** 조건 확인 **/
+		// int 변수 하나에 2147483647 을 넘길 수 없음
+		if ((dds_iUserMoney[client] + iItemMny) > 2147400000)
+		{
+			// Out of Range
+			return;
+		}
+
+		/*************************
+		 * 대상 아이템 정보 삭제
+		**************************/
+		// 오류 검출 생성
+		ArrayList hMakeErrIf = CreateArray(8);
+		hMakeErrIf.Push(client);
+		hMakeErrIf.Push(2020);
+
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"DELETE FROM `dds_user_item` WHERE `idx` = '%d' and `authid` = '%s' and `ilidx` = '%d'", 
+			iDBIdx, sClient_AuthId, iItemIdx);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIf);
+
+		/*************************
+		 * 금액 정보 갱신
+		**************************/
+		char sSendParam[32];
+		Format(sSendParam, sizeof(sSendParam), "%d||%d", 2021, iItemMny);
+		System_DataProcess(client, "money-up", sSendParam);
+
+		/*************************
+		 * 화면 출력
+		**************************/
+		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
+		char sCGName[16];
+		char sItemName[32];
+		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItem[iItemIdx][NAME], sItemName, sizeof(sItemName));
+
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven resell", sCGName, sItemName, iItemMny, "global money", "global item");
+		DDS_PrintToChat(client, sBuffer);
 	}
 	else if (StrEqual(process, "inven-gift", false))
 	{
@@ -631,17 +728,17 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItem[iItemIdx][NAME], sItemName, sizeof(sItemName));
 
 		// 클라이언트와 대상 클라이언트 이름 추출
 		char sUsrName[2][32];
-		GetClientName(client, sUsrName[0], sizeof(sUsrName[0]));
-		GetClientName(iTarget, sUsrName[1], sizeof(sUsrName[1]));
+		GetClientName(client, sUsrName[0], 32);
+		GetClientName(iTarget, sUsrName[1], 32);
 
-		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven gift send", sCGName, sItemName, sUsrName[1]);
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven gift send", sCGName, sItemName, sUsrName[1], "global item");
 		DDS_PrintToChat(client, sBuffer);
-		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven gift take", sCGName, sItemName, sUsrName[0]);
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven gift take", sCGName, sItemName, sUsrName[0], "global item");
 		DDS_PrintToChat(iTarget, sBuffer);
 	}
 	else if (StrEqual(process, "inven-drop", false))
@@ -684,10 +781,10 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[iItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItem[iItemIdx][NAME], sItemName, sizeof(sItemName));
 
-		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven drop", sCGName, sItemName);
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven drop", sCGName, sItemName, "global item");
 		DDS_PrintToChat(client, sBuffer);
 	}
 	else if (StrEqual(process, "curitem-cancel", false))
@@ -730,10 +827,10 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[iPrevItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[iPrevItemIdx][CATECODE]][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItem[iPrevItemIdx][NAME], sItemName, sizeof(sItemName));
 
-		Format(sBuffer, sizeof(sBuffer), "%t", "system user curitem cancel", sCGName, sItemName);
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user curitem cancel", sCGName, sItemName, "global item");
 		DDS_PrintToChat(client, sBuffer);
 	}
 	else if (StrEqual(process, "money-up", false))
@@ -749,16 +846,27 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		/*************************
 		 * 전달 파라메터 구분
 		 *
-		 * [0] - 증가할 금액
+		 * [0] - 오류 코드
+		 * [1] - 증가할 금액
 		**************************/
-		int iTarMoney = StringToInt(data);
+		char sTempStr[2][32];
+		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+		int iErrCode = StringToInt(sTempStr[0]);
+		int iTarMoney = StringToInt(sTempStr[1]);
 
 		/*************************
 		 * 조건 및 환경 변수 확인
 		**************************/
-		/** 조건 확인 **/
-
 		/** 환경 변수 확인(유저단) **/
+
+		/** 조건 확인 **/
+		// int 변수 하나에 2147483647 을 넘길 수 없음
+		if ((dds_iUserMoney[client] + iTarMoney) > 2147400000)
+		{
+			// Out of Range
+			return;
+		}
 
 		/*************************
 		 * 금액 정보 갱신
@@ -766,7 +874,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 오류 검출 생성
 		ArrayList hMakeErrIf = CreateArray(8);
 		hMakeErrIf.Push(client);
-		hMakeErrIf.Push(2100);
+		hMakeErrIf.Push(iErrCode);
 		
 		// 쿼리 전송
 		Format(sSendQuery, sizeof(sSendQuery), 
@@ -790,16 +898,29 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		/*************************
 		 * 전달 파라메터 구분
 		 *
-		 * [0] - 감소할 금액
+		 * [0] - 오류 코드
+		 * [1] - 감소할 금액
 		**************************/
-		int iTarMoney = StringToInt(data);
+		char sTempStr[2][32];
+		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+		int iErrCode = StringToInt(sTempStr[0]);
+		int iTarMoney = StringToInt(sTempStr[1]);
 
 		/*************************
 		 * 조건 및 환경 변수 확인
 		**************************/
-		/** 조건 확인 **/
-
 		/** 환경 변수 확인(유저단) **/
+		//
+
+		/** 조건 확인 **/
+		// 돈 부족
+		if ((dds_iUserMoney[client] - iTarMoney) < 0)
+		{
+			Format(sBuffer, sizeof(sBuffer), "%t", "error money nid", (iTarMoney - dds_iUserMoney[client]), "global money");
+			DDS_PrintToChat(client, sBuffer);
+			return;
+		}
 
 		/*************************
 		 * 금액 정보 갱신
@@ -807,7 +928,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 오류 검출 생성
 		ArrayList hMakeErrIf = CreateArray(8);
 		hMakeErrIf.Push(client);
-		hMakeErrIf.Push(2101);
+		hMakeErrIf.Push(iErrCode);
 		
 		// 쿼리 전송
 		Format(sSendQuery, sizeof(sSendQuery), 
@@ -839,13 +960,6 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		int iTargetUid = StringToInt(sTempStr[1]);
 
 		/*************************
-		 * 조건 및 환경 변수 확인
-		**************************/
-		/** 조건 확인 **/
-
-		/** 환경 변수 확인(유저단) **/
-
-		/*************************
 		 * 기능 사용 여부
 		**************************/
 		if (!dds_hCV_SwitchGiftMoney.BoolValue)
@@ -869,20 +983,31 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		/*************************
 		 * 조건 및 환경 변수 확인
 		**************************/
+		/** 환경 변수 확인(유저단) **/
+		//
+
+		/** 조건 확인 **/
+		// 본인 돈 부족
+		if ((dds_iUserMoney[client] - iTarMoney) < 0)
+		{
+			Format(sBuffer, sizeof(sBuffer), "%t", "error money nid", (iTarMoney - dds_iUserMoney[client]), "global money");
+			DDS_PrintToChat(client, sBuffer);
+			return;
+		}
+
+		// int 변수 하나에 2147483647 을 넘길 수 없음
+		if ((dds_iUserMoney[iTarget] + iTarMoney) > 2147400000)
+		{
+			// Out of Range
+			return;
+		}
 
 		/*************************
 		 * 본인 금액 정보 갱신
 		**************************/
-		// 오류 검출 생성
-		ArrayList hMakeErrIf = CreateArray(8);
-		hMakeErrIf.Push(client);
-		hMakeErrIf.Push(2018);
-
-		// 쿼리 전송
-		Format(sSendQuery, sizeof(sSendQuery), 
-			"UPDATE `dds_user_profile` SET `money` = `money` - '%d' WHERE `authid` = '%s'", 
-			iTarMoney, sClient_AuthId);
-		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIf);
+		char sSendParam[32];
+		Format(sSendParam, sizeof(sSendParam), "%d||%d", 2018, iTarMoney);
+		System_DataProcess(client, "money-down", sSendParam);
 
 		/*************************
 		 * 대상 금액 정보 갱신
@@ -891,24 +1016,17 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		char sTargetAuthId[20];
 		GetClientAuthId(iTarget, AuthId_SteamID64, sTargetAuthId, sizeof(sTargetAuthId));
 
-		// 오류 검출 생성
-		ArrayList hMakeErrIt = CreateArray(8);
-		hMakeErrIt.Push(iTarget);
-		hMakeErrIt.Push(2019);
-
-		// 쿼리 전송
-		Format(sSendQuery, sizeof(sSendQuery), 
-			"UPDATE `dds_user_profile` SET `money` = `money` + '%d' WHERE `authid` = '%s'", 
-			iTarMoney, sTargetAuthId);
-		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIt);
+		// 갱신
+		Format(sSendParam, sizeof(sSendParam), "%d||%d", 2019, iTarMoney);
+		System_DataProcess(iTarget, "money-up", sSendParam);
 
 		/*************************
 		 * 화면 출력
 		**************************/
 		// 클라이언트와 대상 클라이언트 이름 추출
 		char sUsrName[2][32];
-		GetClientName(client, sUsrName[0], sizeof(sUsrName[0]));
-		GetClientName(iTarget, sUsrName[1], sizeof(sUsrName[1]));
+		GetClientName(client, sUsrName[0], 32);
+		GetClientName(iTarget, sUsrName[1], 32);
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user money gift send", iTarMoney, "global money", sUsrName[1]);
 		DDS_PrintToChat(client, sBuffer);
@@ -1012,8 +1130,20 @@ public void LogCodeError(int client, int errcode, const char[] errordec)
 		case 1015:
 		{
 			// 유저 체크하면서 유저 장착 아이템 목록이 잘못되었을 경우
-			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usritem invalid");
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usritem applied");
 			Format(sDetOutput, sizeof(sDetOutput), "%s Retrived User Item DB is invalid. (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 1016:
+		{
+			// 유저 체크하면서 유저 아이템 설정 상태가 잘못되었을 경우
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usrsetting load");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Retrived User Setting DB is invalid. (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 1017:
+		{
+			// 유저 체크 후 레코드가 없어 설정 정보 레코드를 만들 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usrprofile make setting");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Making User Setting is Failure! (AuthID: %s)", sDetOutput, usrauth);
 		}
 		case 1020:
 		{
@@ -1026,6 +1156,12 @@ public void LogCodeError(int client, int errcode, const char[] errordec)
 			// 유저가 내 인벤토리 세부 메뉴를 열었을 때
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usritem inventory");
 			Format(sDetOutput, sizeof(sDetOutput), "%s Retriving User Item DB is Failure! (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 1022:
+		{
+			// 유저가 아이템 활성 상태를 변경하였을 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usrsetting set");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Updating User Setting DB is Failure! (AuthID: %s)", sDetOutput, usrauth);
 		}
 		case 2010:
 		{
@@ -1079,13 +1215,25 @@ public void LogCodeError(int client, int errcode, const char[] errordec)
 		{
 			// [아이템 처리 시스템] 금액 선물을 할 때
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc money gift");
-			Format(sDetOutput, sizeof(sDetOutput), "%s Updating Money of User Profile is Failure. (AuthID: %s)", sDetOutput, usrauth);
+			Format(sDetOutput, sizeof(sDetOutput), "%s Updating User Money is Failure. (AuthID: %s)", sDetOutput, usrauth);
 		}
 		case 2019:
 		{
 			// [아이템 처리 시스템] 금액 선물을 이용하여 대상이 금액을 선물받을 때
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc money gift target");
-			Format(sDetOutput, sizeof(sDetOutput), "%s Updating Money of User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
+			Format(sDetOutput, sizeof(sDetOutput), "%s Updating User Money is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 2020:
+		{
+			// [아이템 처리 시스템] 인벤토리에서 아이템을 되팔 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc inven resell");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Deleting User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 2021:
+		{
+			// [아이템 처리 시스템] 인벤토리에서 아이템을 되팔으면서 금액을 갱신할 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc inven resell money");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Updating User Money is Failure. (AuthID: %s)", sDetOutput, usrauth);
 		}
 	}
 
@@ -1249,12 +1397,12 @@ public Menu_CurItem(int client)
 
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
-		IntToString(dds_eItemCategory[i][CODE], sTempIdx, sizeof(sTempIdx));
+		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategory[i][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItem[dds_iUserAppliedItem[client][i][ITEMIDX]][NAME], sItemName, sizeof(sItemName));
 
 		// 장착되어 있지 않으면 '없음' 처리
@@ -1324,9 +1472,9 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
 		if (i == 0)	continue;
 
 		// 선택한 아이템 종류 코드와 맞지 않는 경우는 제외
-		if (catecode != dds_eItemCategory[i][CODE])	continue;
+		if (catecode != dds_eItemCategoryList[i][CODE])	continue;
 
-		SelectedGeoNameToString(client, dds_eItemCategory[i][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 		break;
 	}
 
@@ -1360,6 +1508,7 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
 		if ((catecode != dds_eItem[iTmpItIdx][CATECODE]) && catecode != 0)	continue;
 
 		// 체크되는 아이템의 아이템 종류가 등록되어 있는 아이템 종류가 없는 경우는 제외
+		// 이유: 유저가 가지고 있는 아이템 중 그에 맞는 아이템 종류가 활성화되지 않은 아이템 종류인 경우를 피하려는 것 때문
 		bool bInCate = false;
 		for (int i = 0; i <= dds_iItemCategoryCount; i++)
 		{
@@ -1367,7 +1516,7 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
 			if (i == 0)	continue;
 
 			// 유효한지 파악
-			if (dds_eItem[iTmpItIdx][CATECODE] == dds_eItemCategory[i][CODE])
+			if (dds_eItem[iTmpItIdx][CATECODE] == dds_eItemCategoryList[i][CODE])
 			{
 				bInCate = true;
 				break;
@@ -1396,7 +1545,7 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
 		char sItemCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[iTmpItIdx][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[iTmpItIdx][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
 		char sItemName[32];
@@ -1463,11 +1612,11 @@ public Action:Menu_Inven(int client, int args)
 	{
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
-		IntToString(dds_eItemCategory[i][CODE], sTempIdx, sizeof(sTempIdx));
+		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
 		char sCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategory[i][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 
 		// 메뉴 아이템 등록
 		Format(buffer, sizeof(buffer), "%s %t", sCGName, "global item");
@@ -1531,9 +1680,9 @@ public void Menu_Inven_CateIn(Database db, DBResultSet results, const char[] err
 	char sCGName[16];
 	for (int i = 0; i <= dds_iItemCategoryCount; i++)
 	{
-		if (catecode != dds_eItemCategory[i][CODE])	continue;
+		if (catecode != dds_eItemCategoryList[i][CODE])	continue;
 
-		SelectedGeoNameToString(client, dds_eItemCategory[i][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 		break;
 	}
 
@@ -1566,6 +1715,7 @@ public void Menu_Inven_CateIn(Database db, DBResultSet results, const char[] err
 		if ((catecode != dds_eItem[iTmpItIdx][CATECODE]) && catecode != 0)	continue;
 
 		// 체크되는 아이템의 아이템 종류가 등록되어 있는 아이템 종류가 없는 경우는 제외
+		// 이유: 유저가 가지고 있는 아이템 중 그에 맞는 아이템 종류가 활성화되지 않은 아이템 종류인 경우를 피하려는 것 때문
 		bool bInCate = false;
 		for (int i = 0; i <= dds_iItemCategoryCount; i++)
 		{
@@ -1573,7 +1723,7 @@ public void Menu_Inven_CateIn(Database db, DBResultSet results, const char[] err
 			if (i == 0)	continue;
 
 			// 유효한지 파악
-			if (dds_eItem[iTmpItIdx][CATECODE] == dds_eItemCategory[i][CODE])
+			if (dds_eItem[iTmpItIdx][CATECODE] == dds_eItemCategoryList[i][CODE])
 			{
 				bInCate = true;
 				break;
@@ -1587,7 +1737,7 @@ public void Menu_Inven_CateIn(Database db, DBResultSet results, const char[] err
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
 		char sItemCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[iTmpItIdx][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[iTmpItIdx][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
 		char sItemName[32];
@@ -1660,7 +1810,7 @@ public Menu_Inven_ItemDetail(int client, int dataidx, int itemidx)
 	mMain.AddItem(sParam, buffer);
 	Format(buffer, sizeof(buffer), "%t", "global resell");
 	Format(sParam, sizeof(sParam), "%d||%d||%d", dataidx, itemidx, 2);
-	mMain.AddItem(sParam, buffer, ITEMDRAW_DISABLED);
+	mMain.AddItem(sParam, buffer);
 	Format(buffer, sizeof(buffer), "%t", "global gift");
 	Format(sParam, sizeof(sParam), "%d||%d||%d", dataidx, itemidx, 3);
 	mMain.AddItem(sParam, buffer);
@@ -1704,11 +1854,11 @@ public Menu_BuyItem(int client)
 	{
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
-		IntToString(dds_eItemCategory[i][CODE], sTempIdx, sizeof(sTempIdx));
+		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
 		char sCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategory[i][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 
 		// 메뉴 아이템 등록
 		Format(buffer, sizeof(buffer), "%s %t", sCGName, "global item");
@@ -1752,9 +1902,9 @@ public Menu_BuyItem_CateIn(int client, int catecode)
 	char sCGName[16];
 	for (int i = 0; i <= dds_iItemCategoryCount; i++)
 	{
-		if (catecode != dds_eItemCategory[i][CODE])	continue;
+		if (catecode != dds_eItemCategoryList[i][CODE])	continue;
 
-		SelectedGeoNameToString(client, dds_eItemCategory[i][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 		break;
 	}
 
@@ -1776,6 +1926,7 @@ public Menu_BuyItem_CateIn(int client, int catecode)
 		if ((catecode != dds_eItem[i][CATECODE]) && catecode != 0)	continue;
 
 		// 체크되는 아이템의 아이템 종류가 등록되어 있는 아이템 종류가 없는 경우는 제외
+		// 이유: 등록되어 있는 아이템 중 그에 맞는 아이템 종류가 활성화되지 않은 아이템 종류인 경우를 피하려는 것 때문
 		bool bInCate = false;
 		for (int k = 0; k <= dds_iItemCategoryCount; k++)
 		{
@@ -1783,7 +1934,7 @@ public Menu_BuyItem_CateIn(int client, int catecode)
 			if (k == 0)	continue;
 
 			// 유효한지 파악
-			if (dds_eItem[i][CATECODE] == dds_eItemCategory[k][CODE])
+			if (dds_eItem[i][CATECODE] == dds_eItemCategoryList[k][CODE])
 			{
 				bInCate = true;
 				break;
@@ -1797,7 +1948,7 @@ public Menu_BuyItem_CateIn(int client, int catecode)
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
 		char sItemCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategory[dds_eItem[i][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItem[i][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
 		char sItemName[32];
@@ -1954,21 +2105,28 @@ public Menu_Setting_Item(int client)
 		
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
-		IntToString(dds_eItemCategory[i][CODE], sTempIdx, sizeof(sTempIdx));
+		IntToString(i, sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
 		char sCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategory[i][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
+
+		// 활성화 판단
+		char sStatus[16];
+		if (dds_eUserItemCGStatus[client][i][VALUE])
+			Format(sStatus, sizeof(sStatus), "%t", "menu setting status active");
+		else
+			Format(sStatus, sizeof(sStatus), "%t", "menu setting status inactive");
 
 		// 메뉴 아이템 등록
-		Format(buffer, sizeof(buffer), "%s %t", sCGName, "global item");
+		Format(buffer, sizeof(buffer), "%s: %s", sCGName, sStatus);
 		mMain.AddItem(sTempIdx, buffer);
 
 		// 갯수 증가
 		count++;
 
 		#if defined _DEBUG_
-		DDS_PrintToChat(client, "\x05:: DEBUG ::\x01 Setting-Item Menu ~ CG (ID: %d, CateName: %s, Count: %d)", i, sCGName, count);
+		DDS_PrintToChat(client, "\x05:: DEBUG ::\x01 Setting-Item Menu ~ CG (CateCode: %d, CateName: %s, Count: %d, Value: %s)", dds_eItemCategoryList[i][CODE], sCGName, count, sStatus);
 		#endif
 	}
 
@@ -2075,6 +2233,69 @@ public Menu_PluginInfo_Detail(int client, int select)
 			Format(buffer, sizeof(buffer), "%t: http://www.gnu.org/licenses/", "menu plugininfo license detail");
 			mMain.AddItem("2", buffer);
 		}
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 아이템 선물 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+ * @param action			행동 구분
+ * @param data				추가 파라메터
+*/
+public Menu_ItemGift(int client, const char[] action, const char[] data)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlItemGift);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t-%t\n ", "menu common title", "menu common curpos", "menu itemgift", "menu itemgift select target");
+	mMain.SetTitle(buffer);
+
+	// 전달 파라메터 등록
+	char sSendParam[8];
+
+	// 갯수 파악
+	int count;
+
+	// 메뉴 아이템 등록
+	for (int i = 0; i < MaxClients; i++)
+	{
+		// 서버는 통과
+		if (i == 0)	continue;
+
+		// 게임 내에 없으면 통과
+		if (!IsClientInGame(i))	continue;
+
+		// 봇이면 통과
+		if (IsFakeClient(i))	continue;
+
+		// 인증이 되어 있지 않으면 통과
+		if (!IsClientAuthorized(i))	continue;
+
+		// 본인은 통과
+		if (i == client)	continue;
+
+		Format(buffer, sizeof(buffer), "%N", i);
+		Format(sSendParam, sizeof(sSendParam), "%s##%d##%s", action, GetClientUserId(i), data);
+		mMain.AddItem(sSendParam, buffer);
+
+		// 갯수 증가
+		count++;
+	}
+
+	// 유저가 없을 때
+	if (count == 0)
+	{
+		// '없음' 출력
+		Format(buffer, sizeof(buffer), "%t", "global nothing");
+		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
 	}
 
 	// 메뉴 출력
@@ -2235,11 +2456,11 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 		if (!results.FetchRow())	continue;
 
 		// 데이터 추가
-		dds_eItemCategory[dds_iItemCategoryCount + 1][CODE] = results.FetchInt(0);
-		results.FetchString(1, dds_eItemCategory[dds_iItemCategoryCount + 1][NAME], 64);
+		dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE] = results.FetchInt(0);
+		results.FetchString(1, dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], 64);
 
 		#if defined _DEBUG_
-		DDS_PrintToServer(":: DEBUG :: Category Loaded (ID: %d, GloName: %s, TotalCount: %d)", dds_eItemCategory[dds_iItemCategoryCount + 1][CODE], dds_eItemCategory[dds_iItemCategoryCount + 1][NAME], dds_iItemCategoryCount + 1);
+		DDS_PrintToServer(":: DEBUG :: Category Loaded (ID: %d, GloName: %s, TotalCount: %d)", dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE], dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], dds_iItemCategoryCount + 1);
 		#endif
 
 		// 아이템 종류 등록 갯수 증가
@@ -2274,7 +2495,7 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 		dds_eItem[dds_iItemCount + 1][INDEX] = results.FetchInt(0);
 		results.FetchString(1, dds_eItem[dds_iItemCount + 1][NAME], 64);
 		dds_eItem[dds_iItemCount + 1][CATECODE] = results.FetchInt(2);
-		dds_eItem[dds_iItemCount + 1][MONEY] = results.FetchInt(3);
+		dds_eItem[dds_iItemCount + 1][MONEY] = RoundFloat(results.FetchInt(3) * dds_hCV_ItemMoneyMultiply.FloatValue);
 		dds_eItem[dds_iItemCount + 1][HAVTIME] = results.FetchInt(4);
 		results.FetchString(5, dds_eItem[dds_iItemCount + 1][ENV], 256);
 
@@ -2311,6 +2532,9 @@ public Action:SQL_Timer_UserLoad(Handle timer, any client)
 	// 장착 아이템 정보
 	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_item` WHERE `authid` = '%s' and `aplied` = '1'", sUsrAuthId);
 	dds_hSQLDatabase.Query(SQL_UserAppliedItemLoad, sSendQuery, client);
+	// 설정 정보
+	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_setting` WHERE `authid` = '%s'", sUsrAuthId);
+	dds_hSQLDatabase.Query(SQL_UserSettingLoad, sSendQuery, client);
 
 	return Plugin_Stop;
 }
@@ -2351,7 +2575,7 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 		count++;
 
 		#if defined _DEBUG_
-		DDS_PrintToServer(":: DEBUG :: User Load - Checked (client: %N, Money: %d)", client, iTempMoney);
+		DDS_PrintToServer(":: DEBUG :: User Load - Profile Checked (client: %N, Money: %d)", client, iTempMoney);
 		#endif
 	}
 
@@ -2371,11 +2595,13 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 		hMakeErr.Push(1011);
 
 		// 쿼리 전송
-		Format(sSendQuery, sizeof(sSendQuery), "INSERT INTO `dds_user_profile` (`idx`, `authid`, `money`, `ingame`) VALUES (NULL, '%s', '0', '1')", sUsrAuthId);
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"INSERT INTO `dds_user_profile` (`idx`, `authid`, `money`, `ingame`) VALUES (NULL, '%s', '0', '1')", 
+			sUsrAuthId);
 		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
 
 		#if defined _DEBUG_
-		DDS_PrintToServer(":: DEBUG :: User Load - Make (client: %N)", client);
+		DDS_PrintToServer(":: DEBUG :: User Load - Make Profile (client: %N)", client);
 		#endif
 	}
 	else if (count == 1)
@@ -2394,7 +2620,7 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
 
 		#if defined _DEBUG_
-		DDS_PrintToServer(":: DEBUG :: User Load - Update (client: %N)", client);
+		DDS_PrintToServer(":: DEBUG :: User Load - Update Profile (client: %N)", client);
 		#endif
 	}
 	else
@@ -2431,8 +2657,8 @@ public void SQL_UserAppliedItemLoad(Database db, DBResultSet results, const char
 		if (!results.FetchRow())	continue;
 
 		// 데이터 로드
-		iDBIdx = results.FetchInt(0);
-		iItIdx = results.FetchInt(2);
+		int iDBIdx = results.FetchInt(0);
+		int iItIdx = results.FetchInt(2);
 
 		for (int i = 0; i <= dds_iItemCategoryCount; i++)
 		{
@@ -2440,16 +2666,16 @@ public void SQL_UserAppliedItemLoad(Database db, DBResultSet results, const char
 			if (i == 0)	continue;
 
 			// 해당 항목이 아닌 경우 제외
-			if (dds_eItem[iTempItIdx][CATECODE] != dds_eItemCategory[i][CODE])	continue;
+			if (dds_eItem[iItIdx][CATECODE] != dds_eItemCategoryList[i][CODE])	continue;
 
 			dds_iUserAppliedItem[client][i][DBIDX] = iDBIdx;
-			dds_iUserAppliedItem[client][i][ITEMIDX] = iTempItIdx;
+			dds_iUserAppliedItem[client][i][ITEMIDX] = iItIdx;
 
 			// 장착 아이템 파악 갯수 증가
 			count++;
 
 			#if defined _DEBUG_
-			DDS_PrintToServer(":: DEBUG :: User Load - Applied Item (client: %N, dbidx: %d, itemidx: %d)", client, iTempMoney);
+			DDS_PrintToServer(":: DEBUG :: User Load - Applied Item (client: %N, dbidx: %d, itemidx: %d)", client, iDBIdx, iItIdx);
 			#endif
 
 			break;
@@ -2459,6 +2685,113 @@ public void SQL_UserAppliedItemLoad(Database db, DBResultSet results, const char
 	#if defined _DEBUG_
 	if (count == 0)	DDS_PrintToServer(":: DEBUG :: User Load - Applied Item (client: %N, NO APPLIED ITEMS)", client);
 	#endif
+}
+
+/**
+ * SQL 유저 :: 유저 설정 정보 로드
+ *
+ * @param db					데이터베이스 연결 핸들
+ * @param results				결과 쿼리
+ * @param error					오류 문자열
+ * @param client				클라이언트 인덱스
+ */
+public void SQL_UserSettingLoad(Database db, DBResultSet results, const char[] error, any client)
+{
+	// 쿼리 오류 검출
+	if (db == null || error[0])
+	{
+		LogCodeError(client, 1016, error);
+		return;
+	}
+
+	// 갯수 파악
+	int count;
+
+	// 클라이언트 고유 번호 추출
+	char sUsrAuthId[20];
+	GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
+
+	// 쿼리 결과
+	while (results.MoreRows)
+	{
+		// 제시할 행이 없다면 통과
+		if (!results.FetchRow())	continue;
+
+		// 데이터 로드
+		char sOneCate[20];
+		int iTwoCate;
+		char sValue[32];
+		results.FetchString(2, sOneCate, sizeof(sOneCate));
+		iTwoCate = results.FetchInt(3);
+		results.FetchString(4, sValue, sizeof(sValue));
+
+		/**********************************************************
+		 * sOneCate :: 첫 분류 항목
+		 * 
+		 * 'item-status' - 아이템 종류 활성 상태(iTwoCate ~ 아이템 종류 코드, sValue ~ 값[0과 1])
+		 *
+		 **********************************************************/
+
+		/*********************************
+		 * 아이템 활성 정보
+		 *********************************/
+		if (StrEqual(sOneCate, "item-status", false))
+		{
+			// 현재 등록되어 있는 아이템 종류 목록과 똑같이 로드
+			for (int i = 0; i <= dds_iItemCategoryCount; i++)
+			{
+				// 있을 수 없지만 '전체' 항목은 제외
+				if (i == 0)	continue;
+
+				// 두 번째 항목이 등록되어 있는 아이템 종류 코드와 다른 경우는 제외
+				if (iTwoCate != dds_eItemCategoryList[i][CODE])	continue;
+
+				// 등록되어 있는 아이템 종류 코드의 인덱스로 기준잡아 상태 설정
+				dds_eUserItemCGStatus[client][i][CATECODE] = dds_eItemCategoryList[i][CODE];
+				dds_eUserItemCGStatus[client][i][VALUE] = view_as<bool>(StringToInt(sValue));
+
+				// 갯수 증가
+				count++;
+
+				#if defined _DEBUG_
+				DDS_PrintToServer(":: DEBUG :: User Load - Setting ~ Load ItemStatus (client: %N, catelistidx: %d, catecode: %d)", client, i, dds_eItemCategoryList[i][CODE]);
+				#endif
+
+				break;
+			}
+		}
+	}
+
+	// 갯수가 없을 때
+	if (count == 0)
+	{
+		/** 아이템 활성 정보 생성 **/
+		for (int i = 0; i <= dds_iItemCategoryCount; i++)
+		{
+			// '전체' 항목 통과
+			if (i == 0)	continue;
+
+			// 오류 검출 생성
+			ArrayList hMakeErrT = CreateArray(8);
+			hMakeErrT.Push(client);
+			hMakeErrT.Push(1017);
+
+			// 쿼리 전송
+			char sSendQuery[256];
+			Format(sSendQuery, sizeof(sSendQuery), 
+				"INSERT INTO `dds_user_setting` (`idx`, `authid`, `onecate`, `twocate`, `setvalue`) VALUES (NULL, '%s', 'item-status', '%d', '1')", 
+				sUsrAuthId, dds_eItemCategoryList[i][CODE]);
+			dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrT);
+
+			// 데이터 변경
+			dds_eUserItemCGStatus[client][i][CATECODE] = dds_eItemCategoryList[i][CODE];
+			dds_eUserItemCGStatus[client][i][VALUE] = true;
+
+			#if defined _DEBUG_
+			DDS_PrintToServer(":: DEBUG :: User Load - Setting ~ Make ItemStatus (client: %N, catelistidx, catecode: %d)", client, i, dds_eItemCategoryList[i][CODE]);
+			#endif
+		}
+	}
 }
 
 
@@ -2488,7 +2821,7 @@ public Main_hdlMain(Menu menu, MenuAction action, int client, int item)
 			case 1:
 			{
 				// 내 프로필
-				Menu_Profile(client, 0);
+				Menu_Profile(client);
 			}
 			case 2:
 			{
@@ -2498,7 +2831,7 @@ public Main_hdlMain(Menu menu, MenuAction action, int client, int item)
 			case 3:
 			{
 				// 내 인벤토리
-				Menu_Inven(client);
+				Menu_Inven(client, 0);
 			}
 			case 4:
 			{
@@ -2749,7 +3082,7 @@ public Main_hdlInven_CateIn(Menu menu, MenuAction action, int client, int item)
 	{
 		if (item == MenuCancel_ExitBack)
 		{
-			Menu_Inven(client);
+			Menu_Inven(client, 0);
 		}
 	}
 }
@@ -2794,11 +3127,17 @@ public Main_hdlInven_ItemDetail(Menu menu, MenuAction action, int client, int it
 			}
 			case 2:
 			{
-				// 판매
+				// 되팔기
+				char sSendParam[32];
+				Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sExpStr[0]), StringToInt(sExpStr[1]));
+				System_DataProcess(client, "inven-resell", sSendParam);
 			}
 			case 3:
 			{
 				// 선물
+				char sSendParam[32];
+				Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sExpStr[0]), StringToInt(sExpStr[1]));
+				Menu_ItemGift(client, "gift-inven", sSendParam);
 			}
 			case 4:
 			{
@@ -3094,18 +3433,51 @@ public Main_hdlSetting_Item(Menu menu, MenuAction action, int client, int item)
 		menu.GetItem(item, sInfo, sizeof(sInfo));
 		int iInfo = StringToInt(sInfo);
 
-		switch (iInfo)
+		/**
+		 * iInfo
+		 * 
+		 * @Desc 등록된 아이템 종류 인덱스
+		 */
+		// 클라이언트 고유 번호 추출
+		char sUsrAuthId[20];
+		GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
+
+		/** 실제 값 변경 **/
+		if (dds_eUserItemCGStatus[client][iInfo][VALUE])
 		{
-			/**
-			 * iInfo
-			 * 
-			 * @Desc 등록된 아이템 종류 코드
-			 */
-			case 1:
-			{
-				// 아직 없음
-			}
+			dds_eUserItemCGStatus[client][iInfo][VALUE] = false;
+
+			// 오류 검출 생성
+			ArrayList hMakeErr = CreateArray(8);
+			hMakeErr.Push(client);
+			hMakeErr.Push(1022);
+
+			// 데이터베이스 값 변경
+			char sSendQuery[256];
+			Format(sSendQuery, sizeof(sSendQuery), 
+				"UPDATE `dds_user_setting` SET `setvalue` = '%d' WHERE `authid` = '%s' and `onecate` = 'item-status' and `twocate` = '%d'", 
+				0, sUsrAuthId, dds_eUserItemCGStatus[client][iInfo][CATECODE]);
+			dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
 		}
+		else
+		{
+			dds_eUserItemCGStatus[client][iInfo][VALUE] = true;
+
+			// 오류 검출 생성
+			ArrayList hMakeErr = CreateArray(8);
+			hMakeErr.Push(client);
+			hMakeErr.Push(1022);
+
+			// 데이터베이스 값 변경
+			char sSendQuery[256];
+			Format(sSendQuery, sizeof(sSendQuery), 
+				"UPDATE `dds_user_setting` SET `setvalue` = '%d' WHERE `authid` = '%s' and `onecate` = 'item-status' and `twocate` = '%d'", 
+				1, sUsrAuthId, dds_eUserItemCGStatus[client][iInfo][CATECODE]);
+			dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
+		}
+
+		// 다시 메뉴 출력
+		Menu_Setting_Item(client);
 	}
 
 	if (action == MenuAction_Cancel)
@@ -3198,6 +3570,73 @@ public Main_hdlPluginInfo_Detail(Menu menu, MenuAction action, int client, int i
 		if (item == MenuCancel_ExitBack)
 		{
 			Menu_PluginInfo(client);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 아이템 선물 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlItemGift(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	bool bAdChk;
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+
+		// 파라메터 분리
+		char sExpStr[3][32];
+		ExplodeString(sInfo, "##", sExpStr, sizeof(sExpStr), sizeof(sExpStr[]));
+
+		/**
+		 * sExpStr
+		 * 
+		 * @Desc ('##' 기준 배열 분리) [0] - 행동 구분, [1] - 대상 클라이언트 유저 ID, [2] - 추가 파라메터
+		 *
+		 * [0] 'gift-pure': 순수 선물 메뉴, 'gift-inven': 인벤토리 선물, 'gift-admin', 관리자 선물
+		 */
+		if (StrEqual(sExpStr[0], "gift-pure", false))
+		{
+			// 순수 선물 메뉴
+		}
+		else if (StrEqual(sExpStr[0], "gift-inven", false))
+		{
+			/***
+			 * [2] 추가 파라메터
+			 * - (0) 데이터베이스 번호, (1) 아이템 번호
+			 **/
+			// 인벤토리 선물
+			char sSendParam[32];
+			Format(sSendParam, sizeof(sSendParam), "%s||%d", sExpStr[2], StringToInt(sExpStr[1]));
+			System_DataProcess(client, "inven-gift", sSendParam);
+		}
+		else if (StrEqual(sExpStr[0], "gift-admin", false))
+		{
+			// 관리자 선물
+			bAdChk = true;
+		}
+	}
+
+	if (bAdChk)
+	{
+		if (action == MenuAction_Cancel)
+		{
+			if (item == MenuCancel_ExitBack)
+			{
+				//
+			}
 		}
 	}
 }
