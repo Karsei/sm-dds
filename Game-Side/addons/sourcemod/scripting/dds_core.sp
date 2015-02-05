@@ -415,6 +415,11 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 	 * 'money-down' - 금액 감소
 	 * 'money-gift' - 금액 선물
 	 *
+	 * 'item-gift' - 아이템 선물('inven-gift'와 함께 사용)
+	 *
+	 * 'ad-item-give' - 관리자 전용 아이템 주기
+	 * 'ad-item-takeaway' - 관리자 전용 아이템 뺏기
+	 *
 	*******************************************************************************/
 	if (StrEqual(process, "buy", false))
 	{
@@ -438,7 +443,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 조건 및 환경 변수 확인
 		**************************/
 		/** 환경 변수 확인(유저단) **/
-		//
+		// 
 
 		/** 조건 확인 **/
 		// 돈 부족
@@ -648,7 +653,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven resell", sCGName, sItemName, iItemMny, "global money", "global item");
 		DDS_PrintToChat(client, sBuffer);
 	}
-	else if (StrEqual(process, "inven-gift", false))
+	else if (StrEqual(process, "inven-gift", false) || StrEqual(process, "item-gift", false))
 	{
 		/*************************************************
 		 *
@@ -913,7 +918,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 조건 및 환경 변수 확인
 		**************************/
 		/** 환경 변수 확인(유저단) **/
-		//
+		// 
 
 		/** 조건 확인 **/
 		// 돈 부족
@@ -986,7 +991,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 조건 및 환경 변수 확인
 		**************************/
 		/** 환경 변수 확인(유저단) **/
-		//
+		// 
 
 		/** 조건 확인 **/
 		// 본인 돈 부족
@@ -1238,6 +1243,10 @@ public void Log_CodeError(int client, int errcode, const char[] errordec)
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc inven resell money");
 			Format(sDetOutput, sizeof(sDetOutput), "%s Updating User Money is Failure. (AuthID: %s)", sDetOutput, usrauth);
 		}
+		case 2022:
+		{
+			// 
+		}
 	}
 
 	// 클라이언트와 서버 구분하여 로그 출력
@@ -1315,6 +1324,8 @@ public void Log_Data(int client, const char[] action, const char[] data)
 	 * 'money-up' - 금액이 증가될 때
 	 * 'money-down' - 금액이 내려갈 때
 	 * 'money-gift' - 금액을 선물할 때
+	 * 'ad-item-give' - 관리자가 아이템을 줄 때
+	 * 'ad-item-seize' - 관리자가 아이템을 빼앗을 때
 	 *
 	*******************************************************************************/
 	if (StrEqual(action, "game-connect", false))
@@ -2316,13 +2327,12 @@ public Menu_PluginInfo_Detail(int client, int select)
 }
 
 /**
- * 메뉴 :: 아이템 선물 메뉴 출력
+ * 메뉴 :: 아이템 선물-대상 메뉴 출력
  *
  * @param client			클라이언트 인덱스
- * @param action			행동 구분
  * @param data				추가 파라메터
 */
-public Menu_ItemGift(int client, const char[] action, const char[] data)
+public Menu_ItemGift(int client, const char[] data)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
@@ -2331,7 +2341,7 @@ public Menu_ItemGift(int client, const char[] action, const char[] data)
 	Menu mMain = new Menu(Main_hdlItemGift);
 
 	// 제목 설정
-	Format(buffer, sizeof(buffer), "%t\n%t: %t-%t\n ", "menu common title", "menu common curpos", "menu itemgift", "menu itemgift select target");
+	Format(buffer, sizeof(buffer), "%t\n%t: %t-%t\n ", "menu common title", "menu common curpos", "menu itemgift", "global target");
 	mMain.SetTitle(buffer);
 
 	// 전달 파라메터 등록
@@ -2359,7 +2369,107 @@ public Menu_ItemGift(int client, const char[] action, const char[] data)
 		if (i == client)	continue;
 
 		Format(buffer, sizeof(buffer), "%N", i);
-		Format(sSendParam, sizeof(sSendParam), "%s##%d##%s", action, GetClientUserId(i), data);
+		Format(sSendParam, sizeof(sSendParam), "%d||%s", GetClientUserId(i), data);
+		mMain.AddItem(sSendParam, buffer);
+
+		// 갯수 증가
+		count++;
+	}
+
+	// 유저가 없을 때
+	if (count == 0)
+	{
+		// '없음' 출력
+		Format(buffer, sizeof(buffer), "%t", "global nothing");
+		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 관리자 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+ * @param args				기타
+*/
+public Action:Menu_Admin(int client, int args)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlAdmin);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu admin");
+	mMain.SetTitle(buffer);
+
+	// '금액 주기'
+	Format(buffer, sizeof(buffer), "%t", "menu admin givemoney");
+	mMain.AddItem("1", buffer);
+	// '금액 뺏기'
+	Format(buffer, sizeof(buffer), "%t", "menu admin seizemoney");
+	mMain.AddItem("2", buffer);
+	// '아이템 주기'
+	Format(buffer, sizeof(buffer), "%t", "menu admin giveitem");
+	mMain.AddItem("3", buffer);
+	// '아이템 뺏기'
+	Format(buffer, sizeof(buffer), "%t", "menu admin seizeitem");
+	mMain.AddItem("4", buffer);
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+
+	return Plugin_Continue;
+}
+
+/**
+ * 메뉴 :: 관리자 아이템-대상 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+ * @param action			행동 구분
+*/
+public Menu_Admin_Item(int client, const char[] action)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlAdmin_Item);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t-%t\n ", "menu common title", "menu common curpos", "menu admin", "global target");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 전달 파라메터 등록
+	char sSendParam[52];
+
+	// 갯수 파악
+	int count;
+
+	// 메뉴 아이템 등록
+	for (int i = 0; i < MaxClients; i++)
+	{
+		// 서버는 통과
+		if (i == 0)	continue;
+
+		// 게임 내에 없으면 통과
+		if (!IsClientInGame(i))	continue;
+
+		// 봇이면 통과
+		if (IsFakeClient(i))	continue;
+
+		// 인증이 되어 있지 않으면 통과
+		if (!IsClientAuthorized(i))	continue;
+
+		// 본인은 통과
+		if (i == client)	continue;
+
+		Format(buffer, sizeof(buffer), "%N", i);
+		Format(sSendParam, sizeof(sSendParam), "%s||%d", action, GetClientUserId(i));
 		mMain.AddItem(sSendParam, buffer);
 
 		// 갯수 증가
@@ -3220,7 +3330,7 @@ public Main_hdlInven_ItemDetail(Menu menu, MenuAction action, int client, int it
 				// 선물
 				char sSendParam[32];
 				Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sExpStr[0]), StringToInt(sExpStr[1]));
-				Menu_ItemGift(client, "gift-inven", sSendParam);
+				Menu_ItemGift(client, sSendParam);
 			}
 			case 4:
 			{
@@ -3672,8 +3782,6 @@ public Main_hdlItemGift(Menu menu, MenuAction action, int client, int item)
 		delete menu;
 	}
 
-	bool bAdChk;
-
 	if (action == MenuAction_Select)
 	{
 		char sInfo[32];
@@ -3681,46 +3789,98 @@ public Main_hdlItemGift(Menu menu, MenuAction action, int client, int item)
 
 		// 파라메터 분리
 		char sExpStr[3][32];
-		ExplodeString(sInfo, "##", sExpStr, sizeof(sExpStr), sizeof(sExpStr[]));
+		ExplodeString(sInfo, "||", sExpStr, sizeof(sExpStr), sizeof(sExpStr[]));
 
 		/**
 		 * sExpStr
 		 * 
-		 * @Desc ('##' 기준 배열 분리) [0] - 행동 구분, [1] - 대상 클라이언트 유저 ID, [2] - 추가 파라메터
+		 * @Desc ('##' 기준 배열 분리) [0] - 대상 클라이언트 유저 ID, [1] - 추가 파라메터
 		 *
-		 * [0] 'gift-pure': 순수 선물 메뉴, 'gift-inven': 인벤토리 선물, 'gift-admin', 관리자 선물
 		 */
-		if (StrEqual(sExpStr[0], "gift-pure", false))
-		{
-			// 순수 선물 메뉴
-		}
-		else if (StrEqual(sExpStr[0], "gift-inven", false))
-		{
-			/***
-			 * [2] 추가 파라메터
-			 * - (0) 데이터베이스 번호, (1) 아이템 번호
-			 **/
-			// 인벤토리 선물
-			char sSendParam[32];
-			Format(sSendParam, sizeof(sSendParam), "%s||%d", sExpStr[2], StringToInt(sExpStr[1]));
-			System_DataProcess(client, "inven-gift", sSendParam);
-		}
-		else if (StrEqual(sExpStr[0], "gift-admin", false))
-		{
-			// 관리자 선물
-			bAdChk = true;
-		}
+		char sSendParam[32];
+		Format(sSendParam, sizeof(sSendParam), "%s||%d", sExpStr[1], StringToInt(sExpStr[0]));
+		System_DataProcess(client, "inven-gift", sSendParam);
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 관리자 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlAdmin(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
 	}
 
-	if (bAdChk)
+	if (action == MenuAction_Select)
 	{
-		if (action == MenuAction_Cancel)
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		switch (iInfo)
 		{
-			if (item == MenuCancel_ExitBack)
+			case 1:
 			{
-				//
+				// 금액 주기
+			}
+			case 2:
+			{
+				// 금액 빼앗기
+			}
+			case 3:
+			{
+				// 아이템 주기
+				Menu_Admin_Item(client, "item-give");
+			}
+			case 4:
+			{
+				// 아이템 빼앗기
+				Menu_Admin_Item(client, "item-seize");
 			}
 		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 관리자 아이템-대상 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlAdmin_Item(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+
+		// 파라메터 분리
+		char sExpStr[2][32];
+		ExplodeString(sInfo, "||", sExpStr, sizeof(sExpStr), sizeof(sExpStr[]));
+
+		/**
+		 * sExpStr
+		 * 
+		 * @Desc ('##' 기준 배열 분리) [0] - 행동 구분, [1] - 대상 클라이언트 유저 ID
+		 *
+		 */
+		char sSendParam[32];
+		Format(sSendParam, sizeof(sSendParam), "%s||%d", sExpStr[0], StringToInt(sExpStr[1]));
+		// 
 	}
 }
 

@@ -73,6 +73,11 @@
 		"en"				"Applied"
 	}
 
+	"global target"
+	{
+		"en"				"Target"
+	}
+
 	/*************************************
 	 * 메뉴 (Menu)
 	 *************************************/
@@ -209,6 +214,36 @@
 	}
 
 	"menu itemgift select target"
+	{
+		"en"				"Target"
+	}
+
+	"menu admin"
+	{
+		"en"				"Admin Menu"
+	}
+
+	"menu admin givemoney"
+	{
+		"en"				"Give Money"
+	}
+
+	"menu admin seizemoney"
+	{
+		"en"				"Seize Money"
+	}
+
+	"menu admin giveitem"
+	{
+		"en"				"Give Item"
+	}
+
+	"menu admin seizeitem"
+	{
+		"en"				"Seize Item"
+	}
+
+	"menu admin item select target"
 	{
 		"en"				"Target"
 	}

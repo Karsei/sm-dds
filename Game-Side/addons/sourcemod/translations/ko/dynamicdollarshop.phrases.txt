@@ -73,6 +73,11 @@
 		"ko"				"장착중"
 	}
 
+	"global target"
+	{
+		"ko"				"대상"
+	}
+
 	/*************************************
 	 * 메뉴 (Menu)
 	 *************************************/
@@ -208,9 +213,29 @@
 		"ko"				"아이템 선물"
 	}
 
-	"menu itemgift select target"
+	"menu admin"
 	{
-		"ko"				"대상"
+		"ko"				"관리자 메뉴"
+	}
+
+	"menu admin givemoney"
+	{
+		"ko"				"금액 주기"
+	}
+
+	"menu admin seizemoney"
+	{
+		"ko"				"금액 빼앗기"
+	}
+
+	"menu admin giveitem"
+	{
+		"ko"				"아이템 주기"
+	}
+
+	"menu admin seizeitem"
+	{
+		"ko"				"아이템 빼앗기"
 	}
 
 	/*************************************
