@@ -1,6 +1,6 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Login extends CI_Controller {
+class Auth extends CI_Controller {
 
 	function __construct()
 	{
@@ -34,7 +34,7 @@ class Login extends CI_Controller {
 		}
 		else if ($oid->mode == 'cancel')
 		{
-			redirect('/login/');
+			redirect('/auth/login/');
 		}
 		else
 		{
@@ -42,15 +42,28 @@ class Login extends CI_Controller {
 			{
 				preg_match("/^http:\/\/steamcommunity\.com\/openid\/id\/(7[0-9]{15,25}+)$/", $oid->identity, $stid);
 				$this->session->set_userdata('auth_id', $stid[1]);
-				redirect('/login/');
+				redirect('/auth/login/');
 			}
 		}
 	}
 
-	public function index()
+	public function login()
 	{
+		// 로그인 페이지
 		$data['setform'] = $this->auth_m->MakeSignin();
 		$this->load->view('page_login', $data);
+	}
+
+	public function logout()
+	{
+		// 세션 제거
+		$usrdata = $this->session->all_userdata();
+		foreach ($usrdata as $key => $value) {
+			if ($key != 'session_id' && $key != 'ip_address' && $key != 'user_agent' && $key != 'last_activity') {
+				$this->session->unset_userdata($key);
+			}
+		}
+		redirect('/auth/login/', 'refresh');
 	}
 }
 

@@ -67,6 +67,7 @@ char dds_sPluginLogFile[256];
 
 // Convar 변수
 ConVar dds_hCV_PluginSwitch;
+ConVar dds_hCV_SwtichLogData;
 ConVar dds_hCV_SwitchDisplayChat;
 ConVar dds_hCV_SwitchQuickCmdN;
 ConVar dds_hCV_SwitchQuickCmdF1;
@@ -76,7 +77,6 @@ ConVar dds_hCV_SwitchGiftItem;
 ConVar dds_hCV_SwitchResellItem;
 ConVar dds_hCV_ItemMoneyMultiply;
 ConVar dds_hCV_ItemResellRatio;
-//ConVar dds_hCV_SwtichLog;
 
 // 팀 채팅
 bool dds_bTeamChat[MAXPLAYERS + 1];
@@ -119,6 +119,7 @@ public void OnPluginStart()
 
 	// Convar 등록
 	dds_hCV_PluginSwitch = CreateConVar("dds_switch_plugin", "1", "본 플러그인의 작동 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	dds_hCV_SwtichLogData = CreateConVar("dds_switch_log_data", "1", "데이터 로그 작성 여부입니다. 활성화를 권장합니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	dds_hCV_SwitchDisplayChat = CreateConVar("dds_switch_chat", "0", "채팅을 할 때 메세지 출력 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	dds_hCV_SwitchQuickCmdN = CreateConVar("dds_switch_quick_n", "1", "N키의 단축키 설정입니다. 0 - 작동 해제 / 1 - 메인 메뉴 / 2 - 인벤토리 메뉴", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	dds_hCV_SwitchQuickCmdF1 = CreateConVar("dds_switch_quick_f1", "0", "F1키의 단축키 설정입니다. 0 - 작동 해제 / 1 - 메인 메뉴 / 2 - 인벤토리 메뉴", FCVAR_PLUGIN, true, 0.0, true, 2.0);
@@ -128,7 +129,6 @@ public void OnPluginStart()
 	dds_hCV_SwitchResellItem = CreateConVar("dds_switch_item_resell", "0", "아이템 되팔기 기능을 기본적으로 허용할 것인지의 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	dds_hCV_ItemMoneyMultiply = CreateConVar("dds_item_money_multiply", "1.0", "모든 아이템을 각 아이템 금액의 몇 배의 비율로 설정할 것인지 적어주세요. 처음 아이템 목록을 로드할 때 반영됩니다.", FCVAR_PLUGIN);
 	dds_hCV_ItemResellRatio = CreateConVar("dds_item_resell_ratio", "0.2", "아이템 되팔기 기능을 사용할 때 해당 아이템 금액의 어느 정도의 비율로 설정할 것인지 적어주세요.", FCVAR_PLUGIN);
-	//dds_hCV_SwtichLog = CreateConVar("dds_switch_log", "1", "데이터 로그 작성 여부입니다. 활성화를 권장합니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 
 	// 플러그인 로그 작성 등록
 	BuildPath(Path_SM, dds_sPluginLogFile, sizeof(dds_sPluginLogFile), "logs/dynamicdollarshop.log");
@@ -610,7 +610,8 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// int 변수 하나에 2147483647 을 넘길 수 없음
 		if ((dds_iUserMoney[client] + iItemMny) > 2147400000)
 		{
-			// Out of Range
+			Format(sBuffer, sizeof(sBuffer), "%t", "error money sobig");
+			DDS_PrintToChat(client, sBuffer);
 			return;
 		}
 
@@ -864,7 +865,8 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// int 변수 하나에 2147483647 을 넘길 수 없음
 		if ((dds_iUserMoney[client] + iTarMoney) > 2147400000)
 		{
-			// Out of Range
+			Format(sBuffer, sizeof(sBuffer), "%t", "error money sobig");
+			DDS_PrintToChat(client, sBuffer);
 			return;
 		}
 
@@ -998,7 +1000,8 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// int 변수 하나에 2147483647 을 넘길 수 없음
 		if ((dds_iUserMoney[iTarget] + iTarMoney) > 2147400000)
 		{
-			// Out of Range
+			Format(sBuffer, sizeof(sBuffer), "%t", "error money sobig");
+			DDS_PrintToChat(client, sBuffer);
 			return;
 		}
 
@@ -1043,7 +1046,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
  * @param errcode			오류 코드
  * @param errordec			오류 원인
  */
-public void LogCodeError(int client, int errcode, const char[] errordec)
+public void Log_CodeError(int client, int errcode, const char[] errordec)
 {
 	char usrauth[20];
 
@@ -1267,6 +1270,79 @@ public void LogCodeError(int client, int errcode, const char[] errordec)
 	}
 }
 
+/**
+ * LOG :: 데이터 로그 작성
+ *
+ * @param client			클라이언트 인덱스
+ * @param action			행동 구분
+ * @param data				추가 파라메터
+ */
+public void Log_Data(int client, const char[] action, const char[] data)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	// ConVar 설정 확인
+	if (!dds_hCV_SwtichLogData.BoolValue)	return;
+
+	/*******************************
+	 * 설정 준비
+	********************************/
+	// 실제 클라이언트 구분 후 고유번호 추출
+	char sUsrAuthId[20];
+	if (client > 0)
+	{
+		if (IsClientAuthorized(client))
+			GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
+	}
+
+	// 출력 설정
+	char sOutput[512];
+
+	/******************************************************************************
+	 * -----------------------------------
+	 * 'action' 파라메터 종류 별 나열
+	 * -----------------------------------
+	 *
+	 * 'game-connect' - 게임 내에 들어왔을 때
+	 * 'game-disconnect' - 게임 밖으로 나갔을 때
+	 * 'item-buy' - 메인 메뉴에서 아이템을 구매할 때
+	 * 'item-use' - 아이템을 장착하였을 때
+	 * 'item-cancel' - 아이템을 장착 해제하였을 때
+	 * 'item-resell' - 아이템을 되팔았을 때
+	 * 'item-gift' - 아이템을 선물하였을 때
+	 * 'item-drop' - 아이템을 버렸을 때
+	 * 'money-up' - 금액이 증가될 때
+	 * 'money-down' - 금액이 내려갈 때
+	 * 'money-gift' - 금액을 선물할 때
+	 *
+	*******************************************************************************/
+	if (StrEqual(action, "game-connect", false))
+	{
+		// 게임 내에 들어왔을 때
+	}
+	else if (StrEqual(action, "game-disconnect", false))
+	{
+		// 게임 밖으로 나갔을 때
+	}
+	else if (StrEqual(action, "buy", false))
+	{
+		// 메인 메뉴에서 아이템을 구매할 때
+	}
+	else if (StrEqual(action, "money-gift", false))
+	{
+		// 금액을 선물할 때
+	}
+
+	/*******************************
+	 * 로그 생성
+	********************************/
+	if (client > 0)
+	{
+		// 
+	}
+}
+
 
 /**
  * SQL :: 초기화 및 SQL 데이터베이스에 있는 데이터 로드
@@ -1460,7 +1536,7 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
 	// 쿼리 오류 검출
 	if (db == null || error[0])
 	{
-		LogCodeError(0, 1020, error);
+		Log_CodeError(0, 1020, error);
 		return;
 	}
 
@@ -1672,7 +1748,7 @@ public void Menu_Inven_CateIn(Database db, DBResultSet results, const char[] err
 	// 쿼리 오류 검출
 	if (db == null || error[0])
 	{
-		LogCodeError(0, 1021, error);
+		Log_CodeError(0, 1021, error);
 		return;
 	}
 
@@ -2386,7 +2462,7 @@ public void SQL_GetDatabase(Handle owner, Handle db, const char[] error, any dat
 	// 데이터베이스 연결 안될 때
 	if ((db == null) || (error[0]))
 	{
-		LogCodeError(0, 1000, error);
+		Log_CodeError(0, 1000, error);
 		return;
 	}
 
@@ -2395,7 +2471,7 @@ public void SQL_GetDatabase(Handle owner, Handle db, const char[] error, any dat
 
 	if (dds_hSQLDatabase == null)
 	{
-		LogCodeError(0, 1001, error);
+		Log_CodeError(0, 1001, error);
 		return;
 	}
 
@@ -2429,7 +2505,7 @@ public void SQL_ErrorProcess(Database db, DBResultSet results, const char[] erro
 	delete hData;
 
 	// 오류코드 로그 작성
-	if (error[0])	LogCodeError(client, errcode, error);
+	if (error[0])	Log_CodeError(client, errcode, error);
 }
 
 /**
@@ -2445,7 +2521,7 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 	// 쿼리 오류 검출
 	if (db == null || error[0])
 	{
-		LogCodeError(0, 1002, error);
+		Log_CodeError(0, 1002, error);
 		return;
 	}
 
@@ -2481,7 +2557,7 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 	// 쿼리 오류 검출
 	if (db == null || error[0])
 	{
-		LogCodeError(0, 1003, error);
+		Log_CodeError(0, 1003, error);
 		return;
 	}
 
@@ -2552,7 +2628,7 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 	// 쿼리 오류 검출
 	if (db == null || error[0])
 	{
-		LogCodeError(client, 1010, error);
+		Log_CodeError(client, 1010, error);
 		return;
 	}
 
@@ -2626,7 +2702,7 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 	else
 	{
 		/** 잘못된 정보 **/
-		LogCodeError(client, 1014, "The number of this user profile db must be one.");
+		Log_CodeError(client, 1014, "The number of this user profile db must be one.");
 	}
 }
 
@@ -2643,7 +2719,7 @@ public void SQL_UserAppliedItemLoad(Database db, DBResultSet results, const char
 	// 쿼리 오류 검출
 	if (db == null || error[0])
 	{
-		LogCodeError(client, 1015, error);
+		Log_CodeError(client, 1015, error);
 		return;
 	}
 
@@ -2700,7 +2776,7 @@ public void SQL_UserSettingLoad(Database db, DBResultSet results, const char[] e
 	// 쿼리 오류 검출
 	if (db == null || error[0])
 	{
-		LogCodeError(client, 1016, error);
+		Log_CodeError(client, 1016, error);
 		return;
 	}
 
@@ -2728,15 +2804,22 @@ public void SQL_UserSettingLoad(Database db, DBResultSet results, const char[] e
 		/**********************************************************
 		 * sOneCate :: 첫 분류 항목
 		 * 
+		 * 'sys-status' - 시스템 설정(iTwoCate ~ , sValue ~ )
 		 * 'item-status' - 아이템 종류 활성 상태(iTwoCate ~ 아이템 종류 코드, sValue ~ 값[0과 1])
 		 *
 		 **********************************************************/
-
-		/*********************************
-		 * 아이템 활성 정보
-		 *********************************/
-		if (StrEqual(sOneCate, "item-status", false))
+		if (StrEqual(sOneCate, "sys-status", false))
 		{
+			/*********************************
+			 * 시스템 설정
+			 *********************************/
+			// 
+		}
+		else if (StrEqual(sOneCate, "item-status", false))
+		{
+			/*********************************
+			 * 아이템 활성 정보
+			 *********************************/
 			// 현재 등록되어 있는 아이템 종류 목록과 똑같이 로드
 			for (int i = 0; i <= dds_iItemCategoryCount; i++)
 			{

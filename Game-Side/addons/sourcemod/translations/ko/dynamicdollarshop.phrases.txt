@@ -305,6 +305,11 @@
 		"ko"				"{1} {2}이(가) 부족합니다."
 	}
 
+	"error money sobig"
+	{
+		"ko"				"금액이 너무 많습니다!"
+	}
+
 	/** 오류 종류 **/
 	"error sql usrprofile load"
 	{

@@ -316,6 +316,11 @@
 		"en"				"You need {1} {2} more."
 	}
 
+	"error money sobig"
+	{
+		"en"				"Money is too huge!"
+	}
+
 	/** 오류 종류 **/
 	"error sql usrprofile load"
 	{

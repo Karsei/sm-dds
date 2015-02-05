@@ -1,6 +1,6 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Home extends CI_Controller {
+class Myinfo extends CI_Controller {
 
 	function __construct()
 	{
@@ -27,11 +27,11 @@ class Home extends CI_Controller {
 
 	public function index()
 	{
-		$tdata['title'] = '홈';
+		$tdata['title'] = '내 정보';
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$this->load->view('_top', $tdata);
-		$this->load->view('page_home', $pdata);
+		$this->load->view('page_myinfo', $pdata);
 		$this->load->view('_foot');
 	}
 }
