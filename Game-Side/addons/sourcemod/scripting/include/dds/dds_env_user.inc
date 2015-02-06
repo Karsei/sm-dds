@@ -17,7 +17,5 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  * 
  ***********************************************************************/
-#define DDS_ENV_USER_MAINMENU					"달러샵"
-
 #define DDS_ENV_ITEM_MAX						300
 #define DDS_ENV_ITEMCG_MAX						20

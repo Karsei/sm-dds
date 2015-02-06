@@ -20,7 +20,7 @@
 
 	"global money"
 	{
-		"ko"				"금액"
+		"ko"				"달러"
 	}
 
 	"global none"
@@ -76,6 +76,39 @@
 	"global target"
 	{
 		"ko"				"대상"
+	}
+
+	"global category"
+	{
+		"ko"				"종류"
+	}
+
+	/*************************************
+	 * 명령어 (Command)
+	 *************************************/
+	"command main menu"
+	{
+		"ko"				"달러샵"
+	}
+
+	"command profile"
+	{
+		"ko"				"정보"
+	}
+
+	"command gift"
+	{
+		"ko"				"선물"
+	}
+
+	"command adminsetting"
+	{
+		"ko"				"관리자설정"
+	}
+
+	"command init"
+	{
+		"ko"				"초기화"
 	}
 
 	/*************************************
@@ -193,6 +226,11 @@
 		"ko"				"메인 메뉴를 엽니다"
 	}
 
+	"menu plugininfo cmd desc gift"
+	{
+		"ko"				"자기의 금액이나 아이템을 누군가에게 줍니다."
+	}
+
 	"menu plugininfo author"
 	{
 		"ko"				"개발자 정보"
@@ -211,31 +249,6 @@
 	"menu itemgift"
 	{
 		"ko"				"아이템 선물"
-	}
-
-	"menu admin"
-	{
-		"ko"				"관리자 메뉴"
-	}
-
-	"menu admin givemoney"
-	{
-		"ko"				"금액 주기"
-	}
-
-	"menu admin seizemoney"
-	{
-		"ko"				"금액 빼앗기"
-	}
-
-	"menu admin giveitem"
-	{
-		"ko"				"아이템 주기"
-	}
-
-	"menu admin seizeitem"
-	{
-		"ko"				"아이템 빼앗기"
 	}
 
 	/*************************************
@@ -333,6 +346,62 @@
 	"error money sobig"
 	{
 		"ko"				"금액이 너무 많습니다!"
+	}
+
+	"error sqlstatus server"
+	{
+		"ko"				"서버의 데이터베이스 상태가 활성화되어 있지 않습니다."
+	}
+
+	"error sqlstatus user"
+	{
+		"ko"				"해당 유저의 데이터베이스 상태가 활성화되어 있지 않습니다."
+	}
+
+	/** 명령어 **/
+	"error command noaction"
+	{
+		"ko"				"행동 구분이 없습니다. 행동을 입력해주세요."
+	}
+
+	"error command notarget"
+	{
+		"ko"				"찾을 대상의 이름을 적어주세요. 이름의 일부를 적어도 됩니다."
+	}
+
+	"error command notarget nodqm"
+	{
+		"ko"				"파라메터는 쌍따옴표로 묶어서 입력해주세요."
+	}
+
+	"error command notarget ingame"
+	{
+		"ko"				"해당하는 대상이 게임 내에 없습니다."
+	}
+
+	"error command notarget more"
+	{
+		"ko"				"해당하는 대상이 2명 이상입니다. 좀 더 정확히 입력해주세요."
+	}
+
+	"error command nomoney"
+	{
+		"ko"				"금액을 입력해주세요."
+	}
+
+	"error command nomoney nodqm"
+	{
+		"ko"				"금액을 쌍따옴표로 묶어서 입력해주세요."
+	}
+
+	"error command profile usage"
+	{
+		"ko"				"사용법: !{1} <대상>"
+	}
+
+	"error command gift usage"
+	{
+		"ko"				"사용법: !{1} \"{2}\" <대상> <값>"
 	}
 
 	/** 오류 종류 **/
@@ -449,5 +518,10 @@
 	"error sql itemproc inven resell money"
 	{
 		"ko"				"해당 아이템을 되팔고 금액을 얻는 도중 오류가 발생했습니다."
+	}
+
+	"error sql log"
+	{
+		"ko"				"데이터 로그를 작성하는 도중 오류가 발생하였습니다."
 	}
 }

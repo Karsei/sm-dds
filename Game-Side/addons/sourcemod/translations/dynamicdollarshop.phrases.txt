@@ -78,6 +78,39 @@
 		"en"				"Target"
 	}
 
+	"global category"
+	{
+		"en"				"Category"
+	}
+
+	/*************************************
+	 * 명령어 (Command)
+	 *************************************/
+	"command main menu"
+	{
+		"en"				"dds"
+	}
+
+	"command profile"
+	{
+		"en"				"ddsprofile"
+	}
+
+	"command gift"
+	{
+		"en"				"ddsgift"
+	}
+
+	"command adminsetting"
+	{
+		"en"				"ddsads"
+	}
+
+	"command init"
+	{
+		"en"				"ddsinit"
+	}
+
 	/*************************************
 	 * 메뉴 (Menu)
 	 *************************************/
@@ -193,6 +226,11 @@
 		"en"				"Opens a Main Menu"
 	}
 
+	"menu plugininfo cmd desc gift"
+	{
+		"en"				"Gives my money or item to someone."
+	}
+
 	"menu plugininfo author"
 	{
 		"en"				"Author Info"
@@ -214,36 +252,6 @@
 	}
 
 	"menu itemgift select target"
-	{
-		"en"				"Target"
-	}
-
-	"menu admin"
-	{
-		"en"				"Admin Menu"
-	}
-
-	"menu admin givemoney"
-	{
-		"en"				"Give Money"
-	}
-
-	"menu admin seizemoney"
-	{
-		"en"				"Seize Money"
-	}
-
-	"menu admin giveitem"
-	{
-		"en"				"Give Item"
-	}
-
-	"menu admin seizeitem"
-	{
-		"en"				"Seize Item"
-	}
-
-	"menu admin item select target"
 	{
 		"en"				"Target"
 	}
@@ -354,6 +362,64 @@
 	"error money sobig"
 	{
 		"en"				"Money is too huge!"
+	}
+
+	"error sqlstatus server"
+	{
+		"en"				"Server is not available to use database."
+	}
+
+	"error sqlstatus user"
+	{
+		"en"				"You are not available to use database yet."
+	}
+
+	/** 명령어 **/
+	"error command noaction"
+	{
+		"en"				"Please write the action."
+	}
+
+	"error command notarget"
+	{
+		"en"				"Please write the name you wanna find."
+	}
+
+	"error command notarget nodqm"
+	{
+		"en"				"Please write the name enclosed in double quotes."
+	}
+
+	"error command notarget ingame"
+	{
+		"en"				"The target is not in game."
+	}
+
+	"error command notarget more"
+	{
+		"en"				"The results are more than two people. Please write more accurately."
+	}
+
+	"error command nomoney"
+	{
+		"en"				"Please enter the amount."
+	}
+
+	"error command nomoney nodqm"
+	{
+		"en"				"Please enter the amount enclosed in double quotes."
+	}
+
+	"error command profile usage"
+	{
+		"#format"			"{1:t}"
+		"en"				"Usage: !{1} <target>"
+	}
+
+	"error command gift usage"
+	{
+		"#format"			"{1:t},{2:t}"
+		"en"				"Usage: !{1} \"{2}\" <target> <amount>"
 	}
 
 	/** 오류 종류 **/
@@ -470,5 +536,10 @@
 	"error sql itemproc inven resell money"
 	{
 		"en"				"An error has occurred while updating user money."
+	}
+
+	"error sql log"
+	{
+		"en"				"An error has occurred trying to insert user data log."
 	}
 }

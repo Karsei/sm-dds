@@ -14,11 +14,6 @@ class Auth extends CI_Controller {
 		// 인증 모델 로드
 		$this->load->model('auth_m');
 
-		// 로그인되어 있으면 기본 화면으로 리다이렉트
-		if ($this->session->userdata('auth_id')) {
-			redirect('/home/');
-		}
-
 		// 스팀 Web API는 OpenID 2.0을 사용하고 있으므로 라이브러리 로드
 		$oid = $this->lightopenid;
 		
@@ -47,8 +42,23 @@ class Auth extends CI_Controller {
 		}
 	}
 
+	public function index()
+	{
+		// 기본적으로 기본 화면으로 리다이렉트
+		if ($this->session->userdata('auth_id')) {
+			redirect('/home/');
+		} else {
+			redirect('/auth/login/');
+		}
+	}
+
 	public function login()
 	{
+		// 로그인되어 있으면 기본 화면으로 리다이렉트
+		if ($this->session->userdata('auth_id')) {
+			redirect('/home/');
+		}
+
 		// 로그인 페이지
 		$data['setform'] = $this->auth_m->MakeSignin();
 		$this->load->view('page_login', $data);

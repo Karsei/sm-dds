@@ -187,7 +187,9 @@ stock SelectedStuffToString(const char[] findStr, const char[] wantStr, const ch
 		char tmpStr[512];
 
 		// 찾은 문자열 위치부터 항목을 잘라낼 문자까지 따로 값을 분리
-		SplitString(findStr[envPos], lineCut, tmpStr, sizeof(tmpStr));
+		if (SplitString(findStr[envPos], lineCut, tmpStr, sizeof(tmpStr)) == -1)
+			strcopy(tmpStr, sizeof(tmpStr), findStr[envPos]);
+
 		// 값을 잘라낼 문자로 위에서 구한 값을 분리
 		ExplodeString(tmpStr, valueCut, value, sizeof(value), sizeof(value[]));
 	}
@@ -209,17 +211,110 @@ stock SelectedGeoNameToString(int client, const char[] findStr, char[] output, i
 	// 클라이언트가 없는 경우는 생략
 	if (!IsClientInGame(client))	return;
 
-	char usrip[32];
-	char usrGeo[3];
-	char value[128];
+	char sUsrLang[16];
+	char sValue[128];
 
-	// 클라이언트의 IP 파악
-	GetClientIP(client, usrip, sizeof(usrip));
-	// IP로 국가 구분(국가 코드는 두 글자)
-	GeoipCode2(usrip, usrGeo);
+	// 클라이언트 언어 파악
+	GetLanguageInfo(GetClientLanguage(client), sUsrLang, sizeof(sUsrLang));
 
 	// 값 추출
-	SelectedStuffToString(findStr, usrGeo, "||", ":", value, sizeof(value));
+	SelectedStuffToString(findStr, sUsrLang, "||", ":", sValue, sizeof(sValue));
 
-	strcopy(output, len, value);
+	strcopy(output, len, sValue);
+}
+
+/**
+ * 보안 :: SQL 인젝션 방어
+ *
+ * @param input						대상 문자열
+ * @param output					저장 문자열
+ * @param oplength					저장할 문자열 길이
+ */
+stock SetPreventSQLInject(const char[] input, char[] output, oplength)
+{
+	char sTempStr[1024];
+
+	strcopy(sTempStr, sizeof(sTempStr), input);
+
+	ReplaceString(sTempStr, sizeof(sTempStr), "'", "''", false);
+	ReplaceString(sTempStr, sizeof(sTempStr), "`", "", false);
+	ReplaceString(sTempStr, sizeof(sTempStr), "//", "////", false);
+
+	strcopy(output, oplength, sTempStr);
+}
+
+/**
+ * 추출 :: 이름을 통한 대상 클라이언트 이름 찾기
+ *
+ * @param name				찾을 문자열
+ * @return 대상 클라이언트 유저 ID
+ */
+stock int SearchTargetByName(const char[] name)
+{
+	// 안적혀 있으면 통과
+	if (strlen(name) <= 0)	return 0;
+
+	// 쌍따옴표 제거
+	char sTmpName[32];
+	strcopy(sTmpName, sizeof(sTmpName), name);
+	StripQuotes(sTmpName);
+
+	// 개수 파악
+	int count;
+
+	// 찾을 인덱스 준비
+	int iChkIdx;
+
+	for (int i = 0; i < MaxClients; i++)
+	{
+		// 서버는 통과
+		if (i == 0)	continue;
+
+		// 인증이 안되어 있으면 통과
+		if (!IsClientAuthorized(i))	continue;
+
+		// 게임에 없으면 통과
+		if (!IsClientInGame(i))	continue;
+
+		// 봇은 통과
+		if (IsFakeClient(i))	continue;
+
+		// 이름 추출
+		char sUsrName[32];
+		GetClientName(i, sUsrName, sizeof(sUsrName));
+
+		if (StrContains(sUsrName, sTmpName, false) != -1)
+		{
+			// 인덱스 설정
+			iChkIdx = i;
+
+			// 갯수 증가
+			count++;
+		}
+	}
+	
+	if (count == 0)	return 0;
+	else if (count > 1)	return -1;
+	else return GetClientUserId(iChkIdx);
+}
+
+/**
+ * 추출 :: 파라메터 쌍따옴표 확인
+ *
+ * @param msg				대상 문자열
+ * @return 대상 클라이언트 유저 ID
+ */
+stock bool CheckDQM(const char[] msg)
+{
+	// 안적혀 있으면 통과
+	if (strlen(msg) <= 0)	return false;
+
+	// 쌍따옴표 하나가 적히면 통과
+	if ((strlen(msg) - 1) == 0)	return false;
+
+	// 조건 확인
+	if ((msg[0] == '"') && (msg[strlen(msg)-1] == '"'))
+		return true;
+
+	return false;
 }

@@ -18,10 +18,7 @@
  * 
  ***********************************************************************/
 #include <sourcemod>
-#include <geoip>
 #include <dds>
-
-#define _DEBUG_
 
 /*******************************************************
  * E N U M S
@@ -61,6 +58,10 @@ enum ItemCG
 *******************************************************/
 // SQL 데이터베이스
 Database dds_hSQLDatabase = null;
+bool dds_bSQLStatus;
+
+// 유저 SQL 확인
+bool dds_bUserSQLStatus[MAXPLAYERS + 1];
 
 // 로그 파일
 char dds_sPluginLogFile[256];
@@ -167,8 +168,7 @@ public void OnConfigsExecuted()
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
 
 	/** SQL 데이터베이스 연결 **/
-	//Database.Connect(SQL_GetDatabase, "dds");
-	SQL_TConnect(SQL_GetDatabase, "dds");
+	Database.Connect(SQL_GetDatabase, "dds");
 
 	/** 단축키 연결 **/
 	// N 키
@@ -193,6 +193,9 @@ public void OnMapEnd()
 		delete dds_hSQLDatabase;
 	}
 	dds_hSQLDatabase = null;
+
+	// SQL 상태 초기화
+	dds_bSQLStatus = false;
 }
 
 /**
@@ -228,6 +231,9 @@ public void OnClientDisconnect(client)
 
 	// 봇은 제외
 	if (IsFakeClient(client))	return;
+
+	// 로그 작성
+	Log_Data(client, "game-disconnect", "");
 
 	// 클라이언트 고유 번호 추출
 	char sUsrAuthId[20];
@@ -310,6 +316,9 @@ public void Init_UserData(int client, int mode)
 			/** 전체 초기화 **/
 			for (int i = 0; i <= MAXPLAYERS; i++)
 			{
+				// SQL 데이터베이스 유저 상태
+				dds_bUserSQLStatus[i] = false;
+
 				// 팀 채팅
 				dds_bTeamChat[i] = false;
 
@@ -332,6 +341,9 @@ public void Init_UserData(int client, int mode)
 		case 2:
 		{
 			/** 특정 클라이언트 초기화 **/
+			// SQL 데이터베이스 유저 상태
+			dds_bUserSQLStatus[client] = false;
+
 			// 팀 채팅
 			dds_bTeamChat[client] = false;
 
@@ -383,6 +395,20 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
 
+	// SQL 데이터베이스가 활성화되어 있지 않다면 작동 안함
+	if (!dds_bSQLStatus)
+	{
+		DDS_PrintToChat(client, "%t", "error sqlstatus server");
+		return;
+	}
+
+	// 유저의 SQL 데이터베이스 상태가 활성화되어 있지 않다면 작동 안함
+	if (!dds_bUserSQLStatus[client])
+	{
+		DDS_PrintToChat(client, "%t", "error sqlstatus user");
+		return;
+	}
+
 	/***** 클라이언트 정보 추출 *****/
 	// 클라이언트의 이름 파악
 	char sClient_Name[32];
@@ -397,6 +423,9 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 	// 버퍼 준비
 	char sBuffer[128];
+
+	// 로그 준비
+	char sMakeLogParam[128];
 
 	/******************************************************************************
 	 * -----------------------------------
@@ -464,7 +493,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		
 		// 쿼리 전송
 		Format(sSendQuery, sizeof(sSendQuery), 
-			"INSERT INTO `dds_user_item` (`idx`, `authid`, `ilidx`, `aplied`, `buydate`) VALUES (NULL, '%s', '%d', '0', '%s')", 
+			"INSERT INTO `dds_user_item` (`idx`, `authid`, `ilidx`, `aplied`, `buydate`) VALUES (NULL, '%s', '%d', '0', '%d')", 
 			sClient_AuthId, iItemIdx, GetTime());
 		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrI);
 
@@ -486,6 +515,12 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user buy", sCGName, sItemName, "global item");
 		DDS_PrintToChat(client, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d||%d", sCGName, sItemName, iItemIdx, iItemMny);
+		Log_Data(client, "item-buy", sMakeLogParam);
 	}
 	else if (StrEqual(process, "inven-use", false) || StrEqual(process, "curitem-use", false))
 	{
@@ -564,6 +599,10 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 			Format(sBuffer, sizeof(sBuffer), "%t", "system user inven use prev", sCGName, sItemName, "global item");
 			DDS_PrintToChat(client, sBuffer);
+
+			// 로그 출력
+			Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sCGName, sItemName, iPrevItemIdx);
+			Log_Data(client, "item-cancel", sMakeLogParam);
 		}
 
 		// 대상 아이템 출력
@@ -572,6 +611,12 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven use after", sCGName, sItemName, "global item");
 		DDS_PrintToChat(client, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sCGName, sItemName, iItemIdx);
+		Log_Data(client, "item-use", sMakeLogParam);
 	}
 	else if (StrEqual(process, "inven-resell", false))
 	{
@@ -652,6 +697,12 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven resell", sCGName, sItemName, iItemMny, "global money", "global item");
 		DDS_PrintToChat(client, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d||%d", sCGName, sItemName, iItemIdx, iItemMny);
+		Log_Data(client, "item-resell", sMakeLogParam);
 	}
 	else if (StrEqual(process, "inven-gift", false) || StrEqual(process, "item-gift", false))
 	{
@@ -724,7 +775,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		// 쿼리 전송
 		Format(sSendQuery, sizeof(sSendQuery), 
-			"INSERT INTO `dds_user_item` (`idx`, `authid`, `ilidx`, `aplied`, `buydate`) VALUES (NULL, '%s', '%d', '0', '%s')", 
+			"INSERT INTO `dds_user_item` (`idx`, `authid`, `ilidx`, `aplied`, `buydate`) VALUES (NULL, '%s', '%d', '0', '%d')", 
 			sTargetAuthId, iItemIdx, GetTime());
 		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIt);
 
@@ -746,6 +797,18 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		DDS_PrintToChat(client, sBuffer);
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven gift take", sCGName, sItemName, sUsrName[0], "global item");
 		DDS_PrintToChat(iTarget, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		// 클라이언트 이름 추출 후 인젝션 필터
+		char sTmpName[32];
+		GetClientName(iTarget, sTmpName, sizeof(sTmpName));
+		SetPreventSQLInject(sTmpName, sTmpName, sizeof(sTmpName));
+
+		// 로그 출력
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%s||%s||%d", sTmpName, sTargetAuthId, sCGName, sItemName, iItemIdx);
+		Log_Data(client, "item-gift", sMakeLogParam);
 	}
 	else if (StrEqual(process, "inven-drop", false))
 	{
@@ -792,6 +855,12 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven drop", sCGName, sItemName, "global item");
 		DDS_PrintToChat(client, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sCGName, sItemName, iItemIdx);
+		Log_Data(client, "item-drop", sMakeLogParam);
 	}
 	else if (StrEqual(process, "curitem-cancel", false))
 	{
@@ -838,6 +907,12 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user curitem cancel", sCGName, sItemName, "global item");
 		DDS_PrintToChat(client, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sCGName, sItemName, iPrevItemIdx);
+		Log_Data(client, "item-cancel", sMakeLogParam);
 	}
 	else if (StrEqual(process, "money-up", false))
 	{
@@ -891,6 +966,12 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		// 실제 금액 갱신
 		dds_iUserMoney[client] += iTarMoney;
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%d||%d", dds_iUserMoney[client], iTarMoney);
+		Log_Data(client, "money-up", sMakeLogParam);
 	}
 	else if (StrEqual(process, "money-down", false))
 	{
@@ -945,6 +1026,12 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		// 실제 금액 갱신
 		dds_iUserMoney[client] -= iTarMoney;
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%d||%d", dds_iUserMoney[client], iTarMoney);
+		Log_Data(client, "money-down", sMakeLogParam);
 	}
 	else if (StrEqual(process, "money-gift", false))
 	{
@@ -1040,6 +1127,18 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		DDS_PrintToChat(client, sBuffer);
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user money gift take", iTarMoney, "global money", sUsrName[0]);
 		DDS_PrintToChat(iTarget, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		// 클라이언트 이름 추출 후 인젝션 필터
+		char sTmpName[32];
+		GetClientName(iTarget, sTmpName, sizeof(sTmpName));
+		SetPreventSQLInject(sTmpName, sTmpName, sizeof(sTmpName));
+
+		// 로그 출력
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sTmpName, sTargetAuthId, dds_iUserMoney[client]);
+		Log_Data(client, "money-gift", sMakeLogParam);
 	}
 }
 
@@ -1171,6 +1270,12 @@ public void Log_CodeError(int client, int errcode, const char[] errordec)
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql usrsetting set");
 			Format(sDetOutput, sizeof(sDetOutput), "%s Updating User Setting DB is Failure! (AuthID: %s)", sDetOutput, usrauth);
 		}
+		case 1100:
+		{
+			// [데이터 로그] 로그를 처리할 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql log");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Inserting User Log DB is Failure! (AuthID: %s)", sDetOutput, usrauth);
+		}
 		case 2010:
 		{
 			// [아이템 처리 시스템] 아이템을 구매할 때
@@ -1294,19 +1399,41 @@ public void Log_Data(int client, const char[] action, const char[] data)
 	// ConVar 설정 확인
 	if (!dds_hCV_SwtichLogData.BoolValue)	return;
 
+	// 서버가 주체가 되면 안됨
+	if (client == 0)	return;
+
+	// 주체 클라이언트 존재 확인
+	if (client > 0)
+	{
+		if (!IsClientAuthorized(client))
+			return;
+	}
+
+	// SQL 데이터베이스가 활성화되어 있지 않다면 작동 안함
+	if (!dds_bSQLStatus)	return;
+
+	// 유저의 SQL 데이터베이스 상태가 활성화되어 있지 않다면 작동 안함
+	if (!dds_bUserSQLStatus[client])	return;
+
 	/*******************************
 	 * 설정 준비
 	********************************/
 	// 실제 클라이언트 구분 후 고유번호 추출
-	char sUsrAuthId[20];
-	if (client > 0)
-	{
-		if (IsClientAuthorized(client))
-			GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
-	}
+	char sClient_AuthId[20];
+	GetClientAuthId(client, AuthId_SteamID64, sClient_AuthId, sizeof(sClient_AuthId));
+
+	// IP 주소 추출
+	char sClient_IP[32];
+	GetClientIP(client, sClient_IP, sizeof(sClient_IP));
 
 	// 출력 설정
-	char sOutput[512];
+	//char sOutput[512];
+
+	// 파라메터 준비
+	char sSendParam[128];
+
+	// 쿼리 준비
+	char sSendQuery[512];
 
 	/******************************************************************************
 	 * -----------------------------------
@@ -1330,28 +1457,139 @@ public void Log_Data(int client, const char[] action, const char[] data)
 	*******************************************************************************/
 	if (StrEqual(action, "game-connect", false))
 	{
-		// 게임 내에 들어왔을 때
+		/*************************************************
+		 *
+		 * [게임 내에 들어왔을 때]
+		 *
+		 * 전달 파라메터 없음
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), "%d", dds_iUserMoney[client]);
 	}
 	else if (StrEqual(action, "game-disconnect", false))
 	{
-		// 게임 밖으로 나갔을 때
+		/*************************************************
+		 *
+		 * [게임 밖으로 나갔을 때]
+		 *
+		 * 전달 파라메터 없음
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), "%d", dds_iUserMoney[client]);
 	}
-	else if (StrEqual(action, "buy", false))
+	else if (StrEqual(action, "item-buy", false))
 	{
-		// 메인 메뉴에서 아이템을 구매할 때
+		/*************************************************
+		 *
+		 * [메인 메뉴에서 아이템을 구매할 때]
+		 *
+		 * (0) - 아이템 종류 이름, (1) - 아이템 이름, (2) - 아이템 번호, (3) - 아이템 금액
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "item-use", false))
+	{
+		/*************************************************
+		 *
+		 * [아이템을 장착하였을 때]
+		 *
+		 * (0) - 아이템 종류 이름, (1) - 아이템 이름, (2) - 아이템 번호
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "item-cancel", false))
+	{
+		/*************************************************
+		 *
+		 * [아이템을 장착 해제하였을 때]
+		 *
+		 * (0) - 아이템 종류 이름, (1) - 아이템 이름, (2) - 아이템 번호
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "item-resell", false))
+	{
+		/*************************************************
+		 *
+		 * [아이템을 되팔았을 때]
+		 *
+		 * (0) - 아이템 종류 이름, (1) - 아이템 이름, (2) - 아이템 번호, (3) - 팔은 금액
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "item-gift", false))
+	{
+		/*************************************************
+		 *
+		 * [아이템을 선물하였을 때]
+		 *
+		 * (0) - 대상 이름, (1) - 대상 고유 번호, (2) - 아이템 종류 이름, (3) - 아이템 이름, (4) - 아이템 번호
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "item-drop", false))
+	{
+		/*************************************************
+		 *
+		 * [아이템을 버렸을 때]
+		 *
+		 * (0) - 아이템 종류 이름, (1) - 아이템 이름, (2) - 아이템 번호
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "money-up", false))
+	{
+		/*************************************************
+		 *
+		 * [금액이 증가될 때]
+		 *
+		 * (0) - 클라이언트 금액, (1) - 증가될 금액
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "money-down", false))
+	{
+		/*************************************************
+		 *
+		 * [금액이 내려갈 때]
+		 *
+		 * (0) - 클라이언트 금액, (1) - 내려갈 금액
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
 	}
 	else if (StrEqual(action, "money-gift", false))
 	{
-		// 금액을 선물할 때
+		/*************************************************
+		 *
+		 * [금액을 선물할 때]
+		 *
+		 * (0) - 대상 이름, (1) - 대상 고유 번호, (2) - 클라이언트 금액
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
 	}
 
 	/*******************************
 	 * 로그 생성
 	********************************/
-	if (client > 0)
-	{
-		// 
-	}
+	// 오류 검출 생성
+	ArrayList hMakeErrI = CreateArray(8);
+	hMakeErrI.Push(client);
+	hMakeErrI.Push(1100);
+		
+	// 쿼리 전송
+	Format(sSendQuery, sizeof(sSendQuery), 
+		"INSERT INTO `dds_log_data` (`idx`, `authid`, `action`, `setdata`, `thisdate`, `usrip`) VALUES (NULL, '%s', '%s', '%s', '%d', '%s')", 
+		sClient_AuthId, action, sSendParam, GetTime(), sClient_IP);
+	dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrI);
 }
 
 
@@ -1389,6 +1627,20 @@ public Action:Menu_Main(int client, int args)
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
 
+	// SQL 데이터베이스가 활성화되어 있지 않다면 작동 안함
+	if (!dds_bSQLStatus)
+	{
+		DDS_PrintToChat(client, "%t", "error sqlstatus server");
+		return Plugin_Continue;
+	}
+
+	// 유저의 SQL 데이터베이스 상태가 활성화되어 있지 않다면 작동 안함
+	if (!dds_bUserSQLStatus[client])
+	{
+		DDS_PrintToChat(client, "%t", "error sqlstatus user");
+		return Plugin_Continue;
+	}
+
 	char buffer[256];
 	Menu mMain = new Menu(Main_hdlMain);
 
@@ -1425,8 +1677,9 @@ public Action:Menu_Main(int client, int args)
  * 메뉴 :: 프로필 메뉴 출력
  *
  * @param client			클라이언트 인덱스
+ * @param action			행동 구분
 */
-public Menu_Profile(int client)
+public Menu_Profile(int client, const char[] action)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
@@ -1437,7 +1690,10 @@ public Menu_Profile(int client)
 	// 제목 설정
 	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu main myprofile");
 	mMain.SetTitle(buffer);
-	mMain.ExitBackButton = true;
+
+	// 행동 구분
+	if (StrEqual(action, "main-menu", false))
+		mMain.ExitBackButton = true;
 
 	// 필요 정보
 	char sUsrName[32];
@@ -1682,6 +1938,20 @@ public Action:Menu_Inven(int client, int args)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
+
+	// SQL 데이터베이스가 활성화되어 있지 않다면 작동 안함
+	if (!dds_bSQLStatus)
+	{
+		DDS_PrintToChat(client, "%t", "error sqlstatus server");
+		return Plugin_Continue;
+	}
+
+	// 유저의 SQL 데이터베이스 상태가 활성화되어 있지 않다면 작동 안함
+	if (!dds_bUserSQLStatus[client])
+	{
+		DDS_PrintToChat(client, "%t", "error sqlstatus user");
+		return Plugin_Continue;
+	}
 
 	char buffer[256];
 	Menu mMain = new Menu(Main_hdlInven);
@@ -2301,8 +2571,14 @@ public Menu_PluginInfo_Detail(int client, int select)
 		case 1:
 		{
 			// 명령어 정보
-			Format(buffer, sizeof(buffer), "!%s: %t", DDS_ENV_USER_MAINMENU, "menu plugininfo cmd desc main");
+			// 번역 준비
+			char sCmdTrans[32];
+			Format(sCmdTrans, sizeof(sCmdTrans), "%t", "command main menu");
+			Format(buffer, sizeof(buffer), "!%s: %t", sCmdTrans, "menu plugininfo cmd desc main");
 			mMain.AddItem("1", buffer);
+			Format(sCmdTrans, sizeof(sCmdTrans), "%t", "command gift");
+			Format(buffer, sizeof(buffer), "!%s: %t", sCmdTrans, "menu plugininfo cmd desc gift");
+			mMain.AddItem("2", buffer);
 		}
 		case 2:
 		{
@@ -2388,106 +2664,6 @@ public Menu_ItemGift(int client, const char[] data)
 	mMain.Display(client, MENU_TIME_FOREVER);
 }
 
-/**
- * 메뉴 :: 관리자 메뉴 출력
- *
- * @param client			클라이언트 인덱스
- * @param args				기타
-*/
-public Action:Menu_Admin(int client, int args)
-{
-	// 플러그인이 켜져 있을 때에는 작동 안함
-	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
-
-	char buffer[256];
-	Menu mMain = new Menu(Main_hdlAdmin);
-
-	// 제목 설정
-	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu admin");
-	mMain.SetTitle(buffer);
-
-	// '금액 주기'
-	Format(buffer, sizeof(buffer), "%t", "menu admin givemoney");
-	mMain.AddItem("1", buffer);
-	// '금액 뺏기'
-	Format(buffer, sizeof(buffer), "%t", "menu admin seizemoney");
-	mMain.AddItem("2", buffer);
-	// '아이템 주기'
-	Format(buffer, sizeof(buffer), "%t", "menu admin giveitem");
-	mMain.AddItem("3", buffer);
-	// '아이템 뺏기'
-	Format(buffer, sizeof(buffer), "%t", "menu admin seizeitem");
-	mMain.AddItem("4", buffer);
-
-	// 메뉴 출력
-	mMain.Display(client, MENU_TIME_FOREVER);
-
-	return Plugin_Continue;
-}
-
-/**
- * 메뉴 :: 관리자 아이템-대상 메뉴 출력
- *
- * @param client			클라이언트 인덱스
- * @param action			행동 구분
-*/
-public Menu_Admin_Item(int client, const char[] action)
-{
-	// 플러그인이 켜져 있을 때에는 작동 안함
-	if (!dds_hCV_PluginSwitch.BoolValue)	return;
-
-	char buffer[256];
-	Menu mMain = new Menu(Main_hdlAdmin_Item);
-
-	// 제목 설정
-	Format(buffer, sizeof(buffer), "%t\n%t: %t-%t\n ", "menu common title", "menu common curpos", "menu admin", "global target");
-	mMain.SetTitle(buffer);
-	mMain.ExitBackButton = true;
-
-	// 전달 파라메터 등록
-	char sSendParam[52];
-
-	// 갯수 파악
-	int count;
-
-	// 메뉴 아이템 등록
-	for (int i = 0; i < MaxClients; i++)
-	{
-		// 서버는 통과
-		if (i == 0)	continue;
-
-		// 게임 내에 없으면 통과
-		if (!IsClientInGame(i))	continue;
-
-		// 봇이면 통과
-		if (IsFakeClient(i))	continue;
-
-		// 인증이 되어 있지 않으면 통과
-		if (!IsClientAuthorized(i))	continue;
-
-		// 본인은 통과
-		if (i == client)	continue;
-
-		Format(buffer, sizeof(buffer), "%N", i);
-		Format(sSendParam, sizeof(sSendParam), "%s||%d", action, GetClientUserId(i));
-		mMain.AddItem(sSendParam, buffer);
-
-		// 갯수 증가
-		count++;
-	}
-
-	// 유저가 없을 때
-	if (count == 0)
-	{
-		// '없음' 출력
-		Format(buffer, sizeof(buffer), "%t", "global nothing");
-		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
-	}
-
-	// 메뉴 출력
-	mMain.Display(client, MENU_TIME_FOREVER);
-}
-
 
 /*******************************************************
  * C A L L B A C K   F U N C T I O N S
@@ -2522,17 +2698,81 @@ public Action:Command_Say(int client, int args)
 	if (sParamIdx == -1)
 	{
 		strcopy(sMainCmd, sizeof(sMainCmd), sMsg[1]);
-		strcopy(sParamStr[0], 64, sMsg[1]);
+		strcopy(sParamStr[0], 64, "");
 	}
 
-	// 느낌표나 슬래시가 있다면 제거
-	ReplaceString(sMainCmd, sizeof(sMainCmd), "!", "", false);
-	ReplaceString(sMainCmd, sizeof(sMainCmd), "/", "", false);
+	// 느낌표나 슬래시가 있다면 제거 후 명령어였늕지 파악
+	bool bChkCmd;
+	if (ReplaceString(sMainCmd, sizeof(sMainCmd), "!", "", false) > 0)
+		bChkCmd = true;
 
+	if (ReplaceString(sMainCmd, sizeof(sMainCmd), "/", "", false) > 0)
+		bChkCmd = true;
+
+	// 명령어 번역 준비
+	char sCmhTrans[32];
+
+	/***********************************************************************
+	 * -------------------------
+	 * 변수 정리
+	 * -------------------------
+	 *
+	 * sMainCmd - 맨 처음의 전체 문자열. 슬래시나 느낌표가 없음.
+	 * ex) 예를 들어 채팅에서 '!테스트 하나 둘 셋'했다면 sMainCmd는 '테스트'가 됨.
+	 *
+	 * sParamStr - 파라메터. sParamStr의 1차원 배열에 설정한 길이 값만큼 이용 가능
+	 * add) 현재 기본값 4로 설정되어 있고 띄어쓰기 구분으로 파라메터 4개를 쓸 수 있음.
+	 *
+	 * bChkCmd - 슬래시나 느낌표가 들어있는 경우 명령어로 간주하여 체크 됨.
+	 *
+	 * sCmhTrans - 클라이언트 언어 별 명령어를 담당할 포멧을 지정하는 곳.
+	 *
+	************************************************************************/
 	// 메인 메뉴
-	if (StrEqual(sMainCmd, DDS_ENV_USER_MAINMENU, false))
+	Format(sCmhTrans, sizeof(sCmhTrans), "%t", "command main menu");
+	if (bChkCmd && StrEqual(sMainCmd, sCmhTrans, false))
 	{
 		Menu_Main(client, 0);
+	}
+
+	// 프로필 정보
+	Format(sCmhTrans, sizeof(sCmhTrans), "%t", "command profile");
+	if (bChkCmd && StrEqual(sMainCmd, sCmhTrans, false))
+	{
+		Command_Profile(client, sParamStr[0]);
+	}
+
+	// 금액 또는 기타 선물
+	Format(sCmhTrans, sizeof(sCmhTrans), "%t", "command gift");
+	if (bChkCmd && StrEqual(sMainCmd, sCmhTrans, false))
+	{
+		ArrayList hSendParam = CreateArray(64);
+		hSendParam.PushString(sParamStr[0]);
+		hSendParam.PushString(sParamStr[1]);
+		hSendParam.PushString(sParamStr[2]);
+		hSendParam.PushString(sParamStr[3]);
+
+		Command_Gift(client, hSendParam);
+	}
+
+	// 관리자 전용 금액 또는 아이템 설정
+	Format(sCmhTrans, sizeof(sCmhTrans), "%t", "command adminsetting");
+	if (bChkCmd && StrEqual(sMainCmd, sCmhTrans, false))
+	{
+		ArrayList hSendParam = CreateArray(64);
+		hSendParam.PushString(sParamStr[0]);
+		hSendParam.PushString(sParamStr[1]);
+		hSendParam.PushString(sParamStr[2]);
+		hSendParam.PushString(sParamStr[3]);
+
+		//Command_Admin_Setting(client, hSendParam);
+	}
+
+	// 초기화
+	Format(sCmhTrans, sizeof(sCmhTrans), "%t", "command init");
+	if (bChkCmd && StrEqual(sMainCmd, sCmhTrans, false))
+	{
+		Command_Init(client);
 	}
 
 	// 팀 채팅 기록 초기화
@@ -2560,14 +2800,160 @@ public Action:Command_TeamSay(int client, int args)
 }
 
 /**
+ * 커맨드 :: 프로필
+ *
+ * @param client				클라이언트 인덱스
+ * @param name					대상 클라이언트 이름
+ */
+public Command_Profile(int client, const char[] name)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	// 대상이 빈칸일 경우
+	if (strlen(name) <= 0)
+	{
+		DDS_PrintToChat(client, "%t", "error command profile usage", "command profile");
+		return;
+	}
+
+	// 쌍따옴표로 구성이 안되어 있을 경우
+	if (!CheckDQM(name))
+	{
+		DDS_PrintToChat(client, "%t", "error command notarget nodqm");
+		return;
+	}
+
+	// 대상을 찾는데 없을 경우
+	if (SearchTargetByName(name) == 0)
+	{
+		DDS_PrintToChat(client, "%t", "error command notarget ingame");
+		return;
+	}
+
+	// 대상을 찾는데 2명 이상일 경우
+	if (SearchTargetByName(name) == -1)
+	{
+		DDS_PrintToChat(client, "%t", "error command notarget more");
+		return;
+	}
+
+	Menu_Profile(GetClientOfUserId(SearchTargetByName(name)), "command");
+}
+
+/**
+ * 커맨드 :: 선물
+ *
+ * @param client				클라이언트 인덱스
+ * @param data					추가 값
+ */
+public Command_Gift(int client, ArrayList data)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	// 파라메터 값 수령
+	char sGetParam[4][64];
+
+	data.GetString(0, sGetParam[0], 64);
+	data.GetString(1, sGetParam[1], 64);
+	data.GetString(2, sGetParam[2], 64);
+	data.GetString(3, sGetParam[3], 64);
+
+	delete data;
+
+	// 번역 준비
+	char sCmdTrans[32];
+
+	// 행동 구분이 빈칸일 경우
+	if (strlen(sGetParam[0]) <= 0)
+	{
+		DDS_PrintToChat(client, "%t", "error command gift usage", "command gift", "global money");
+		return;
+	}
+
+	/** 행동 구분 **/
+	// 금액
+	Format(sCmdTrans, sizeof(sCmdTrans), "\"%t\"", "global money");
+	if (StrEqual(sGetParam[0], sCmdTrans, false))
+	{
+		// 대상이 빈칸일 경우
+		if (strlen(sGetParam[1]) <= 0)
+		{
+			DDS_PrintToChat(client, "%t", "error command notarget");
+			return;
+		}
+
+		// 쌍따옴표로 구성이 안되어 있을 경우
+		if (!CheckDQM(sGetParam[1]))
+		{
+			DDS_PrintToChat(client, "%t", "error command notarget nodqm");
+			return;
+		}
+
+		// 대상을 찾는데 없을 경우
+		if (SearchTargetByName(sGetParam[1]) == 0)
+		{
+			DDS_PrintToChat(client, "%t", "error command notarget ingame");
+			return;
+		}
+
+		// 대상을 찾는데 2명 이상일 경우
+		if (SearchTargetByName(sGetParam[1]) == -1)
+		{
+			DDS_PrintToChat(client, "%t", "error command notarget more");
+			return;
+		}
+
+		// 선물 금액이 빈칸일 경우
+		if (strlen(sGetParam[2]) <= 0)
+		{
+			DDS_PrintToChat(client, "%t", "error command nomoney");
+			return;
+		}
+
+		// 선물 금액이 쌍따옴표로 구성이 안되어 있을 경우
+		if (!CheckDQM(sGetParam[2]))
+		{
+			DDS_PrintToChat(client, "%t", "error command nomoney nodqm");
+			return;
+		}
+
+		// 금액 쌍따옴표 제거
+		StripQuotes(sGetParam[2]);
+
+		// 파라메터 준비
+		char sSendParam[32];
+		Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sGetParam[2]), SearchTargetByName(sGetParam[1]));
+
+		// 처리
+		System_DataProcess(client, "money-gift", sSendParam);
+	}
+}
+
+/**
+ * 커맨드 :: 초기화
+ *
+ * @param client				클라이언트 인덱스
+ * @param args					기타
+ */
+public Command_Init(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	// 
+}
+
+
+/**
  * SQL :: 데이터베이스 최초 연결
  *
  * @param db					데이터베이스 연결 핸들
  * @param error					오류 문자열
  * @param data					기타
  */
-//public void SQL_GetDatabase(Database db, const char[] error, any data)
-public void SQL_GetDatabase(Handle owner, Handle db, const char[] error, any data)
+public void SQL_GetDatabase(Database db, const char[] error, any data)
 {
 	// 데이터베이스 연결 안될 때
 	if ((db == null) || (error[0]))
@@ -2692,6 +3078,9 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 		// 아이템 등록 갯수 증가
 		dds_iItemCount++;
 	}
+
+	// SQL 상태 활성화
+	dds_bSQLStatus = true;
 }
 
 /**
@@ -2721,6 +3110,9 @@ public Action:SQL_Timer_UserLoad(Handle timer, any client)
 	// 설정 정보
 	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_setting` WHERE `authid` = '%s'", sUsrAuthId);
 	dds_hSQLDatabase.Query(SQL_UserSettingLoad, sSendQuery, client);
+
+	/** 로그 작성 **/
+	Log_Data(client, "game-connect", "");
 
 	return Plugin_Stop;
 }
@@ -2985,6 +3377,9 @@ public void SQL_UserSettingLoad(Database db, DBResultSet results, const char[] e
 			#endif
 		}
 	}
+
+	// SQL 유저 상태 활성화
+	dds_bUserSQLStatus[client] = true;
 }
 
 
@@ -3014,7 +3409,7 @@ public Main_hdlMain(Menu menu, MenuAction action, int client, int item)
 			case 1:
 			{
 				// 내 프로필
-				Menu_Profile(client);
+				Menu_Profile(client, "main-menu");
 			}
 			case 2:
 			{
@@ -3121,7 +3516,7 @@ public Main_hdlCurItem(Menu menu, MenuAction action, int client, int item)
 
 		// 쿼리 전송
 		char sSendQuery[256];
-		Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_item` WHERE `authid` = '%s'", sUsrAuthId);
+		Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_item` WHERE `authid` = '%s' ORDER BY `idx` DESC", sUsrAuthId);
 		dds_hSQLDatabase.Query(Menu_CurItem_CateIn, sSendQuery, sSendParam);
 	}
 
@@ -3226,7 +3621,7 @@ public Main_hdlInven(Menu menu, MenuAction action, int client, int item)
 
 		// 쿼리 전송
 		char sSendQuery[256];
-		Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_item` WHERE `authid` = '%s'", sUsrAuthId);
+		Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_item` WHERE `authid` = '%s' ORDER BY `idx` DESC", sUsrAuthId);
 		dds_hSQLDatabase.Query(Menu_Inven_CateIn, sSendQuery, sSendParam);
 	}
 
@@ -3638,6 +4033,22 @@ public Main_hdlSetting_Item(Menu menu, MenuAction action, int client, int item)
 		/** 실제 값 변경 **/
 		if (dds_eUserItemCGStatus[client][iInfo][VALUE])
 		{
+			// SQL 데이터베이스가 활성화되어 있지 않다면 작동 안함
+			if (!dds_bSQLStatus)
+			{
+				DDS_PrintToChat(client, "%t", "error sqlstatus server");
+				Menu_Setting(client);
+				return;
+			}
+
+			// 유저의 SQL 데이터베이스 상태가 활성화되어 있지 않다면 작동 안함
+			if (!dds_bUserSQLStatus[client])
+			{
+				DDS_PrintToChat(client, "%t", "error sqlstatus user");
+				Menu_Setting(client);
+				return;
+			}
+
 			dds_eUserItemCGStatus[client][iInfo][VALUE] = false;
 
 			// 오류 검출 생성
@@ -3654,6 +4065,22 @@ public Main_hdlSetting_Item(Menu menu, MenuAction action, int client, int item)
 		}
 		else
 		{
+			// SQL 데이터베이스가 활성화되어 있지 않다면 작동 안함
+			if (!dds_bSQLStatus)
+			{
+				DDS_PrintToChat(client, "%t", "error sqlstatus server");
+				Menu_Setting(client);
+				return;
+			}
+
+			// 유저의 SQL 데이터베이스 상태가 활성화되어 있지 않다면 작동 안함
+			if (!dds_bUserSQLStatus[client])
+			{
+				DDS_PrintToChat(client, "%t", "error sqlstatus user");
+				Menu_Setting(client);
+				return;
+			}
+
 			dds_eUserItemCGStatus[client][iInfo][VALUE] = true;
 
 			// 오류 검출 생성
@@ -3800,87 +4227,6 @@ public Main_hdlItemGift(Menu menu, MenuAction action, int client, int item)
 		char sSendParam[32];
 		Format(sSendParam, sizeof(sSendParam), "%s||%d", sExpStr[1], StringToInt(sExpStr[0]));
 		System_DataProcess(client, "inven-gift", sSendParam);
-	}
-}
-
-/**
- * 메뉴 핸들 :: 관리자 메뉴 핸들러
- *
- * @param menu				메뉴 핸들
- * @param action			메뉴 액션
- * @param client 			클라이언트 인덱스
- * @param item				메뉴 아이템 소유 문자열
- */
-public Main_hdlAdmin(Menu menu, MenuAction action, int client, int item)
-{
-	if (action == MenuAction_End)
-	{
-		delete menu;
-	}
-
-	if (action == MenuAction_Select)
-	{
-		char sInfo[32];
-		menu.GetItem(item, sInfo, sizeof(sInfo));
-		int iInfo = StringToInt(sInfo);
-
-		switch (iInfo)
-		{
-			case 1:
-			{
-				// 금액 주기
-			}
-			case 2:
-			{
-				// 금액 빼앗기
-			}
-			case 3:
-			{
-				// 아이템 주기
-				Menu_Admin_Item(client, "item-give");
-			}
-			case 4:
-			{
-				// 아이템 빼앗기
-				Menu_Admin_Item(client, "item-seize");
-			}
-		}
-	}
-}
-
-/**
- * 메뉴 핸들 :: 관리자 아이템-대상 메뉴 핸들러
- *
- * @param menu				메뉴 핸들
- * @param action			메뉴 액션
- * @param client 			클라이언트 인덱스
- * @param item				메뉴 아이템 소유 문자열
- */
-public Main_hdlAdmin_Item(Menu menu, MenuAction action, int client, int item)
-{
-	if (action == MenuAction_End)
-	{
-		delete menu;
-	}
-
-	if (action == MenuAction_Select)
-	{
-		char sInfo[32];
-		menu.GetItem(item, sInfo, sizeof(sInfo));
-
-		// 파라메터 분리
-		char sExpStr[2][32];
-		ExplodeString(sInfo, "||", sExpStr, sizeof(sExpStr), sizeof(sExpStr[]));
-
-		/**
-		 * sExpStr
-		 * 
-		 * @Desc ('##' 기준 배열 분리) [0] - 행동 구분, [1] - 대상 클라이언트 유저 ID
-		 *
-		 */
-		char sSendParam[32];
-		Format(sSendParam, sizeof(sSendParam), "%s||%d", sExpStr[0], StringToInt(sExpStr[1]));
-		// 
 	}
 }
 
