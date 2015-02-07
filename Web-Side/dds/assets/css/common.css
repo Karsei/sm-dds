@@ -8,6 +8,8 @@
  *
  */
 @charset "utf8";
+@import "reset.css";
+@import "pace.css";
 
 /*************************************
  * CLEARFIX
@@ -29,8 +31,17 @@
 /*************************************
  * Default Setting
 **************************************/
+html {
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    -ms-text-size-adjust: none;
+    -o-text-size-adjust: none;
+    -khtml-text-size-adjust: none;
+}
+
 body {
     font-family: "맑은 고딕", "돋음";
+    font-size: 1.0em;
 }
 
 a,

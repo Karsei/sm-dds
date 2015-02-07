@@ -1,3 +1,6 @@
+# Author By. Karsei
+# http://karsei.pe.kr
+
 <IfModule mod_rewrite.c>
 	RewriteEngine On
 	RewriteCond $1 !^(index\.php|images|captcha|data|include|uploads|robots\.txt)

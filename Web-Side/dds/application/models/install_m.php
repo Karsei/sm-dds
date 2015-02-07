@@ -46,8 +46,8 @@ class Install_m extends CI_Model {
 				$attr = array('step' => '2');
 				$rval .= form_open('install', '', $attr);
 				$rval .= '<p>\'' . PRODUCT_NAME . '\'을 설치할 것입니다. 아래의 GPL v3 라이센스를 읽어주십시오.</p>';
-				$rval .= '<textarea>';
-				$rval .= read_file('./gpl-3.0.txt');
+				$rval .= '<textarea readonly>';
+				$rval .= read_file('./gpl-3.0-ko.txt');
 				$rval .= '</textarea>';
 				$rval .= '<div class="buttongrp">';
 				$rval .= form_button(array('name' => 'submit', 'type' => 'submit', 'content' => '<i class="fa fa-chevron-right"></i>'));

@@ -102,7 +102,7 @@ public Plugin:myinfo =
 {
 	name = DDS_ENV_CORE_NAME,
 	author = DDS_ENV_CORE_AUTHOR,
-	description = "DOLLAR SHOP",
+	description = "This can allow clients to use shops that supports several items with virtual dollars.",
 	version = DDS_ENV_CORE_VERSION,
 	url = DDS_ENV_CORE_HOMEPAGE
 };
