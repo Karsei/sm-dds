@@ -152,6 +152,9 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 
 	// Native 함수 등록
 	CreateNative("DDS_IsPluginOn", Native_DDS_IsPluginOn);
+	CreateNative("DDS_GetServerSQLStatus", Native_DDS_GetServerSQLStatus);
+	CreateNative("DDS_GetClientSQLStatus", Native_DDS_GetClientSQLStatus);
+	CreateNative("DDS_CreateItemCategory", Native_DDS_CreateItemCategory);
 	CreateNative("DDS_GetClientMoney", Native_DDS_GetClientMoney);
 	CreateNative("DDS_GetClientAppliedDB", Native_DDS_GetClientAppliedDB);
 	CreateNative("DDS_GetClientAppliedItem", Native_DDS_GetClientAppliedItem);
@@ -4242,6 +4245,40 @@ public Main_hdlItemGift(Menu menu, MenuAction action, int client, int item)
 public int Native_DDS_IsPluginOn(Handle:plugin, numParams)
 {
 	return dds_hCV_PluginSwitch.BoolValue;
+}
+
+/**
+ * Native :: DDS_GetServerSQLStatus
+ *
+ * @brief	DDS 플러그인의 SQL 서버 활성 여부
+*/
+public int Native_DDS_GetServerSQLStatus(Handle:plugin, numParams)
+{
+	return dds_bSQLStatus;
+}
+
+/**
+ * Native :: DDS_GetClientSQLStatus
+ *
+ * @brief	클라이언트 별 SQL 활성 여부
+*/
+public int Native_DDS_GetClientSQLStatus(Handle:plugin, numParams)
+{
+	int client = GetNativeCell(1);
+
+	return dds_bUserSQLStatus[client];
+}
+
+/**
+ * Native :: DDS_CreateItemCategory
+ *
+ * @brief	DDS 플러그인에 아이템 종류 플러그인 연결
+*/
+public int Native_DDS_CreateItemCategory(Handle:plugin, numParams)
+{
+	int catecode = GetNativeCell(1);
+
+	return true;
 }
 
 /**

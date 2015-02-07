@@ -27,9 +27,13 @@ class Home extends CI_Controller {
 
 	public function index()
 	{
+		// 기본 정보
 		$tdata['title'] = '홈';
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
+		$pdata['title'] = $tdata['title'];
+
+		// 출력
 		$this->load->view('_top', $tdata);
 		$this->load->view('page_home', $pdata);
 		$this->load->view('_foot');

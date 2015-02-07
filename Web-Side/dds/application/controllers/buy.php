@@ -27,9 +27,13 @@ class Buy extends CI_Controller {
 
 	public function index()
 	{
+		// 기본 정보
 		$tdata['title'] = '아이템 구매';
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
+		$pdata['title'] = $tdata['title'];
+
+		// 출력
 		$this->load->view('_top', $tdata);
 		$this->load->view('page_buy', $pdata);
 		$this->load->view('_foot');

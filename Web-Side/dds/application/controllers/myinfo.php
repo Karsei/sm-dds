@@ -27,9 +27,13 @@ class Myinfo extends CI_Controller {
 
 	public function index()
 	{
+		// 기본 정보
 		$tdata['title'] = '내 정보';
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
+		$pdata['title'] = $tdata['title'];
+
+		// 출력
 		$this->load->view('_top', $tdata);
 		$this->load->view('page_myinfo', $pdata);
 		$this->load->view('_foot');
