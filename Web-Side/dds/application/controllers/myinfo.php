@@ -21,8 +21,11 @@ class Myinfo extends CI_Controller {
 			redirect('/auth/login');
 		}
 
-		// 메뉴 모듈 로드
+		// 메뉴 모델 로드
 		$this->load->model('menu_m');
+
+		// 인증 모델 로드
+		$this->load->model('auth_m');
 	}
 
 	public function index()
@@ -32,6 +35,17 @@ class Myinfo extends CI_Controller {
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
+
+		// 프로필 정보 로드
+		// ajax로 하고 싶지만 Access-Control-Allow-Origin 문제 때문에 그냥 서버에서 ㄱ-;
+		$proinfo = $this->auth_m->LoadPlayerProfile($this->session->userdata('auth_id'));
+		
+		$pdata['authid'] = $proinfo['steamid'];
+		$pdata['name'] = $proinfo['personaname'];
+		$pdata['logstatus'] = ($proinfo['personastate'] ? '접속' : '접속 해제');
+		$pdata['profileimg'] = $proinfo['avatarfull'];
+		$pdata['profileurl'] = $proinfo['profileurl'];
+		$pdata['lastlogoff'] = date("Y-m-d H:i:s", $proinfo['lastlogoff']);
 
 		// 출력
 		$this->load->view('_top', $tdata);

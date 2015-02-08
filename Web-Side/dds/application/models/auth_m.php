@@ -17,6 +17,20 @@ class Auth_m extends CI_Model {
 
 		return $rval;
 	}
+
+	function LoadPlayerProfile($authid)
+	{
+		// 파일 헬퍼 로드
+		$this->load->helper('file');
+
+		// API KEY 로드
+		$key = read_file(CONFIG_PATH . '/config.php');
+
+		$lnk = file_get_contents('http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' . $key . '&steamids=' . $authid . '&format=json');
+		$rval = json_decode($lnk, true);
+
+		return $rval['response']['players'][0];
+	}
 }
 
 ?>

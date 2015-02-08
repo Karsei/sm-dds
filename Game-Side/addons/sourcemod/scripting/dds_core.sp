@@ -2624,7 +2624,7 @@ public Menu_ItemGift(int client, const char[] data)
 	mMain.SetTitle(buffer);
 
 	// 전달 파라메터 등록
-	char sSendParam[8];
+	char sSendParam[16];
 
 	// 갯수 파악
 	int count;
@@ -4224,11 +4224,11 @@ public Main_hdlItemGift(Menu menu, MenuAction action, int client, int item)
 		/**
 		 * sExpStr
 		 * 
-		 * @Desc ('##' 기준 배열 분리) [0] - 대상 클라이언트 유저 ID, [1] - 추가 파라메터
+		 * @Desc ('##' 기준 배열 분리) [0] - 대상 클라이언트 유저 ID, [1] - 데이터베이스 번호, [2] - 아이템 번호
 		 *
 		 */
 		char sSendParam[32];
-		Format(sSendParam, sizeof(sSendParam), "%s||%d", sExpStr[1], StringToInt(sExpStr[0]));
+		Format(sSendParam, sizeof(sSendParam), "%d||%d||%d", StringToInt(sExpStr[1]), StringToInt(sExpStr[2]), StringToInt(sExpStr[0]));
 		System_DataProcess(client, "inven-gift", sSendParam);
 	}
 }

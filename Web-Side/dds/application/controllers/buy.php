@@ -21,7 +21,7 @@ class Buy extends CI_Controller {
 			redirect('/auth/login');
 		}
 
-		// 메뉴 모듈 로드
+		// 메뉴 모델 로드
 		$this->load->model('menu_m');
 	}
 

@@ -5,12 +5,13 @@
                 </div>
                 <div class="detail">
                     <div class="myinfo clearfix">
-                        <img class="profileimg" src="" />
+                        <img class="profileimg" src="<? echo $profileimg; ?>" />
                         <ul>
-                            <li class="name"></li>
-                            <li></li>
-                            <li></li>
-                            <li></li>
+                            <li class="name"><? echo $name; ?></li>
+                            <li>프로필 주소: <a href="<? echo $profileurl; ?>"><? echo $profileurl; ?></a></li>
+                            <li>고유 번호: <? echo $authid; ?></li>
+                            <li>로그인 상태: <? echo $logstatus; ?></li>
+                            <li>마지막 접속(스팀): <? echo $lastlogoff; ?></li>
                         </ul>
                     </div>
                 </div>
