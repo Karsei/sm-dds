@@ -49,7 +49,8 @@ enum ItemCG
 {
 	String:NAME[64],
 	CODE,
-	String:ENV[256]
+	String:ENV[256],
+	bool:STATUS
 }
 
 
@@ -68,7 +69,7 @@ char dds_sPluginLogFile[256];
 
 // Convar 변수
 ConVar dds_hCV_PluginSwitch;
-ConVar dds_hCV_SwtichLogData;
+ConVar dds_hCV_SwitchLogData;
 ConVar dds_hCV_SwitchDisplayChat;
 ConVar dds_hCV_SwitchQuickCmdN;
 ConVar dds_hCV_SwitchQuickCmdF1;
@@ -78,6 +79,10 @@ ConVar dds_hCV_SwitchGiftItem;
 ConVar dds_hCV_SwitchResellItem;
 ConVar dds_hCV_ItemMoneyMultiply;
 ConVar dds_hCV_ItemResellRatio;
+
+// 포워드
+Handle dds_hOnLoadSQLItemCategory;
+Handle dds_hOnDataProcess;
 
 // 팀 채팅
 bool dds_bTeamChat[MAXPLAYERS + 1];
@@ -120,7 +125,7 @@ public void OnPluginStart()
 
 	// Convar 등록
 	dds_hCV_PluginSwitch = CreateConVar("dds_switch_plugin", "1", "본 플러그인의 작동 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
-	dds_hCV_SwtichLogData = CreateConVar("dds_switch_log_data", "1", "데이터 로그 작성 여부입니다. 활성화를 권장합니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
+	dds_hCV_SwitchLogData = CreateConVar("dds_switch_log_data", "1", "데이터 로그 작성 여부입니다. 활성화를 권장합니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	dds_hCV_SwitchDisplayChat = CreateConVar("dds_switch_chat", "0", "채팅을 할 때 메세지 출력 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	dds_hCV_SwitchQuickCmdN = CreateConVar("dds_switch_quick_n", "1", "N키의 단축키 설정입니다. 0 - 작동 해제 / 1 - 메인 메뉴 / 2 - 인벤토리 메뉴", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	dds_hCV_SwitchQuickCmdF1 = CreateConVar("dds_switch_quick_f1", "0", "F1키의 단축키 설정입니다. 0 - 작동 해제 / 1 - 메인 메뉴 / 2 - 인벤토리 메뉴", FCVAR_PLUGIN, true, 0.0, true, 2.0);
@@ -155,9 +160,14 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("DDS_GetServerSQLStatus", Native_DDS_GetServerSQLStatus);
 	CreateNative("DDS_GetClientSQLStatus", Native_DDS_GetClientSQLStatus);
 	CreateNative("DDS_CreateItemCategory", Native_DDS_CreateItemCategory);
+	CreateNative("DDS_GetItemCategoryStatus", Native_DDS_GetItemCategoryStatus);
 	CreateNative("DDS_GetClientMoney", Native_DDS_GetClientMoney);
 	CreateNative("DDS_GetClientAppliedDB", Native_DDS_GetClientAppliedDB);
 	CreateNative("DDS_GetClientAppliedItem", Native_DDS_GetClientAppliedItem);
+
+	// 포워드 함수 등록
+	dds_hOnLoadSQLItemCategory = CreateGlobalForward("DDS_OnLoadSQLItemCategory", ET_Ignore);
+	dds_hOnDataProcess = CreateGlobalForward("DDS_OnDataProcess", ET_Ignore);
 
 	return APLRes_Success;
 }
@@ -295,6 +305,7 @@ public void Init_ServerData()
 		Format(dds_eItemCategoryList[i][NAME], 64, "");
 		dds_eItemCategoryList[i][CODE] = 0;
 		Format(dds_eItemCategoryList[i][ENV], 256, "");
+		dds_eItemCategoryList[i][STATUS] = false;
 	}
 	// 아이템 종류 0번 '전체' 설정
 	Format(dds_eItemCategoryList[0][NAME], 64, "EN:Total||KO:전체");
@@ -372,6 +383,28 @@ public void Init_UserData(int client, int mode)
 	#endif
 }
 
+/**
+ * System :: 연결 아이템 종류 플러그인 검증
+ *
+ * @param catecode			아이템 종류 코드
+ */
+public void System_ValidateItemCG(int catecode)
+{
+	for (int i = 0; i <= dds_iItemCategoryCount; i++)
+	{
+		// '전체'는 통과
+		if (i == 0)	continue;
+
+		// 이미 로드된 것은 따질 필요 없음
+		if (dds_eItemCategoryList[i][STATUS])	continue;
+
+		if (dds_eItemCategoryList[i][CODE] == catecode)
+		{
+			dds_eItemCategoryList[i][STATUS] = true;
+			break;
+		}
+	}
+}
 
 /**
  * System :: 데이터 처리 시스템
@@ -1143,6 +1176,9 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sTmpName, sTargetAuthId, dds_iUserMoney[client]);
 		Log_Data(client, "money-gift", sMakeLogParam);
 	}
+
+	// 포워드 실행
+	Forward_OnDataProcess(client, process, data);
 }
 
 
@@ -1400,7 +1436,7 @@ public void Log_Data(int client, const char[] action, const char[] data)
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
 
 	// ConVar 설정 확인
-	if (!dds_hCV_SwtichLogData.BoolValue)	return;
+	if (!dds_hCV_SwitchLogData.BoolValue)	return;
 
 	// 서버가 주체가 되면 안됨
 	if (client == 0)	return;
@@ -3041,6 +3077,9 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 		// 아이템 종류 등록 갯수 증가
 		dds_iItemCategoryCount++;
 	}
+
+	// 포워드 실행
+	Forward_OnLoadSQLItemCategory();
 }
 
 /**
@@ -4278,7 +4317,28 @@ public int Native_DDS_CreateItemCategory(Handle:plugin, numParams)
 {
 	int catecode = GetNativeCell(1);
 
-	return true;
+	System_ValidateItemCG(catecode);
+}
+
+/**
+ * Native :: DDS_GetItemCategoryStatus
+ *
+ * @brief	DDS 플러그인에 연결된 아이템 종류 플러그인 상태
+*/
+public int Native_DDS_GetItemCategoryStatus(Handle:plugin, numParams)
+{
+	int catecode = GetNativeCell(1);
+
+	for (int i = 0; i <= dds_iItemCategoryCount; i++)
+	{
+		// '전체'는 통과
+		if (i == 0)	continue;
+
+		if (dds_eItemCategoryList[i][CODE] == catecode)
+			return dds_eItemCategoryList[i][STATUS];
+	}
+
+	return false;
 }
 
 /**
@@ -4373,4 +4433,29 @@ public int Native_DDS_GetClientAppliedItem(Handle:plugin, numParams)
 	}
 
 	return dds_iUserAppliedItem[client][catecode][ITEMIDX];
+}
+
+/**
+ * Forward :: DDS_OnLoadSQLItemCategory
+ *
+ * @brief	DDS 플러그인에서 SQL 데이터베이스로부터 모든 아이템 종류를 불러오고 난 후에 발생
+*/
+void Forward_OnLoadSQLItemCategory()
+{
+	Call_StartForward(dds_hOnLoadSQLItemCategory);
+	Call_Finish();
+}
+
+/**
+ * Forward :: DDS_OnDataProcess
+ *
+ * @brief	DDS 플러그인에서 클라이언트가 데이터를 전달할 무언가를 할 때 발생
+*/
+void Forward_OnDataProcess(int client, const char[] process, const char[] data)
+{
+	Call_StartForward(dds_hOnDataProcess);
+	Call_PushCell(client);
+	Call_PushString(process);
+	Call_PushString(data);
+	Call_Finish();
 }

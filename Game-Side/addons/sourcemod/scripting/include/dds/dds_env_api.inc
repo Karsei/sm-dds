@@ -49,9 +49,16 @@ native bool DDS_GetClientSQLStatus(client);
  *			참고로, 이 함수는 'OnLibraryAdded("dds_core")'' 포워드 함수를 이용하여 쓰는 것이 좋습니다.
  *
  * @param catecode				아이템 종류 코드
+ */
+native void DDS_CreateItemCategory(int catecode);
+
+/**
+ * @brief	DDS 플러그인에 연결된 아이템 종류 플러그인이 제대로 등록되었는지 상태를 반환합니다.
+ *
+ * @param catecode				아이템 종류 코드
  * @return	정상적으로 등록되었다면 true, 그렇지 않다면 false
  */
-native bool DDS_CreateItemCategory(int catecode);
+native bool DDS_GetItemCategoryStatus(int catecode);
 
 /**
  * @brief	DDS 플러그인에 등록된 아이템 정보를 가져옵니다.
@@ -61,7 +68,7 @@ native bool DDS_CreateItemCategory(int catecode);
  * @param itemidx				아이템 번호
  * @return	정상적으로 등록되었다면 true, 그렇지 않다면 false
  */
-//native bool DDS_GetItem(int itemidx);
+//native bool DDS_GetItemInfo(int itemidx);
 
 /**
  * @brief	클라이언트가 가지고 있는 금액을 가져옵니다.
@@ -88,3 +95,19 @@ native int DDS_GetClientAppliedDB(int client, int catecode);
  * @return	클라이언트가 현재 장착한 아이템 번호, 실패 시 -1 반환
  */
 native int DDS_GetClientAppliedItem(int client, int catecode);
+
+/**
+ * @brief	DDS 플러그인에서 SQL 데이터베이스로부터 모든 아이템 종류를 불러오고 난 후에 발생합니다.
+ *			코어에서 데이터베이스로부터 아이템 종류를 등록한 뒤에 무언가를 해야할 때 쓰시면 좋습니다.
+ */
+forward void DDS_OnLoadSQLItemCategory();
+
+/**
+ * @brief	DDS 플러그인에서 클라이언트가 데이터를 전달할 무언가를 할 때 발생합니다.
+ *			예를 들면 아이템을 사거나 버리거나 금액을 얻는 등의 행동을 할 때 발생합니다.
+ *
+ * @param client				클라이언트 인덱스
+ * @param process				행동 구별
+ * @param data					추가 파라메터
+ */
+forward void DDS_OnDataProcess(int client, const char[] process, const char[] data);
