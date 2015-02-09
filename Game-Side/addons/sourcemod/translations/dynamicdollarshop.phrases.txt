@@ -83,6 +83,11 @@
 		"en"				"Category"
 	}
 
+	"global warning"
+	{
+		"en"				"Warning"
+	}
+
 	/*************************************
 	 * 명령어 (Command)
 	 *************************************/
@@ -251,9 +256,34 @@
 		"en"				"Item Gift"
 	}
 
-	"menu itemgift select target"
+	"menu initdatabase"
 	{
-		"en"				"Target"
+		"en"				"Initialize Database"
+	}
+
+	"menu initdatabase player"
+	{
+		"en"				"Only All Player Databases"
+	}
+
+	"menu initdatabase all"
+	{
+		"en"				"All Databases"
+	}
+
+	"menu initdatabase desc"
+	{
+		"en"				"This will process initializing."
+	}
+
+	"menu initdatabase descmore"
+	{
+		"en"				"You can't recover datas after processing again."
+	}
+
+	"menu initdatabase process"
+	{
+		"en"				"Process"
 	}
 
 	/*************************************

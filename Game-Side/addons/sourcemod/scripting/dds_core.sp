@@ -2703,6 +2703,88 @@ public Menu_ItemGift(int client, const char[] data)
 	mMain.Display(client, MENU_TIME_FOREVER);
 }
 
+/**
+ * 메뉴 :: 데이터베이스 초기화 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+*/
+public Menu_InitDatabase(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlInitDatabase);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t\n ", "menu common title", "menu common curpos", "menu initdatabase");
+	mMain.SetTitle(buffer);
+
+	// 메뉴 등록
+	Format(buffer, sizeof(buffer), "%t", "menu initdatabase player");
+	mMain.AddItem("1", buffer);
+	Format(buffer, sizeof(buffer), "%t", "menu initdatabase all");
+	mMain.AddItem("2", buffer);
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 데이터베이스 초기화-경고 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+ * @param action			행동 구분
+*/
+public Menu_InitDatabase_Warn(int client, int action)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlInitDatabase_Warn);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t-%t\n ", "menu common title", "menu common curpos", "menu initdatabase", "global waring");
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 파라메터 준비
+	char sSendParam[24];
+
+	// 메뉴 등록
+	Format(buffer, sizeof(buffer), "%t", "global confirm");
+	Format(sSendParam, sizeof(sSendParam), "%d||%d", action, 1);
+	mMain.AddItem(sSendParam, buffer);
+	Format(buffer, sizeof(buffer), "%t\n ", "global cancel");
+	Format(sSendParam, sizeof(sSendParam), "%d||%d", action, 2);
+	mMain.AddItem(sSendParam, buffer);
+	switch (action)
+	{
+		case 1:
+		{
+			// 유저
+			Format(buffer, sizeof(buffer), 
+				"%t\n \n%t\n \n%t: %t", 
+				"menu initdatabase desc", "menu initdatabase descmore", "menu initdatabase process", "menu initdatabase player"
+			);
+			mMain.AddItem("", buffer, ITEMDRAW_DISABLED);
+		}
+		case 2:
+		{
+			// 모두
+			Format(buffer, sizeof(buffer), 
+				"%t\n \n%t\n \n%t: %t", 
+				"menu initdatabase desc", "menu initdatabase descmore", "menu initdatabase process", "menu initdatabase all"
+			);
+			mMain.AddItem("", buffer, ITEMDRAW_DISABLED);
+		}
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
 
 /*******************************************************
  * C A L L B A C K   F U N C T I O N S
@@ -4263,12 +4345,114 @@ public Main_hdlItemGift(Menu menu, MenuAction action, int client, int item)
 		/**
 		 * sExpStr
 		 * 
-		 * @Desc ('##' 기준 배열 분리) [0] - 대상 클라이언트 유저 ID, [1] - 데이터베이스 번호, [2] - 아이템 번호
+		 * @Desc ('||' 기준 배열 분리) [0] - 대상 클라이언트 유저 ID, [1] - 데이터베이스 번호, [2] - 아이템 번호
 		 *
 		 */
 		char sSendParam[32];
 		Format(sSendParam, sizeof(sSendParam), "%d||%d||%d", StringToInt(sExpStr[1]), StringToInt(sExpStr[2]), StringToInt(sExpStr[0]));
 		System_DataProcess(client, "inven-gift", sSendParam);
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 데이터베이스 초기화 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlInitDatabase(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		/**
+		 * iInfo
+		 * 
+		 * @Desc 1 - 유저, 2 - 모두
+		 *
+		 */
+		switch (iInfo)
+		{
+			case 1:
+			{
+				// 유저
+			}
+			case 2:
+			{
+				// 모두
+			}
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 데이터베이스 초기화-경고 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlInitDatabase_Warn(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+
+		// 파라메터 분리
+		char sExpStr[2][24];
+		ExplodeString(sInfo, "||", sExpStr, sizeof(sExpStr), sizeof(sExpStr[]));
+
+		/**
+		 * sExpStr
+		 * 
+		 * @Desc ('||' 기준 배열 분리) [1] - 행동 구분, [1] - 확인/취소
+		 *
+		 */
+		switch (StringToInt(sExpStr[1]))
+		{
+			/* 확인 */
+			case 1:
+			{
+				if (StringToInt(sExpStr[0]) == 1)
+				{
+					/* 유저만 초기화 */
+				}
+				else if (StringToInt(sExpStr[0]) == 2)
+				{
+					/* 모두 초기화 */
+				}
+			}
+			/* 취소 */
+			case 2:
+			{
+				// 할 필요 없음
+			}
+		}
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_InitDatabase(client);
+		}
 	}
 }
 

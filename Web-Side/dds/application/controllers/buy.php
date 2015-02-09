@@ -23,6 +23,9 @@ class Buy extends CI_Controller {
 
 		// 메뉴 모델 로드
 		$this->load->model('menu_m');
+
+		// 구입 모델 로드
+		$this->load->model('buy_m');
 	}
 
 	public function index()
@@ -32,6 +35,10 @@ class Buy extends CI_Controller {
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
+
+		// 정보 등록
+		$getinfo = $this->buy_m->LoadList(0, 20);
+		$pdata['itemlist'] = $this->buy_m->MakeRecord($getinfo);
 
 		// 출력
 		$this->load->view('_top', $tdata);

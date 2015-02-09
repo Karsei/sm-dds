@@ -83,6 +83,11 @@
 		"ko"				"종류"
 	}
 
+	"global warning"
+	{
+		"ko"				"경고"
+	}
+
 	/*************************************
 	 * 명령어 (Command)
 	 *************************************/
@@ -249,6 +254,36 @@
 	"menu itemgift"
 	{
 		"ko"				"아이템 선물"
+	}
+
+	"menu initdatabase"
+	{
+		"ko"				"데이터베이스 초기화"
+	}
+
+	"menu initdatabase player"
+	{
+		"ko"				"모든 유저 데이터베이스"
+	}
+
+	"menu initdatabase all"
+	{
+		"ko"				"모든 데이터베이스"
+	}
+
+	"menu initdatabase desc"
+	{
+		"ko"				"데이터베이스 초기화를 진행할 것입니다."
+	}
+
+	"menu initdatabase descmore"
+	{
+		"ko"				"진행 후에는 데이터를 다시 복구 할 수 없습니다."
+	}
+
+	"menu initdatabase process"
+	{
+		"ko"				"진행"
 	}
 
 	/*************************************

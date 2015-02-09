@@ -144,21 +144,21 @@ article .myinfo li {
     line-height: 1.5em;
 }
 
-/*
-article .myinfo table {
+
+article .detail table {
     border-collapse: inherit;
 }
-article .myinfo td {
+article .detail td {
     padding: 10px;
     
 }
-article .myinfo thead td {
+article .detail thead td {
     text-align: center;
     border-bottom: 1px solid #888888;
 }
-article .myinfo td:first-child {
+article .detail td:first-child {
     text-align: center;
-}*/
+}
 
 
 /*************************************

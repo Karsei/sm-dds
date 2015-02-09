@@ -204,9 +204,9 @@ class Install_m extends CI_Model {
 				$rval .= '<p>최종적으로 웹 패널을 이용하기 위해서는 스팀 Web API Key가 필요합니다.</p>';
 				$rval .= '<p>\'' . PRODUCT_NAME . '\'는 스팀 API를 이용하여 편하게 웹 패널에 들어가고 자세한 정보를 확인할 수 있으며 관리도 손쉽게 할 수 있도록 도와줍니다.</p>';
 				$rval .= '<p>스팀 Web API Key 는 <a href="http://steamcommunity.com/dev/apikey" target="_blank">여기</a>로 들어가셔서 발급받을 수 있습니다.<br>받은 32자리 API Key를 아래의 입력란에 써주십시오.</p>';
-				$rval .= '<label for="apikey">Key 입력</label>' . form_input(array('id' => 'apikey', 'name' => 'apikey', 'maxlength' => '32'));
+				$rval .= '<label for="apikey">Key 입력</label>' . form_input(array('id' => 'apikey', 'name' => 'apikey', 'maxlength' => '32', 'title' => '32자리의 API Key를 입력해주세요.'));
 				$rval .= '<div class="buttongrp">';
-				$rval .= form_button(array('name' => 'submit', 'type' => 'submit', 'content' => '<i class="fa fa-chevron-right"></i>'));
+				$rval .= form_button(array('id' => 'apisubmit', 'name' => 'nosubmit', 'type' => 'button', 'content' => '<i class="fa fa-chevron-right"></i>'));
 				$rval .= '</div>';
 				$rval .= form_close();
 				break;
