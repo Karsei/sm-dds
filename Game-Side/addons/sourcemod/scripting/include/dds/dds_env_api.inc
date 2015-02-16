@@ -120,6 +120,13 @@ native bool DDS_GetItemCategoryStatus(int catecode);
 native bool DDS_GetItemInfo(int itemidx, ItemInfo proctype, char[] buffer);
 
 /**
+ * @brief	DDS 플러그인에 등록된 아이템들의 총 갯수를 반환합니다.
+ *
+ * @return	등록된 아이템들의 갯수
+ */
+native int DDS_GetItemCount();
+
+/**
  * @brief	DDS 플러그인에 등록되어 있는 아이템 종류 정보를 가져옵니다.
  *			등록된 아이템 종류 정보는 SQL 데이터베이스에서 가져오게 되며 코어에서 필터링을 거쳐 최종적으로 등록됩니다.
  *			이 함수는 최종적으로 등록된 아이템 종류 정보를 가져옵니다.
@@ -130,6 +137,13 @@ native bool DDS_GetItemInfo(int itemidx, ItemInfo proctype, char[] buffer);
  * @return	정상적으로 등록되었다면 true, 그렇지 않다면 false
  */
 native bool DDS_GetItemCategoryInfo(int catecode, ItemCategoryInfo proctype, char[] buffer);
+
+/**
+ * @brief	DDS 플러그인에 등록된 아이템 종류들의 총 갯수를 반환합니다.
+ *
+ * @return	등록된 아이템 종류들의 갯수
+ */
+native int DDS_GetItemCategoryCount();
 
 /**
  * @brief	클라이언트가 가지고 있는 금액을 가져옵니다.

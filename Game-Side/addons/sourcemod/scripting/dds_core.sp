@@ -167,7 +167,9 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("DDS_CreateItemCategory", Native_DDS_CreateItemCategory);
 	CreateNative("DDS_GetItemCategoryStatus", Native_DDS_GetItemCategoryStatus);
 	CreateNative("DDS_GetItemInfo", Native_DDS_GetItemInfo);
+	CreateNative("DDS_GetItemCount", Native_DDS_GetItemCount);
 	CreateNative("DDS_GetItemCategoryInfo", Native_DDS_GetItemCategoryInfo);
+	CreateNative("DDS_GetItemCategoryCount", Native_DDS_GetItemCategoryCount);
 	CreateNative("DDS_GetClientMoney", Native_DDS_GetClientMoney);
 	CreateNative("DDS_SetClientMoney", Native_DDS_SetClientMoney);
 	CreateNative("DDS_GetClientAppliedDB", Native_DDS_GetClientAppliedDB);
@@ -5249,6 +5251,16 @@ public int Native_DDS_GetItemInfo(Handle:plugin, numParams)
 }
 
 /**
+ * Native :: DDS_GetItemCount
+ *
+ * @brief	DDS 플러그인에 등록된 아이템들의 총 갯수를 반환
+ */
+public int Native_DDS_GetItemCount(Handle:plugin, numParams)
+{
+	return dds_iItemCount;
+}
+
+/**
  * Native :: DDS_GetItemCategoryInfo
  *
  * @brief	등록되어 있는 아이템 종류 목록 반환
@@ -5308,6 +5320,16 @@ public int Native_DDS_GetItemCategoryInfo(Handle:plugin, numParams)
 	SetNativeString(3, result, sizeof(result), true);
 
 	return true;
+}
+
+/**
+ * Native :: DDS_GetItemCategoryCount
+ *
+ * @brief	DDS 플러그인에 등록된 아이템들의 총 갯수를 반환
+ */
+public int Native_DDS_GetItemCategoryCount(Handle:plugin, numParams)
+{
+	return dds_iItemCategoryCount;
 }
 
 /**

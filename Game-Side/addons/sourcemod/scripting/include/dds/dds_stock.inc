@@ -331,9 +331,10 @@ stock bool CheckDQM(const char[] msg)
 #define CLIENTCOUNT_MODE_SPEC				(1<<3)
 #define CLIENTCOUNT_MODE_RED				(1<<4)
 #define CLIENTCOUNT_MODE_BLUE				(1<<5)
+#define CLIENTCOUNT_MODE_ALIVE				(1<<6)
 
 // 인원 파악
-stock int GetClientCountEx(int mode = CLIENTCOUNT_MODE_RED|CLIENTCOUNT_MODE_BLUE)
+stock int GetClientCountEx(int mode = CLIENTCOUNT_MODE_RED|CLIENTCOUNT_MODE_BLUE|CLIENTCOUNT_MODE_ALIVE)
 {
 	// 인원 파악 준비
 	int count;
@@ -346,6 +347,10 @@ stock int GetClientCountEx(int mode = CLIENTCOUNT_MODE_RED|CLIENTCOUNT_MODE_BLUE
 
 		// 게임 내에 있지 않다면 제외
 		if (!IsClientInGame(i))	continue;
+
+		// 살아있지 않다면 패스
+		if (mode & CLIENTCOUNT_MODE_ALIVE)
+			if (!IsPlayerAlive(i))	continue;
 
 		// 봇 파악
 		if (mode & CLIENTCOUNT_MODE_BOT)
