@@ -1,0 +1,47 @@
+[ENV LIST]
+
+적용 범위: 등급, 아이템, 아이템 종류
+
+※PS1. 여러 개 지정할 경우는 쉼표로 가능
+※PS2. 괄호 안에 맨 앞에 있는 것은 기본값
+
+우선순위: 등급(나중에 처리) > 아이템 > 아이템 종류
+
+ * 등급 별 지정 ENV
+ <시스템 관련>
+ ENV_DDS_SYS_GAME; 적용할 게임 종류(cstrike, csgo, tf2, ...)
+
+ <접근 관련>
+ ENV_DDS_ACCESS_ITEM; 아이템을 생성하여 클라이언트에게 주기(0, 1)
+ ENV_DDS_ACCESS_TAKEAWAY; 클라이언트의 아이템을 뺏기(0, 1)
+ ENV_DDS_ACCESS_INIT; 데이터초기화 명령어 가능 여부(0, 1)
+
+ <이용 관련>
+ ENV_DDS_USE_MONEY; 클라이언트의 현 금액을 사용함(1, 0)
+
+  ==== ENV_DDS_SYS_GAME:cstrike||ENV_DDS_ACCESS_ITEM:0||ENV_DDS_ACCESS_TAKEAWAY:0||ENV_DDS_ACCESS_INIT:0||ENV_DDS_USE_MONEY:1
+
+
+ * 아이템 별 지정 ENV
+ <시스템 관련>
+ ENV_DDS_SYS_GAME; 적용할 게임 종류(cstrike, csgo, tf2, ...)
+
+ <속성 관련>
+ ENV_DDS_PROPERTY_ADRS; 아이템 이용 주소
+ ENV_DDS_PROPERTY_POS; 아이템 이용 위치
+ ENV_DDS_PROPERTY_ANG; 아이템 이용 각도
+
+  ==== ENV_DDS_SYS_GAME:cstrike||ENV_DDS_PROPERTY_ADRS:||ENV_DDS_PROPERTY_POS:||ENV_DDS_PROPERTY_ANG:
+
+
+ * 아이템 종류 별 지정 ENV
+ <시스템 관련>
+ ENV_DDS_SYS_GAME; 적용할 게임 종류(cstrike, csgo, tf2, ...)
+
+ <접근 관련>
+ ENV_DDS_ACCESS_CLASS; 접근 가능한 등급 지정(all, none, 코드)
+
+ <이용 관련>
+ ENV_DDS_USE_MONEY; 클라이언트의 금액을 사용함(1, 0)
+
+  ==== ENV_DDS_SYS_GAME:cstrike||ENV_DDS_ACCESS_CLASS:all||ENV_DDS_USE_MONEY:1

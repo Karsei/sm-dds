@@ -318,3 +318,55 @@ stock bool CheckDQM(const char[] msg)
 
 	return false;
 }
+
+/**
+ * 보안 :: 서버 내 클라이언트 인원 파악
+ *
+ * @param mode						적용 대상 설정
+ */
+// 기본 define 설정
+#define CLIENTCOUNT_MODE_SERVER				(1<<0)
+#define CLIENTCOUNT_MODE_BOT				(1<<1)
+#define CLIENTCOUNT_MODE_NONE				(1<<2)
+#define CLIENTCOUNT_MODE_SPEC				(1<<3)
+#define CLIENTCOUNT_MODE_RED				(1<<4)
+#define CLIENTCOUNT_MODE_BLUE				(1<<5)
+
+// 인원 파악
+stock int GetClientCountEx(int mode = CLIENTCOUNT_MODE_RED|CLIENTCOUNT_MODE_BLUE)
+{
+	// 인원 파악 준비
+	int count;
+
+	// 파악 시작
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		// 인증받지 않았다면 제외
+		if (!IsClientAuthorized(i))	continue;
+
+		// 게임 내에 있지 않다면 제외
+		if (!IsClientInGame(i))	continue;
+
+		// 봇 파악
+		if (mode & CLIENTCOUNT_MODE_BOT)
+			if (IsFakeClient(i))	count++;
+
+		// 게임은 들어와있는데 팀을 선정안했을 경우
+		if (mode & CLIENTCOUNT_MODE_NONE)
+			if (GetClientTeam(i) == 0)	count++;
+
+		// 관전자일 경우
+		if (mode & CLIENTCOUNT_MODE_SPEC)
+			if (GetClientTeam(i) == 1)	count++;
+
+		// 레드 팀일 경우
+		if (mode & CLIENTCOUNT_MODE_RED)
+			if (GetClientTeam(i) == 2)	count++;
+
+		// 블루 팀일 경우
+		if (mode & CLIENTCOUNT_MODE_BLUE)
+			if (GetClientTeam(i) == 3)	count++;
+	}
+
+	return (mode & CLIENTCOUNT_MODE_SERVER) ? count + 1 : count;
+}

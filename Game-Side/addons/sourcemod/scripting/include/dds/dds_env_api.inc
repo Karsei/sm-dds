@@ -18,6 +18,53 @@
  * 
  ***********************************************************************/
 /**
+ * For DDS_OnDataProcess
+ * 참조하는 함수명: System_DataProcess, DDS_UseDataProcess
+ */
+enum DataProcess
+{
+	DataProc_BUY = 0,				// 아이템 구매
+	DataProc_USE,					// 인벤토리에서의 아이템 사용하기
+	DataProc_RESELL,				// 인벤토리에서의 아이템 되팔기
+	DataProc_GIFT,					// 인벤토리에서의 아이템 선물하기
+	DataProc_DROP,					// 인벤토리에서의 아이템 버리기
+	DataProc_CURCANCEL,				// 내 장착 아이템에서의 장착 해제
+	DataProc_CURUSE,				// 내 장착 아이템에서의 장착
+	DataProc_MONEYUP,				// 금액 증가
+	DataProc_MONEYDOWN,				// 금액 감소
+	DataProc_MONEYGIFT,				// 금액 선물
+	DataProc_ITEMGIFT,				// 아이템 선물
+	DataProc_ITEMGIVE,				// 아이템 주기
+	DataProc_ITEMTAKEAWAY			// 아이템 뺏기
+};
+
+/**
+ * For DDS_GetItemInfo
+ */
+enum ItemInfo
+{
+	ItemInfo_INDEX = 0,				// 아이템 번호
+	ItemInfo_NAME,					// 아이템 이름
+	ItemInfo_CATECODE,				// 아이템 종류 코드
+	ItemInfo_MONEY,					// 아이템 금액
+	ItemInfo_HAVTIME,				// 아이템 기간 설정
+	ItemInfo_ENV					// 아이템 환경 변수
+};
+
+/**
+ * For DDS_GetItemCategoryInfo
+ */
+enum ItemCategoryInfo
+{
+	ItemCGInfo_NAME = 0,			// 아이템 종류 이름
+	ItemCGInfo_CODE,				// 아이템 종류 코드
+	ItemCGInfo_ENV,					// 아이템 종류 환경 변수
+	ItemCGInfo_STATUS				// 아이템 종류 활성 여부
+};
+
+
+
+/**
  * @brief	DDS 플러그인의 활성화 유무를 가져옵니다.
  *			'dds_switch_plugin' Convar에 의하여 결정됩니다.
  *
@@ -46,7 +93,7 @@ native bool DDS_GetClientSQLStatus(client);
  * @brief	DDS 플러그인에 아이템 종류 플러그인을 연결합니다.
  *			연결하여 사용하면 데이터베이스에 등록되어 있는 모든 아이템 종류 코드와 비교하여
  *			등록되어 있으면 활성화되며 쓸 수 있게 됩니다.
- *			참고로, 이 함수는 'OnLibraryAdded("dds_core")'' 포워드 함수를 이용하여 쓰는 것이 좋습니다.
+ *			참고로, 이 함수는 'OnLibraryAdded("dds_core")' 포워드 함수를 이용하여 쓰는 것이 좋습니다.
  *
  * @param catecode				아이템 종류 코드
  */
@@ -63,12 +110,26 @@ native bool DDS_GetItemCategoryStatus(int catecode);
 /**
  * @brief	DDS 플러그인에 등록된 아이템 정보를 가져옵니다.
  *			등록된 아이템 정보는 SQL 데이터베이스에서 가져오게 되며 코어에서 필터링을 거쳐 최종적으로 등록됩니다.
- *			이 함수는 최종적으로 등록된 아이템 정보를 가져 옵니다.
+ *			이 함수는 최종적으로 등록된 아이템 정보를 가져옵니다.
  *
  * @param itemidx				아이템 번호
+ * @param proctype				처리 타입
+ * @param buffer				정보를 담을 문자열
  * @return	정상적으로 등록되었다면 true, 그렇지 않다면 false
  */
-//native bool DDS_GetItemInfo(int itemidx);
+native bool DDS_GetItemInfo(int itemidx, ItemInfo proctype, char[] buffer);
+
+/**
+ * @brief	DDS 플러그인에 등록되어 있는 아이템 종류 정보를 가져옵니다.
+ *			등록된 아이템 종류 정보는 SQL 데이터베이스에서 가져오게 되며 코어에서 필터링을 거쳐 최종적으로 등록됩니다.
+ *			이 함수는 최종적으로 등록된 아이템 종류 정보를 가져옵니다.
+ *
+ * @param catecode				아이템 종류 코드
+ * @param proctype				처리 타입
+ * @param buffer				정보를 담을 문자열
+ * @return	정상적으로 등록되었다면 true, 그렇지 않다면 false
+ */
+native bool DDS_GetItemCategoryInfo(int catecode, ItemCategoryInfo proctype, char[] buffer);
 
 /**
  * @brief	클라이언트가 가지고 있는 금액을 가져옵니다.
@@ -77,6 +138,16 @@ native bool DDS_GetItemCategoryStatus(int catecode);
  * @return	클라이언트의 금액, 실패 시 -1 반환
  */
 native int DDS_GetClientMoney(int client);
+
+/**
+ * @brief	클라이언트의 금액을 설정합니다.
+ *
+ * @param client				클라이언트 인덱스
+ * @param process				행동 구별(DataProc_MONEYUP, DataProc_MONEYDOWN)
+ * @param amount				양
+ * @return	정상적으로 실행을 했다면 true, 그렇지 않다면 false
+ */
+native bool DDS_SetClientMoney(int client, DataProcess process, int amount);
 
 /**
  * @brief	클라이언트가 현재 장착한 아이템의 데이터베이스 번호를 가져옵니다.
@@ -97,6 +168,16 @@ native int DDS_GetClientAppliedDB(int client, int catecode);
 native int DDS_GetClientAppliedItem(int client, int catecode);
 
 /**
+ * @brief	DDS 플러그인에 있는 데이터 처리 시스템을 이용합니다.
+ *
+ * @param client				클라이언트 인덱스
+ * @param process				행동 구별
+ * @param data					추가 파라메터
+ * @return	정상적으로 실행을 했다면 true, 그렇지 않다면 false
+ */
+native bool DDS_UseDataProcess(int client, DataProcess process, char[] data);
+
+/**
  * @brief	DDS 플러그인에서 SQL 데이터베이스로부터 모든 아이템 종류를 불러오고 난 후에 발생합니다.
  *			코어에서 데이터베이스로부터 아이템 종류를 등록한 뒤에 무언가를 해야할 때 쓰시면 좋습니다.
  */
@@ -110,4 +191,4 @@ forward void DDS_OnLoadSQLItemCategory();
  * @param process				행동 구별
  * @param data					추가 파라메터
  */
-forward void DDS_OnDataProcess(int client, const char[] process, const char[] data);
+forward void DDS_OnDataProcess(int client, const DataProcess process, const char[] data);

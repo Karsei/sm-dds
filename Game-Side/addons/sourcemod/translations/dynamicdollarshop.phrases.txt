@@ -98,22 +98,27 @@
 
 	"command profile"
 	{
-		"en"				"ddsprofile"
+		"en"				"dds_profile"
 	}
 
 	"command gift"
 	{
-		"en"				"ddsgift"
+		"en"				"dds_gift"
 	}
 
-	"command adminsetting"
+	"command itemgive"
 	{
-		"en"				"ddsads"
+		"en"				"dds_itemgive"
+	}
+
+	"command itemtakeaway"
+	{
+		"en"				"dds_itemtakeaway"
 	}
 
 	"command init"
 	{
-		"en"				"ddsinit"
+		"en"				"dds_init"
 	}
 
 	/*************************************
@@ -281,6 +286,11 @@
 		"en"				"You can't recover datas after processing again."
 	}
 
+	"menu initdatabase critical"
+	{
+		"en"				"THIS WILL ALSO REMOVE *ALL ITEM LIST and CATEGORY LIST*!"
+	}
+
 	"menu initdatabase process"
 	{
 		"en"				"Process"
@@ -369,6 +379,17 @@
 		"en"				"You have taken {1} {2} from '{3}'."
 	}
 
+	"system initdatabase complete"
+	{
+		"en"				"Initializing databases is complete."
+	}
+
+	"system get money kill msg"
+	{
+		"#format"			"{1:s},{2:d},{3:t}"
+		"en"				"You have got {2} {3} by killing '{1}'."
+	}
+
 	/*************************************
 	 * 오류 (Error)
 	 *************************************/
@@ -402,6 +423,11 @@
 	"error sqlstatus user"
 	{
 		"en"				"You are not available to use database yet."
+	}
+
+	"error access"
+	{
+		"en"				"You do not have access to this command."
 	}
 
 	/** 명령어 **/
@@ -571,5 +597,20 @@
 	"error sql log"
 	{
 		"en"				"An error has occurred trying to insert user data log."
+	}
+
+	"error sql initdata alldb"
+	{
+		"en"				"An error has occurred while deleting all database records."
+	}
+
+	"error sql initdata alluser"
+	{
+		"en"				"An error has occurred while deleting all user database records."
+	}
+
+	"error sql itemproc money update"
+	{
+		"en"				"An error has occurred while updating user money."
 	}
 }

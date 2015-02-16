@@ -106,9 +106,14 @@
 		"ko"				"선물"
 	}
 
-	"command adminsetting"
+	"command itemgive"
 	{
-		"ko"				"관리자설정"
+		"ko"				"아이템주기"
+	}
+
+	"command itemtakeaway"
+	{
+		"ko"				"아이템뺏기"
 	}
 
 	"command init"
@@ -281,6 +286,11 @@
 		"ko"				"진행 후에는 데이터를 다시 복구 할 수 없습니다."
 	}
 
+	"menu initdatabase critical"
+	{
+		"ko"				"*중요* 모든 아이템 목록 및 종류도 같이 삭제됩니다!"
+	}
+
 	"menu initdatabase process"
 	{
 		"ko"				"진행"
@@ -359,6 +369,16 @@
 		"ko"				"'{3}'님으로부터 {1} {2}을(를) 받았습니다."
 	}
 
+	"system initdatabase complete"
+	{
+		"ko"				"데이터 초기화가 완료되었습니다."
+	}
+
+	"system get money kill msg"
+	{
+		"ko"				"'{1}'님을 죽여 {2} {3}을(를) 얻었습니다."
+	}
+
 	/*************************************
 	 * 오류 (Error)
 	 *************************************/
@@ -391,6 +411,11 @@
 	"error sqlstatus user"
 	{
 		"ko"				"해당 유저의 데이터베이스 상태가 활성화되어 있지 않습니다."
+	}
+
+	"error access"
+	{
+		"ko"				"이 명령어를 실행할 권한이 없습니다."
 	}
 
 	/** 명령어 **/
@@ -558,5 +583,20 @@
 	"error sql log"
 	{
 		"ko"				"데이터 로그를 작성하는 도중 오류가 발생하였습니다."
+	}
+
+	"error sql initdata alldb"
+	{
+		"ko"				"모든 데이터베이스를 초기화하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql initdata alluser"
+	{
+		"ko"				"모든 유저의 데이터베이스를 초기화하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql itemproc money update"
+	{
+		"ko"				"유저의 금액을 갱신하는 도중 오류가 발생했습니다."
 	}
 }
