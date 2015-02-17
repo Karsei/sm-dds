@@ -13,7 +13,6 @@
         <link rel="shortcut icon" type="image/x-icon" href="<? echo images_url(); ?>favicon.ico">
 
         <script type="text/javascript" src="<? echo assets_url(); ?>js/jquery-1.11.2.min.js"></script>
-        <link rel="stylesheet" href="<? echo assets_url(); ?>js/pace.min.js">
         <!--[if lt IE 9]>
             <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
             <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>

@@ -150,6 +150,11 @@ strong {
     height: 30px;
     border: 1px solid gray;
     border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    -ms-border-radius: 5px;
+    -khtml-border-radius: 5px;
     color: gray;
     background-color: #EEEEEE;
     cursor: not-allowed;
@@ -159,6 +164,11 @@ strong {
     height: 30px;
     border: 1px solid gray;
     border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    -ms-border-radius: 5px;
+    -khtml-border-radius: 5px;
     cursor: pointer;
 }
 #setup .contents .buttongrp button[name="submit"]:hover {
