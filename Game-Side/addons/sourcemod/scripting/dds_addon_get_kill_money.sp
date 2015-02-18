@@ -66,6 +66,11 @@ public void OnPluginStart()
 	HookEvent("player_death", Event_OnPlayerDeath);
 }
 
+/**
+ * 라이브러리가 추가될 때
+ *
+ * @param name					로드된 라이브러리 명
+ */
 public void OnLibraryAdded(const char[] name)
 {
 	if (StrEqual(name, "dds_core", false))

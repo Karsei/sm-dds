@@ -65,6 +65,9 @@ public void OnConfigsExecuted()
 	// 플러그인이 꺼져 있을 때는 동작 안함
 	if (!DDS_IsPluginOn())	return;
 
+	// 다운로더가 꺼져 있을 때는 동작 안함
+	if (!dds_hCV_SwitchDownloader.BoolValue)	return;
+
 	// 버퍼 준비
 	char buffer[256];
 
@@ -112,7 +115,7 @@ public void OnConfigsExecuted()
 public void AddFileToDownloadTable(const char[] path)
 {
 	// 경로 오픈
-	ReadLine hCurDir = OpenDirectory(path);
+	DirectoryListing hCurDir = OpenDirectory(path);
 
 	// 이용 변수 준비
 	char sFileName[64];

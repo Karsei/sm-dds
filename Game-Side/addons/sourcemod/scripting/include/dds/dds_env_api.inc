@@ -182,6 +182,15 @@ native int DDS_GetClientAppliedDB(int client, int catecode);
 native int DDS_GetClientAppliedItem(int client, int catecode);
 
 /**
+ * @brief	클라이언트의 아이템 종류 별 활성화 상태를 가져옵니다.
+ *
+ * @param client				클라이언트 인덱스
+ * @param catecode				아이템 종류 코드
+ * @return	활성화가 되어 있으면 true, 그렇지 않다면 false
+ */
+native bool DDS_GetClientItemCategorySetting(int client, int catecode);
+
+/**
  * @brief	DDS 플러그인에 있는 데이터 처리 시스템을 이용합니다.
  *
  * @param client				클라이언트 인덱스
@@ -190,6 +199,14 @@ native int DDS_GetClientAppliedItem(int client, int catecode);
  * @return	정상적으로 실행을 했다면 true, 그렇지 않다면 false
  */
 native bool DDS_UseDataProcess(int client, DataProcess process, char[] data);
+
+/**
+ * @brief	ConVar 'dds_get_secure_user_min'의 값을 가져옵니다.
+ *			본 ConVar는 작업 방지를 위한 서버 내 최소한의 인원입니다.
+ *
+ * @return	'dds_get_secure_user_min'의 ConVar 값
+ */
+native int DDS_GetSecureUserMin();
 
 /**
  * @brief	DDS 플러그인에서 SQL 데이터베이스로부터 모든 아이템 종류를 불러오고 난 후에 발생합니다.

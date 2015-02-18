@@ -27,6 +27,7 @@
  ENV_DDS_SYS_GAME; 적용할 게임 종류(cstrike, csgo, tf2, ...)
 
  <속성 관련>
+ ENV_DDS_PROPERTY_COLOR; 아이템 이용 색깔
  ENV_DDS_PROPERTY_ADRS; 아이템 이용 주소
  ENV_DDS_PROPERTY_POS; 아이템 이용 위치
  ENV_DDS_PROPERTY_ANG; 아이템 이용 각도

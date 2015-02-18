@@ -28,7 +28,7 @@
 *******************************************************/
 // 게임 식별
 char dds_sGameIdentity[32];
-bool dds_sGameCheck;
+bool dds_bGameCheck;
 
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
@@ -72,6 +72,11 @@ public void OnConfigsExecuted()
 /*******************************************************
  G E N E R A L   F U N C T I O N S
 *******************************************************/
+/**
+ * System :: 게임 별 준비된 모델 프리캐시 준비
+ *
+ * @param gamename					게임 이름
+ */
 public void System_PrecacheModel(const char[] gamename)
 {
 	if (StrEqual(gamename, "cstrike", false))
@@ -83,7 +88,7 @@ public void System_PrecacheModel(const char[] gamename)
 		PrecacheModel("models/player/ct_urban.mdl", true);
 
 		// 게임 식별 완료
-		dds_sGameIdentity = true;
+		dds_bGameCheck = true;
 	}
 	else if (StrEqual(gamename, "csgo", false))
 	{
@@ -92,7 +97,7 @@ public void System_PrecacheModel(const char[] gamename)
 		*********************************************/
 
 		// 게임 식별 완료
-		dds_sGameIdentity = true;
+		dds_bGameCheck = true;
 	}
 }
 
@@ -113,7 +118,7 @@ public Action Event_OnPlayerSpawn(Event event, const char[] name, bool dontBroad
 	if (!DDS_IsPluginOn())	return Plugin_Continue;
 
 	// 게임이 식별되지 않은 경우에는 동작 안함
-	if (!dds_sGameIdentity)	return Plugin_Continue;
+	if (!dds_bGameCheck)	return Plugin_Continue;
 
 	// 이벤트 핸들을 통해 클라이언트 식별
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));

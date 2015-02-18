@@ -41,18 +41,18 @@ enum SettingItem
 enum Item
 {
 	INDEX,
-	String:NAME[64],
+	String:NAME[DDS_ENV_VAR_GLONAME_SIZE],
 	CATECODE,
 	MONEY,
 	HAVTIME,
-	String:ENV[256]
+	String:ENV[DDS_ENV_VAR_ENV_SIZE]
 }
 
 enum ItemCG
 {
-	String:NAME[64],
+	String:NAME[DDS_ENV_VAR_GLONAME_SIZE],
 	CODE,
-	String:ENV[256],
+	String:ENV[DDS_ENV_VAR_ENV_SIZE],
 	bool:STATUS
 }
 
@@ -139,7 +139,7 @@ public void OnPluginStart()
 	dds_hCV_SwitchResellItem = 		CreateConVar("dds_switch_item_resell", 		"0", 		"아이템 되팔기 기능을 기본적으로 허용할 것인지의 여부입니다. 작동을 원하지 않으시다면 0을, 원하신다면 1을 써주세요.", FCVAR_PLUGIN, true, 0.0, true, 1.0);
 	dds_hCV_ItemMoneyMultiply = 	CreateConVar("dds_item_money_multiply", 	"1.0", 		"모든 아이템을 각 아이템 금액의 몇 배의 비율로 설정할 것인지 적어주세요. 처음 아이템 목록을 로드할 때 반영됩니다.", FCVAR_PLUGIN);
 	dds_hCV_ItemResellRatio = 		CreateConVar("dds_item_resell_ratio", 		"0.2", 		"아이템 되팔기 기능을 사용할 때 해당 아이템 금액의 어느 정도의 비율로 설정할 것인지 적어주세요.", FCVAR_PLUGIN);
-	dds_hCV_SecureUserMin = 		CreateConVar("dds_get_secure_user_min", 	"4", 		"", FCVAR_PLUGIN);
+	dds_hCV_SecureUserMin = 		CreateConVar("dds_get_secure_user_min", 	"4", 		"작업 방지를 위한 최소한의 인원을 설정하는 곳입니다.", FCVAR_PLUGIN);
 
 	// 플러그인 로그 작성 등록
 	BuildPath(Path_SM, dds_sPluginLogFile, sizeof(dds_sPluginLogFile), "logs/dynamicdollarshop.log");
@@ -174,7 +174,9 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("DDS_SetClientMoney", Native_DDS_SetClientMoney);
 	CreateNative("DDS_GetClientAppliedDB", Native_DDS_GetClientAppliedDB);
 	CreateNative("DDS_GetClientAppliedItem", Native_DDS_GetClientAppliedItem);
+	CreateNative("DDS_GetClientItemCategorySetting", Native_DDS_GetClientItemCategorySetting);
 	CreateNative("DDS_UseDataProcess", Native_DDS_UseDataProcess);
+	CreateNative("DDS_GetSecureUserMin", Native_DDS_GetSecureUserMin);
 
 	// 포워드 함수 등록
 	dds_hOnLoadSQLItemCategory = CreateGlobalForward("DDS_OnLoadSQLItemCategory", ET_Ignore);
@@ -298,14 +300,14 @@ public void Init_ServerData()
 	for (int i = 0; i <= DDS_ENV_ITEM_MAX; i++)
 	{
 		dds_eItemList[i][INDEX] = 0;
-		Format(dds_eItemList[i][NAME], 64, "");
+		Format(dds_eItemList[i][NAME], DDS_ENV_VAR_GLONAME_SIZE, "");
 		dds_eItemList[i][CATECODE] = 0;
 		dds_eItemList[i][MONEY] = 0;
 		dds_eItemList[i][HAVTIME] = 0;
-		Format(dds_eItemList[i][ENV], 256, "");
+		Format(dds_eItemList[i][ENV], DDS_ENV_VAR_ENV_SIZE, "");
 	}
 	// 아이템 0번 'X' 설정
-	Format(dds_eItemList[0][NAME], 64, "EN:X");
+	Format(dds_eItemList[0][NAME], DDS_ENV_VAR_GLONAME_SIZE, "EN:X||KO:X");
 
 	/** 아이템 종류 **/
 	// 아이템 종류 갯수
@@ -313,13 +315,13 @@ public void Init_ServerData()
 	// 아이템 종류 목록
 	for (int i = 0; i <= DDS_ENV_ITEMCG_MAX; i++)
 	{
-		Format(dds_eItemCategoryList[i][NAME], 64, "");
+		Format(dds_eItemCategoryList[i][NAME], DDS_ENV_VAR_GLONAME_SIZE, "");
 		dds_eItemCategoryList[i][CODE] = 0;
-		Format(dds_eItemCategoryList[i][ENV], 256, "");
+		Format(dds_eItemCategoryList[i][ENV], DDS_ENV_VAR_ENV_SIZE, "");
 		dds_eItemCategoryList[i][STATUS] = false;
 	}
 	// 아이템 종류 0번 '전체' 설정
-	Format(dds_eItemCategoryList[0][NAME], 64, "EN:Total||KO:전체");
+	Format(dds_eItemCategoryList[0][NAME], DDS_ENV_VAR_GLONAME_SIZE, "EN:Total||KO:전체");
 
 	#if defined _DEBUG_
 	DDS_PrintToServer(":: DEBUG :: Server Data Initialization Complete");
@@ -523,7 +525,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 조건 및 환경 변수 확인
 		**************************/
 		/*** 환경 변수 준비 ***/
-		char sGetEnv[256];
+		char sGetEnv[128];
 
 		/** 환경 변수 확인(아이템 종류단) **/
 		/* 접근 관련 */
@@ -3732,7 +3734,8 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 
 		// 데이터 추가
 		dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE] = results.FetchInt(0);
-		results.FetchString(1, dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], 64);
+		results.FetchString(1, dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], DDS_ENV_VAR_GLONAME_SIZE);
+		results.FetchString(3, dds_eItemCategoryList[dds_iItemCategoryCount + 1][ENV], DDS_ENV_VAR_ENV_SIZE);
 
 		#if defined _DEBUG_
 		DDS_PrintToServer(":: DEBUG :: Category Loaded (ID: %d, GloName: %s, TotalCount: %d)", dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE], dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], dds_iItemCategoryCount + 1);
@@ -3771,11 +3774,11 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 
 		// 데이터 추가
 		dds_eItemList[dds_iItemCount + 1][INDEX] = results.FetchInt(0);
-		results.FetchString(1, dds_eItemList[dds_iItemCount + 1][NAME], 64);
+		results.FetchString(1, dds_eItemList[dds_iItemCount + 1][NAME], DDS_ENV_VAR_GLONAME_SIZE);
 		dds_eItemList[dds_iItemCount + 1][CATECODE] = results.FetchInt(2);
 		dds_eItemList[dds_iItemCount + 1][MONEY] = RoundFloat(results.FetchInt(3) * dds_hCV_ItemMoneyMultiply.FloatValue);
 		dds_eItemList[dds_iItemCount + 1][HAVTIME] = results.FetchInt(4);
-		results.FetchString(5, dds_eItemList[dds_iItemCount + 1][ENV], 256);
+		results.FetchString(5, dds_eItemList[dds_iItemCount + 1][ENV], DDS_ENV_VAR_ENV_SIZE);
 
 		#if defined _DEBUG_
 		DDS_PrintToServer(":: DEBUG :: Item Loaded (ID: %d, GloName: %s, CateCode: %d, Money: %d, Time: %d, TotalCount: %d)", dds_eItemList[dds_iItemCount + 1][INDEX], dds_eItemList[dds_iItemCount + 1][NAME], dds_eItemList[dds_iItemCount + 1][CATECODE], dds_eItemList[dds_iItemCount + 1][MONEY], dds_eItemList[dds_iItemCount + 1][HAVTIME], dds_iItemCount + 1);
@@ -4397,9 +4400,9 @@ public Main_hdlInven_ItemDetail(Menu menu, MenuAction action, int client, int it
 	}
 
 	// Back 준비
-	int iBackDBIdx;
+	//int iBackDBIdx;
 	int iBackItemIdx;
-	int iAction;
+	//int iAction;
 
 	if (action == MenuAction_Select)
 	{
@@ -5214,7 +5217,7 @@ public int Native_DDS_GetItemInfo(Handle:plugin, numParams)
 		return false;
 	}
 
-	char result[256];
+	char result[DDS_ENV_VAR_ENV_SIZE];
 
 	// 처리 구분
 	switch (proctype)
@@ -5294,7 +5297,7 @@ public int Native_DDS_GetItemCategoryInfo(Handle:plugin, numParams)
 		return false;
 	}
 
-	char result[256];
+	char result[DDS_ENV_VAR_ENV_SIZE];
 
 	// 처리 구분
 	switch (proctype)
@@ -5473,6 +5476,50 @@ public int Native_DDS_GetClientAppliedItem(Handle:plugin, numParams)
 }
 
 /**
+ * Native :: DDS_GetClientItemCategorySetting
+ *
+ * @brief	클라이언트의 아이템 종류별 활성화 여부
+ */
+public int Native_DDS_GetClientItemCategorySetting(Handle:plugin, numParams)
+{
+	int client = GetNativeCell(1);
+	int catecode = GetNativeCell(2);
+
+	// 클라이언트가 인증 절차를 밝았는지의 여부
+	if (!IsClientAuthorized(client))
+	{
+		ThrowNativeError(SP_ERROR_NATIVE, "%s client %d is not authorized.", DDS_ENV_CORE_CHAT_GLOPREFIX, client);
+		return false;
+	}
+
+	// 클라이언트가 봇인지 여부
+	if (IsFakeClient(client))
+	{
+		ThrowNativeError(SP_ERROR_NATIVE, "%s client %d is a bot. We don't support this bot client.", DDS_ENV_CORE_CHAT_GLOPREFIX, client);
+		return false;
+	}
+
+	// 전달받은 아이템 종류 번호가 0 이상인지 여부
+	if (catecode <= 0)
+	{
+		ThrowNativeError(SP_ERROR_NATIVE, "%s catecode %d should be more than 0.", DDS_ENV_CORE_CHAT_GLOPREFIX, catecode);
+		return false;
+	}
+
+	// 해당 코드가 있는지 검증
+	int selectidx = Find_GetItemCGListIndex(catecode);
+
+	// 발견하지 못했다면 안함
+	if (selectidx == 0)
+	{
+		ThrowNativeError(SP_ERROR_NATIVE, "%s Item Category Code %d is not registered.", DDS_ENV_CORE_CHAT_GLOPREFIX, catecode);
+		return false;
+	}
+
+	return dds_eUserItemCGStatus[client][selectidx][VALUE];
+}
+
+/**
  * Native :: DDS_UseDataProcess
  *
  * @brief	DDS 플러그인에 있는 데이터 처리 시스템을 이용
@@ -5571,6 +5618,16 @@ public int Native_DDS_UseDataProcess(Handle:plugin, numParams)
 	System_DataProcess(client, sSelectStr, data);
 
 	return strlen(sSelectStr) > 0 ? true : false;
+}
+
+/**
+ * Native :: DDS_GetSecureUserMin
+ *
+ * @brief	ConVar 'dds_get_secure_user_min'의 값
+ */
+public int Native_DDS_GetSecureUserMin(Handle:plugin, numParams)
+{
+	return dds_hCV_SecureUserMin.IntValue; 
 }
 
 /**
