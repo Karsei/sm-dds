@@ -180,7 +180,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 
 	// 포워드 함수 등록
 	dds_hOnLoadSQLItemCategory = CreateGlobalForward("DDS_OnLoadSQLItemCategory", ET_Ignore);
-	dds_hOnDataProcess = CreateGlobalForward("DDS_OnDataProcess", ET_Ignore);
+	dds_hOnDataProcess = CreateGlobalForward("DDS_OnDataProcess", ET_Ignore, Param_Cell, Param_Cell, Param_String);
 
 	return APLRes_Success;
 }
@@ -475,7 +475,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 	char sBuffer[128];
 
 	// 로그 준비
-	char sMakeLogParam[128];
+	char sMakeLogParam[256];
 
 	// enum 준비
 	DataProcess iSimpleProc;
@@ -529,7 +529,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		/** 환경 변수 확인(아이템 종류단) **/
 		/* 접근 관련 */
-		SelectedStuffToString(dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iItemIdx)][CODE]][ENV], "ENV_DDS_ACCESS_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		SelectedStuffToString(dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][ENV], "ENV_DDS_ACCESS_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
 		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
 		{
 			DDS_PrintToChat(client, "%t", "error access");
@@ -565,7 +565,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		}
 
 		/* 금액 사용 관련 */
-		SelectedStuffToString(dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iItemIdx)][CODE]][ENV], "ENV_DDS_USE_MONEY", "||", ":", sGetEnv, sizeof(sGetEnv));
+		SelectedStuffToString(dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][ENV], "ENV_DDS_USE_MONEY", "||", ":", sGetEnv, sizeof(sGetEnv));
 		if (!StringToInt(sGetEnv))
 			iItemMny = 0;
 
@@ -612,7 +612,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user buy", sCGName, sItemName, "global item");
@@ -700,7 +700,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 기존 아이템 출력
 		if (iPrevItemIdx > 0)
 		{
-			SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iPrevItemIdx)][CATECODE]][NAME], sCGName, sizeof(sCGName));
+			SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iPrevItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 			SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iPrevItemIdx)][NAME], sItemName, sizeof(sItemName));
 
 			Format(sBuffer, sizeof(sBuffer), "%t", "system user inven use prev", sCGName, sItemName, "global item");
@@ -712,7 +712,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		}
 
 		// 대상 아이템 출력
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven use after", sCGName, sItemName, "global item");
@@ -799,7 +799,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven resell", sCGName, sItemName, iItemMny, "global money", "global item");
@@ -896,7 +896,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
 
 		// 클라이언트와 대상 클라이언트 이름 추출
@@ -962,7 +962,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user inven drop", sCGName, sItemName, "global item");
@@ -1015,7 +1015,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
 		char sCGName[16];
 		char sItemName[32];
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iPrevItemIdx)][CATECODE]][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iPrevItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iPrevItemIdx)][NAME], sItemName, sizeof(sItemName));
 
 		Format(sBuffer, sizeof(sBuffer), "%t", "system user curitem cancel", sCGName, sItemName, "global item");
@@ -1256,6 +1256,167 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sTmpName, sTargetAuthId, dds_iUserMoney[client]);
 		Log_Data(client, "money-gift", sMakeLogParam);
 	}
+	else if (StrEqual(process, "item-give", false))
+	{
+		/*************************************************
+		 *
+		 * [아이템 주기]
+		 *
+		**************************************************/
+		iSimpleProc = DataProc_ITEMGIVE;
+
+		/*************************
+		 * 전달 파라메터 구분
+		 *
+		 * [0] - 아이템 번호
+		 * [1] - 대상 클라이언트 유저ID
+		**************************/
+		char sTempStr[2][30];
+		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+		int iItemIdx = StringToInt(sTempStr[0]);
+		int iTargetUid = StringToInt(sTempStr[1]);
+
+		/*************************
+		 * 대상 클라이언트 검증
+		**************************/
+		int iTarget = GetClientOfUserId(iTargetUid);
+		if (!IsClientInGame(iTarget))
+		{
+			Format(sBuffer, sizeof(sBuffer), "%t", "system user item give tarerr");
+			DDS_PrintToChat(client, sBuffer);
+			return;
+		}
+
+		/*************************
+		 * 대상 아이템 정보 등록
+		**************************/
+		// 대상 클라이언트 고유번호 추출
+		char sTargetAuthId[20];
+		GetClientAuthId(iTarget, AuthId_SteamID64, sTargetAuthId, sizeof(sTargetAuthId));
+
+		// 오류 검출 생성
+		ArrayList hMakeErrIt = CreateArray(8);
+		hMakeErrIt.Push(iTarget);
+		hMakeErrIt.Push(2025);
+
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"INSERT INTO `dds_user_item` (`idx`, `authid`, `ilidx`, `aplied`, `buydate`) VALUES (NULL, '%s', '%d', '0', '%d')", 
+			sTargetAuthId, iItemIdx, GetTime());
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIt);
+
+		/*************************
+		 * 화면 출력
+		**************************/
+		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
+		char sCGName[16];
+		char sItemName[32];
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
+
+		// 클라이언트와 대상 클라이언트 이름 추출
+		char sUsrName[2][32];
+		GetClientName(client, sUsrName[0], 32);
+		GetClientName(iTarget, sUsrName[1], 32);
+
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user item give send", sCGName, sItemName, sUsrName[1], "global item");
+		DDS_PrintToChat(client, sBuffer);
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user item give take", sCGName, sItemName, sUsrName[0], "global item");
+		DDS_PrintToChat(iTarget, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		// 클라이언트 이름 추출 후 인젝션 필터
+		char sTmpName[32];
+		GetClientName(iTarget, sTmpName, sizeof(sTmpName));
+		SetPreventSQLInject(sTmpName, sTmpName, sizeof(sTmpName));
+
+		// 로그 출력
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%s||%s||%d", sTmpName, sTargetAuthId, sCGName, sItemName, iItemIdx);
+		Log_Data(client, "item-give", sMakeLogParam);
+	}
+	else if (StrEqual(process, "item-takeaway", false))
+	{
+		/*************************************************
+		 *
+		 * [아이템을 빼앗을 때]
+		 *
+		**************************************************/
+		iSimpleProc = DataProc_ITEMTAKEAWAY;
+
+		/*************************
+		 * 전달 파라메터 구분
+		 *
+		 * [0] - 데이터베이스 번호
+		 * [1] - 아이템 번호
+		 * [2] - 대상 클라이언트 유저ID
+		**************************/
+		char sTempStr[3][20];
+		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+		int iDBIdx = StringToInt(sTempStr[0]);
+		int iItemIdx = StringToInt(sTempStr[1]);
+		int iTargetUid = StringToInt(sTempStr[2]);
+
+		/*************************
+		 * 대상 클라이언트 검증
+		**************************/
+		int iTarget = GetClientOfUserId(iTargetUid);
+		if (!IsClientInGame(iTarget))
+		{
+			Format(sBuffer, sizeof(sBuffer), "%t", "system user item takeaway tarerr");
+			DDS_PrintToChat(client, sBuffer);
+			return;
+		}
+
+		/*************************
+		 * 대상 아이템 정보 삭제
+		**************************/
+		// 대상 클라이언트 고유번호 추출
+		char sTargetAuthId[20];
+		GetClientAuthId(iTarget, AuthId_SteamID64, sTargetAuthId, sizeof(sTargetAuthId));
+
+		// 오류 검출 생성
+		ArrayList hMakeErrIf = CreateArray(8);
+		hMakeErrIf.Push(client);
+		hMakeErrIf.Push(2026);
+
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"DELETE FROM `dds_user_item` WHERE `idx` = '%d' and `authid` = '%s' and `ilidx` = '%d'", 
+			iDBIdx, sTargetAuthId, iItemIdx);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIf);
+
+		/*************************
+		 * 화면 출력
+		**************************/
+		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
+		char sCGName[16];
+		char sItemName[32];
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
+		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
+
+		// 클라이언트와 대상 클라이언트 이름 추출
+		char sUsrName[32];
+		GetClientName(iTarget, sUsrName, 32);
+
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user item takeaway action", sCGName, sItemName, sUsrName, "global item");
+		DDS_PrintToChat(client, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		// 클라이언트 이름 추출 후 인젝션 필터
+		char sTmpName[32];
+		GetClientName(iTarget, sTmpName, sizeof(sTmpName));
+		SetPreventSQLInject(sTmpName, sTmpName, sizeof(sTmpName));
+
+		// 로그 출력
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%s||%s||%d", sTmpName, sTargetAuthId, sCGName, sItemName, iItemIdx);
+		Log_Data(client, "item-give", sMakeLogParam);
+	}
 
 	// 포워드 실행
 	Forward_OnDataProcess(client, iSimpleProc, data);
@@ -1485,6 +1646,18 @@ public void Log_CodeError(int client, int errcode, const char[] errordec)
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc money update");
 			Format(sDetOutput, sizeof(sDetOutput), "%s Updating User Money is Failure. (AuthID: %s)", sDetOutput, usrauth);
 		}
+		case 2025:
+		{
+			// [아이템 처리 시스템] 아이템을 주어 상대방이 받을 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc item give");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Inserting User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 2026:
+		{
+			// [아이템 처리 시스템] 아이템을 상대방으로부터 빼앗을 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc item takeaway");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Deleting User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
 	}
 
 	// 클라이언트와 서버 구분하여 로그 출력
@@ -1584,8 +1757,8 @@ public void Log_Data(int client, const char[] action, const char[] data)
 	 * 'money-up' - 금액이 증가될 때
 	 * 'money-down' - 금액이 내려갈 때
 	 * 'money-gift' - 금액을 선물할 때
-	 * 'ad-item-give' - 관리자가 아이템을 줄 때
-	 * 'ad-item-seize' - 관리자가 아이템을 빼앗을 때
+	 * 'item-give' - 관리자가 아이템을 줄 때
+	 * 'item-takeaway' - 관리자가 아이템을 빼앗을 때
 	 *
 	*******************************************************************************/
 	if (StrEqual(action, "game-connect", false))
@@ -1705,6 +1878,28 @@ public void Log_Data(int client, const char[] action, const char[] data)
 		 * [금액을 선물할 때]
 		 *
 		 * (0) - 대상 이름, (1) - 대상 고유 번호, (2) - 클라이언트 금액
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "item-gift", false))
+	{
+		/*************************************************
+		 *
+		 * [아이템을 줄 때]
+		 *
+		 * (0) - 대상 이름, (1) - 대상 고유 번호, (2) - 아이템 종류 이름, (3) - 아이템 이름, (4) - 아이템 번호
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "item-takeaway", false))
+	{
+		/*************************************************
+		 *
+		 * [아이템을 줄 때]
+		 *
+		 * (0) - 대상 이름, (1) - 대상 고유 번호, (2) - 아이템 종류 이름, (3) - 아이템 이름, (4) - 아이템 번호
 		 *
 		**************************************************/
 		Format(sSendParam, sizeof(sSendParam), data);
@@ -2021,7 +2216,7 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
 		char sItemCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
 		char sItemName[32];
@@ -2227,7 +2422,7 @@ public void Menu_Inven_CateIn(Database db, DBResultSet results, const char[] err
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
 		char sItemCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
 		char sItemName[32];
@@ -2433,12 +2628,12 @@ public void Menu_BuyItem_CateIn(int client, int catecode)
 		if (!bInCate)	continue;
 
 		// 번호를 문자열로 치환
-		char sTempIdx[4];
+		char sTempIdx[8];
 		IntToString(dds_eItemList[i][INDEX], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
 		char sItemCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[i][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[i][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
 		char sItemName[32];
@@ -2993,12 +3188,12 @@ public void Menu_ItemGive_CateIn(int client, int catecode)
 		if (!bInCate)	continue;
 
 		// 번호를 문자열로 치환
-		char sTempIdx[4];
+		char sTempIdx[8];
 		IntToString(dds_eItemList[i][INDEX], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
 		char sItemCGName[16];
-		SelectedGeoNameToString(client, dds_eItemCategoryList[dds_eItemList[i][CATECODE]][NAME], sItemCGName, sizeof(sItemCGName));
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[i][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
 		char sItemName[32];
@@ -3032,9 +3227,9 @@ public void Menu_ItemGive_CateIn(int client, int catecode)
  * 메뉴 :: 아이템 주기-대상 메뉴 출력
  *
  * @param client			클라이언트 인덱스
- * @param data				추가 파라메터
+ * @param itemidx			아이템 번호
  */
-public void Menu_ItemGive_Target(int client, const char[] data)
+public void Menu_ItemGive_Target(int client, int itemidx)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
@@ -3072,7 +3267,7 @@ public void Menu_ItemGive_Target(int client, const char[] data)
 		if (i == client)	continue;
 
 		Format(buffer, sizeof(buffer), "%N", i);
-		Format(sSendParam, sizeof(sSendParam), "%d||%s", GetClientUserId(i), data);
+		Format(sSendParam, sizeof(sSendParam), "%d||%d", GetClientUserId(i), itemidx);
 		mMain.AddItem(sSendParam, buffer);
 
 		// 갯수 증가
@@ -3479,6 +3674,8 @@ public void Command_ItemGive(int client, ArrayList data)
 
 	delete data;
 
+	// ENV 확인
+
 	// 번역 준비
 	char sCmdTrans[32];
 
@@ -3539,6 +3736,13 @@ public void Command_ItemGive(int client, ArrayList data)
 
 	// 아이템 번호 쌍따옴표 제거
 	StripQuotes(sGetParam[2]);
+
+	// 파라메터 준비
+	char sSendParam[32];
+	Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sGetParam[2]), SearchTargetByName(sGetParam[1]));
+
+	// 아이템 주기
+	System_DataProcess(client, "item-give", sSendParam);
 }
 
 /**
@@ -3561,6 +3765,8 @@ public void Command_ItemTakeAWay(int client, ArrayList data)
 	data.GetString(3, sGetParam[3], 64);
 
 	delete data;
+
+	// ENV 확인
 
 	// 번역 준비
 	char sCmdTrans[32];
@@ -5110,6 +5316,123 @@ public Main_hdlInitDatabase_Warn(Menu menu, MenuAction action, int client, int i
 		if (item == MenuCancel_ExitBack)
 		{
 			Menu_InitDatabase(client);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 아이템 주기 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlItemGive(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		/**
+		 * iInfo
+		 * 
+		 * @Desc 등록된 아이템 종류 코드
+		 */
+		Menu_ItemGive_CateIn(client, iInfo);
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 아이템 주기-종류 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlItemGive_CateIn(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		/**
+		 * iInfo
+		 * 
+		 * @Desc 등록된 아이템 번호
+		 */
+		Menu_ItemGive_Target(client, iInfo);
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_ItemGive(client);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 아이템 선물 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlItemGive_Target(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	// Back 준비
+	int iBackCGCode;
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+
+		// 파라메터 분리
+		char sExpStr[3][32];
+		ExplodeString(sInfo, "||", sExpStr, sizeof(sExpStr), sizeof(sExpStr[]));
+
+		/**
+		 * sExpStr
+		 * 
+		 * @Desc ('||' 기준 배열 분리) [0] - 대상 클라이언트 유저 ID, [1] - 아이템 번호
+		 *
+		 */
+		iBackCGCode = dds_eItemList[Find_GetItemListIndex(StringToInt(sExpStr[1]))][CATECODE];
+
+		char sSendParam[32];
+		Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sExpStr[1]), StringToInt(sExpStr[0]));
+		System_DataProcess(client, "item-give", sSendParam);
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_ItemGive_CateIn(client, iBackCGCode);
 		}
 	}
 }

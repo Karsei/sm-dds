@@ -95,6 +95,7 @@ INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`) VALUES (NULL
 
 
 /** Apply Env List to Item and Item Category **/
+INSERT INTO `dds_item_category` (`icidx`, `gloname`, `orderidx`, `env`, `status`) VALUES (NULL, 'en:Trail||ko:트레일', '1', '', '1');
 
 
 /** ITEM LIST **/

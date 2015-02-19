@@ -319,6 +319,9 @@ public Action Event_OnRoundStart(Event event, const char[] name, bool dontBroadc
 	// 이벤트 핸들을 통해 클라이언트 식별
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 
+	// 서버는 통과
+	if (client == 0)	return Plugin_Continue;
+
 	// 클라이언트가 게임 내에 없다면 통과
 	if (!IsClientInGame(client))	return Plugin_Continue;
 

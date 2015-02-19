@@ -384,6 +384,34 @@
 		"en"				"Initializing databases is complete."
 	}
 
+	"system user item give tarerr"
+	{
+		"en"				"Target client is not in game."
+	}
+
+	"system user item give send"
+	{
+		"#format"			"{1:s},{2:s},{3:s},{4:t}"
+		"en"				"You have given '[{1}] {2}' {4} to '{3}'."
+	}
+
+	"system user item give take"
+	{
+		"#format"			"{1:s},{2:s},{3:s},{4:t}"
+		"en"				"You have taken '[{1}] {2}' {4} from '{3}'."
+	}
+
+	"system user item takeaway tarerr"
+	{
+		"en"				"Target client is not in game."
+	}
+
+	"system user item takeaway action"
+	{
+		"#format"			"{1:s},{2:s},{3:s},{4:t}"
+		"en"				"You have taken away '[{1}] {2}' {4} from '{3}'."
+	}
+
 	"system get money kill msg"
 	{
 		"#format"			"{1:s},{2:d},{3:t}"
@@ -607,6 +635,16 @@
 	"error sql initdata alluser"
 	{
 		"en"				"An error has occurred while deleting all user database records."
+	}
+
+	"error sql itemproc item give"
+	{
+		"en"				"An error has occurred trying to insert user item by giving item."
+	}
+
+	"error sql itemproc item takeaway"
+	{
+		"en"				"An error has occurred while deleting user item by seizing user item."
 	}
 
 	"error sql itemproc money update"

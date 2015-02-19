@@ -374,6 +374,26 @@
 		"ko"				"데이터 초기화가 완료되었습니다."
 	}
 
+	"system user item give tarerr"
+	{
+		"ko"				"대상 클라이언트가 게임 내에 없습니다."
+	}
+
+	"system user item give send"
+	{
+		"ko"				"'{3}'님에게 {1} {2}을(를) 주었습니다."
+	}
+
+	"system user item give take"
+	{
+		"ko"				"'{3}'님으로부터 {1} {2}을(를) 받았습니다."
+	}
+
+	"system user item takeaway tarerr"
+	{
+		"ko"				"대상 클라이언트가 게임 내에 없습니다."
+	}
+
 	"system get money kill msg"
 	{
 		"ko"				"'{1}'님을 죽여 {2} {3}을(를) 얻었습니다."
@@ -593,6 +613,16 @@
 	"error sql initdata alluser"
 	{
 		"ko"				"모든 유저의 데이터베이스를 초기화하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql itemproc item give"
+	{
+		"ko"				"아이템을 주면서 데이터를 작성하는 도중 오류가 발생하였습니다."
+	}
+
+	"error sql itemproc item takeaway"
+	{
+		"ko"				"아이템을 빼앗으면서 데이터를 삭제하는 도중 오류가 발생하였습니다."
 	}
 
 	"error sql itemproc money update"
