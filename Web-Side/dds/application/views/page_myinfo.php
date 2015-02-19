@@ -9,10 +9,10 @@
                         <img class="profileimg" src="<? echo $profileimg; ?>" />
                         <ul>
                             <li class="name"><? echo $name; ?></li>
-                            <li>프로필 주소: <a href="<? echo $profileurl; ?>" target="_blank"><? echo $profileurl; ?></a></li>
-                            <li>고유 번호: <? echo $authid; ?></li>
-                            <li>로그인 상태: <? echo $logstatus; ?></li>
-                            <li>마지막 접속(스팀): <? echo $lastlogoff; ?></li>
+                            <li><label>프로필 주소</label><a href="<? echo $profileurl; ?>" target="_blank"><? echo $profileurl; ?></a></li>
+                            <li><label>고유 번호</label><? echo $authid; ?></li>
+                            <li><label>로그인 상태</label> <? echo $logstatus; ?></li>
+                            <li><label>마지막 접속(스팀)</label><? echo $lastlogoff; ?></li>
                         </ul>
                     </div>
 

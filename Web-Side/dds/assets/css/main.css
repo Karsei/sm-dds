@@ -126,30 +126,6 @@ article .detail p {
     line-height: 1.6em;
 }
 
-article .myinfo {
-    margin: 10px;
-    margin-top: 30px;
-    padding: 30px;
-    background-color: #ECBF41; /*#EDDEC1*/
-}
-
-article .myinfo .profileimg {
-    float: left;
-    width: 184px;
-    height: 184px;
-    margin-right: 15px;
-    border: 2px solid #888888;
-}
-
-article .myinfo .name {
-    font-size: 1.9em;
-    font-weight: bold;
-}
-
-article .myinfo li {
-    line-height: 1.5em;
-}
-
 article .detail table {
     margin: 0 auto;
     text-align: center;
@@ -163,10 +139,10 @@ article .detail table {
     border-collapse: inherit;
     border-spacing: 0px;
     overflow: hidden;
-    cursor: default;
 }
 article .detail td {
     padding: 10px;
+    cursor: default;
 }
 article .detail thead td {
     text-align: center;
@@ -197,23 +173,149 @@ article .detail td:first-child {
     text-align: center;
 }
 
-.myinfo-inven thead td:nth-child(1) {
+/*******************
+ * Common things
+********************/
+.detail-pagination {
+    margin: 10px;
+}
+.detail-pagination table {
+    border: 0px !important;
+    -moz-border-radius-bottom-left: 0px !important;
+    -webkit-border-bottom-left-radius: 0px !important;
+    border-bottom-left-radius: 0px !important;
+    -moz-border-radius-bottom-right: 0px !important;
+    -webkit-border-bottom-right-radius: 0px !important;
+    border-bottom-right-radius: 0px !important;
+    background-color: #FFFFFF !important;
+}
+.detail-pagination td {
+    background-color: #5C5C5C !important;
+    color: #DCDCDC !important;
+    border: 0px !important;
+    cursor: pointer !important;
+}
+.detail-pagination td:hover {
+    color: #F3F3F3 !important;
+}
+.detail-pagination .focus {
+    font-weight: bold !important;
+}
+.detail-pagination td:hover,
+.detail-pagination .focus {
+    background-color: #505050 !important;
+    color: white !important;
+}
+
+/*******************
+ * <MYINFO>
+********************/
+article .myinfo {
+    margin: 10px;
+    margin-top: 30px;
+    padding: 30px;
+    background-color: #ECBF41; /*#EDDEC1*/
+}
+
+article .myinfo .profileimg {
+    float: left;
+    width: 184px;
+    height: 184px;
+    margin-right: 15px;
+    border: 2px solid #888888;
+}
+
+article .myinfo .name {
+    margin-bottom: 15px;
+    background-color: #D95656;
+    color: white;
+    font-size: 1.9em;
+    font-weight: bold;
+}
+
+article .myinfo li {
+    line-height: 1.5em;
+}
+
+article .myinfo label {
+    margin-right: 10px;
+    padding: 4px;
+    font-weight: bold;
+    background-color: #777777;
+    color: #FFFFFF;
+    -webkit-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -o-border-radius: 10px;
+    border-radius: 10px;
+    line-height: 2.0em;
+}
+
+.myinfo-list thead td:nth-child(1) {
     width: 50px;
 }
-.myinfo-inven thead td:nth-child(2) {
-    width: 100px;
-}
-.myinfo-inven thead td:nth-child(3) {
+.myinfo-list thead td:nth-child(2) {
     width: 120px;
 }
-.myinfo-inven thead td:nth-child(4) {
+.myinfo-list thead td:nth-child(3) {
+    width: 120px;
+}
+.myinfo-list thead td:nth-child(4) {
     width: 170px;
 }
-.myinfo-inven thead td:nth-child(5) {
+.myinfo-list thead td:nth-child(5) {
     width: 50px;
 }
-.myinfo-inven thead td:nth-child(6) {
+.myinfo-list thead td:nth-child(6) {
     width: 100px;
+}
+.myinfo-list td span {
+    margin-right: 10px;
+}
+.myinfo-list td span:last-child {
+    margin-right: 0px;
+}
+
+.buy-list thead td:nth-child(1) {
+    width: 50px;
+}
+.buy-list thead td:nth-child(2) {
+    width: 120px;
+}
+.buy-list thead td:nth-child(3) {
+    width: 120px;
+}
+.buy-list thead td:nth-child(4) {
+    width: 100px;
+}
+.buy-list thead td:nth-child(5) {
+    width: 80px;
+}
+.buy-list thead td:nth-child(6) {
+    width: 100px;
+}
+
+.admin-list thead td:nth-child(1) {
+    width: 50px;
+}
+.admin-list thead td:nth-child(2) {
+    width: 180px;
+}
+.admin-list thead td:nth-child(3) {
+    width: 100px;
+}
+.admin-list thead td:nth-child(4) {
+    width: 90px;
+}
+.admin-list thead td:nth-child(5) {
+    width: 90px;
+}
+
+/*******************
+ * <Item Buy>
+********************/
+.buy {
+    // 
 }
 
 

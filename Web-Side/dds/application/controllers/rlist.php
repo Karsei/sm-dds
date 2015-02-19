@@ -51,6 +51,11 @@ class Rlist extends CI_Controller {
 		$this->load->view('ajax_list', $data);
 	}
 
+	function doProcess()
+	{
+		echo 'TEST';
+	}
+
 	function index()
 	{
 		echo 'Why do you enter here? :)';

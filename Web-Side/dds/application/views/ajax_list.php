@@ -31,8 +31,11 @@ if (isset($list)) {
                                     <td><? echo $inven['icname']; ?></td>
                                     <td><? echo $inven['ilname']; ?></td>
                                     <td><? echo date("Y-m-d H:i:s", $inven['buydate']); ?></td>
-                                    <td><? echo str_replace(array(0, 1), array('', '적용됨'), $inven['aplied']); ?></td>
-                                    <td><? echo '장착 / 버리기'; ?></td>
+                                    <td><? echo str_replace(array(0, 1), array('소지', '적용됨'), $inven['aplied']); ?></td>
+                                    <td><?
+                                    if ($inven['aplied'] >= 1) echo '<span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">버리기</span>';
+                                    else echo '<span data-dt="item-apply" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnapl">장착</span><span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid=" ' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">버리기</span>'; 
+                                    ?></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
@@ -84,7 +87,7 @@ for ($i = 0; $i < $pageTotal; $i++)
                                     <td><? echo $buy['itname']; ?></td>
                                     <td><? echo $buy['money']; ?></td>
                                     <td><? echo $buy['havtime']; ?></td>
-                                    <td><? echo '구매'; ?></td>
+                                    <td><? echo '<span data-dt="item-buy" data-t="' . $type . '" data-ilidx="' . $buy['ilidx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnbuy">구매</span>'; ?></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>

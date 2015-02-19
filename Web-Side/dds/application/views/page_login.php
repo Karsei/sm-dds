@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!--meta name="viewport" content="width=device-width, initial-scale=1"-->
         <meta name="keywords" content="Dynamic Dollar Shop">
         <meta name="author" content="Karsei">
         
@@ -31,5 +31,6 @@
         </div>
     </body>
     <script type="text/javascript" src="<? echo assets_url(); ?>js/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="<? echo assets_url(); ?>js/nprogress.js"></script>
     <script type="text/javascript" src="<? echo assets_url(); ?>js/common.js"></script>
 </html>

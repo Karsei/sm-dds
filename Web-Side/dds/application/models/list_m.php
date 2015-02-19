@@ -16,14 +16,14 @@ class List_m extends CI_Model {
 			 * 후에 총 6개 필드
 			**********************************************/
 			/*
-			SELECT dds_item_category.gloname AS icname, dds_item_list.gloname AS ilname, dds_user_item.buydate, dds_user_item.aplied
+			SELECT dds_user_item.idx, dds_item_category.gloname AS icname, dds_item_list.gloname AS ilname, dds_user_item.buydate, dds_user_item.aplied
 			FROM `dds_user_item` 
 			LEFT JOIN `dds_item_list` ON `dds_user_item`.`ilidx` = `dds_item_list`.`ilidx` 
 			LEFT JOIN `dds_item_category` ON `dds_item_category`.`icidx` = `dds_item_list`.`icidx` 
 			WHERE `dds_item_category`.`status` = '1' 
 			ORDER BY `dds_user_item`.`ilidx` DESC;
 			*/
-			$this->db->select('dds_item_category.gloname AS icname, dds_item_list.gloname AS ilname, dds_user_item.buydate, dds_user_item.aplied');
+			$this->db->select('dds_user_item.idx, dds_item_category.gloname AS icname, dds_item_list.gloname AS ilname, dds_user_item.buydate, dds_user_item.aplied');
 			$this->db->join('dds_item_list', 'dds_user_item.ilidx = dds_item_list.ilidx', 'left');
 			$this->db->join('dds_item_category', 'dds_item_category.icidx = dds_item_list.icidx', 'left');
 			$this->db->where(array('dds_item_category.status' => '1'));
