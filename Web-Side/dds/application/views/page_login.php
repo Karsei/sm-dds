@@ -3,6 +3,9 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="keywords" content="Dynamic Dollar Shop">
+        <meta name="author" content="Karsei">
         
         <title><? echo PRODUCT_NAME; ?> :: Login</title>
         <link rel="stylesheet" href="<? echo assets_url(); ?>css/login.css">
@@ -27,4 +30,6 @@
             <div id="copyright">Copyright (c) 2012-2015 Karsei All Rights Reserved</div>
         </div>
     </body>
+    <script type="text/javascript" src="<? echo assets_url(); ?>js/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="<? echo assets_url(); ?>js/common.js"></script>
 </html>

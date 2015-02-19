@@ -7,7 +7,7 @@ class List_m extends CI_Model {
 		parent::__construct();
 	}
 
-	function GetList($type, $limitc, $limitidx)
+	function GetList($type, $limitc, $limitidx, $numcheck = false)
 	{
 		if (strcmp($type, 'inven') == 0)
 		{
@@ -29,10 +29,14 @@ class List_m extends CI_Model {
 			$this->db->where(array('dds_item_category.status' => '1'));
 			$this->db->order_by('dds_user_item.ilidx', 'DESC');
 			// Limit 거꾸로임 ㄱ-
-			$this->db->limit($limitidx, $limitc);
+			if (!$numcheck)	$this->db->limit($limitidx, $limitc);
 			$q = $this->db->get('dds_user_item');
 
-			return $q->result_array();
+			// 갯수 파악 또는 결과
+			if ($numcheck)
+				return $q->num_rows();
+			else
+				return $q->result_array();
 		}
 		else if (strcmp($type, 'buy') == 0)
 		{
@@ -52,10 +56,14 @@ class List_m extends CI_Model {
 			$this->db->where(array('dds_item_list.status' => '1', 'dds_item_category.status' => '1'));
 			$this->db->order_by('dds_item_list.ilidx', 'ASC');
 			// Limit 거꾸로임 ㄱ-
-			$this->db->limit($limitidx, $limitc);
+			if (!$numcheck)	$this->db->limit($limitidx, $limitc);
 			$q = $this->db->get('dds_item_category');
 
-			return $q->result_array();
+			// 갯수 파악 또는 결과
+			if ($numcheck)
+				return $q->num_rows();
+			else
+				return $q->result_array();
 		}
 		else if (strcmp($type, 'usrlist') == 0)
 		{
@@ -70,10 +78,14 @@ class List_m extends CI_Model {
 			*/
 			$this->db->order_by('idx', 'DESC');
 			// Limit 거꾸로임 ㄱ-
-			$this->db->limit($limitidx, $limitc);
+			if (!$numcheck)	$this->db->limit($limitidx, $limitc);
 			$q = $this->db->get('dds_user_profile');
 
-			return $q->result_array();
+			// 갯수 파악 또는 결과
+			if ($numcheck)
+				return $q->num_rows();
+			else
+				return $q->result_array();
 		}
 	}
 }

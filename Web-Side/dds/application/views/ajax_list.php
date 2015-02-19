@@ -12,6 +12,18 @@ if (isset($list)) {
 ?>
 <? /** INVENTORY **/ ?>
 <? if (strcmp($type, 'inven') == 0): ?>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td>번호</td>
+                                    <td>종류</td>
+                                    <td>이름</td>
+                                    <td>구매일자</td>
+                                    <td>상태</td>
+                                    <td>선택</td>
+                                </tr>
+                            </thead>
+                            <tbody>
 <? foreach($list as $inven): ?>
 <? $count++; ?>
                                 <tr>
@@ -27,9 +39,43 @@ if (isset($list)) {
 								<tr>
 									<td colspan="6">결과가 없습니다.</td>
 								</tr>
+                            </tbody>
+                        </table>
+<? else: ?>
+                            </tbody>
+                        </table>
+                        <div class="detail-pagination">
+                            <table>
+                                <tr>
+<? 
+for ($i = 0; $i < $pageTotal; $i++)
+{
+    if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
+        if ($pageIdx == ($i + 1))
+            echo '<td data-t="' . $type . '" data-aid=" ' . $authid . '" data-url="' . $surl . '" class="focus">' . ($i + 1) .'</td>';
+        else
+            echo '<td data-t="' . $type . '" data-aid=" ' . $authid . '" data-url="' . $surl . '">' . ($i + 1) . '</td>';
+}
+
+?>
+                                </tr>
+                            </table>
+                        </div>
 <? endif; ?>
 <? /** BUY **/ ?>
 <? elseif (strcmp($type, 'buy') == 0): ?>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td>번호</td>
+                                    <td>종류</td>
+                                    <td>이름</td>
+                                    <td>금액</td>
+                                    <td>지속 속성</td>
+                                    <td>선택</td>
+                                </tr>
+                            </thead>
+                            <tbody>
 <? foreach($list as $buy): ?>
 <? $count++; ?>
                                 <tr>
@@ -45,9 +91,42 @@ if (isset($list)) {
                                 <tr>
                                     <td colspan="6">결과가 없습니다.</td>
                                 </tr>
+                            </tbody>
+                        </table>
+<? else: ?>
+                            </tbody>
+                        </table>
+                        <div class="detail-pagination">
+                            <table>
+                                <tr>
+<? 
+for ($i = 0; $i < $pageTotal; $i++)
+{
+    if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
+        if ($pageIdx == ($i + 1))
+            echo '<td data-t="' . $type . '" data-aid=" ' . $authid . '" data-url="' . $surl . '" class="focus">' . ($i + 1) .'</td>';
+        else
+            echo '<td data-t="' . $type . '" data-aid=" ' . $authid . '" data-url="' . $surl . '">' . ($i + 1) . '</td>';
+}
+
+?>
+                                </tr>
+                            </table>
+                        </div>
 <? endif; ?>
 <? /** BUY **/ ?>
 <? elseif (strcmp($type, 'usrlist') == 0): ?>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td>번호</td>
+                                    <td>고유번호</td>
+                                    <td>금액</td>
+                                    <td>게임접속</td>
+                                    <td>행동</td>
+                                </tr>
+                            </thead>
+                            <tbody>
 <? foreach($list as $usrlist): ?>
 <? $count++; ?>
                                 <tr>
@@ -62,6 +141,28 @@ if (isset($list)) {
                                 <tr>
                                     <td colspan="6">결과가 없습니다.</td>
                                 </tr>
+                            </tbody>
+                        </table>
+<? else: ?>
+                            </tbody>
+                        </table>
+                        <div class="detail-pagination">
+                            <table>
+                                <tr>
+<? 
+for ($i = 0; $i < $pageTotal; $i++)
+{
+    if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
+        if ($pageIdx == ($i + 1))
+            echo '<td data-t="' . $type . '" data-aid=" ' . $authid . '" data-url="' . $surl . '" class="focus">' . ($i + 1) .'</td>';
+        else
+            echo '<td data-t="' . $type . '" data-aid=" ' . $authid . '" data-url="' . $surl . '">' . ($i + 1) . '</td>';
+}
+
+?>
+                                </tr>
+                            </table>
+                        </div>
 <? endif; ?>
 <? endif; ?>
 <?php } ?>

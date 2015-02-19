@@ -13,19 +13,8 @@
                 <div class="detail">
                     <h4>유저 관리</h4>
                     <div class="admin-user">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <td>번호</td>
-                                    <td>고유번호</td>
-                                    <td>금액</td>
-                                    <td>게임접속</td>
-                                    <td>행동</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
+                        <div class="admin-list">
+                        </div>
                     </div>
                 </div>
             </article>
@@ -33,6 +22,6 @@
 
         <script type="text/javascript">
             ;$(function($) {
-                loadList('usrlist', '.admin-user', <? echo $authid; ?>, '<? echo site_url(); ?>');
-            })
+                loadList('usrlist', <? echo $authid; ?>, '<? echo site_url(); ?>');
+            });
         </script>

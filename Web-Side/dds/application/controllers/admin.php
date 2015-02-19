@@ -33,6 +33,9 @@ class Admin extends CI_Controller {
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
 
+		// 정보 담기
+		$pdata['authid'] = $this->session->userdata('auth_id');
+
 		// 출력
 		$this->load->view('_top', $tdata);
 		$this->load->view('page_admin', $pdata);

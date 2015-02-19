@@ -18,20 +18,8 @@
 
                     <div class="myinfo-inven">
                         <h4 class="sub">현재 가지고 있는 아이템</h4>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <td>번호</td>
-                                    <td>종류</td>
-                                    <td>이름</td>
-                                    <td>구매일자</td>
-                                    <td>상태</td>
-                                    <td>선택</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
+                        <div class="myinfo-list">
+                        </div>
                     </div>
                 </div>
             </article>
@@ -39,6 +27,6 @@
 
         <script type="text/javascript">
             ;$(function($) {
-                loadList('inven', '.myinfo-inven', <? echo $authid; ?>, '<? echo site_url(); ?>');
-            })
+                loadList('inven', <? echo $authid; ?>, '<? echo site_url(); ?>');
+            });
         </script>

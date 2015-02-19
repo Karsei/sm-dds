@@ -21,18 +21,25 @@ function getCookie(name) {
 	return unescape(rval);
 }
 
-function loadList(stype, starget, usrauthid, surl)
+function loadList(stype, usrauthid, surl, spage)
 {
 	var control = 'rlist';
 	var authId = usrauthid;
 	var baseUrl = surl;
+	var starget = '';
+
+	spage = typeof spage !== 'undefined' ? spage : 1;
+
+	if (stype == 'inven')	starget = '.myinfo-list';
+	else if (stype == 'buy')	starget = '.buy-list';
+	else if (stype == 'usrlist')	starget = '.admin-list';
 
 	$.ajax({
 		url: baseUrl + control + '/getList',
 		type: 'POST',
-		data: {'dds_t': getCookie('dds_c'), 't': stype},
+		data: {'dds_t': getCookie('dds_c'), 't': stype, 'p': spage},
 		success: function(data) {
-			var $blistTg = $(starget + ' tbody');
+			var $blistTg = $(starget);
 			//console.log(data);
 			//console.log($blistTg);
 			if (data) {
@@ -52,6 +59,10 @@ function loadList(stype, starget, usrauthid, surl)
 ;$(function($) {
 	NProgress.start();
 	NProgress.done();
+	$(document).ajaxStart(function() {
+		NProgress.start();
+		NProgress.done();
+	});
 	
 	$('#apikey').on('keyup', function() {
 		var $key = $('#apikey').val();
@@ -69,5 +80,9 @@ function loadList(stype, starget, usrauthid, surl)
 				'type': 'button'
 			});
 		}
+	});
+
+	$(document).on('click', '.detail-pagination td', function() {
+		loadList($(this).attr('data-t'), $(this).attr('data-aid'), $(this).attr('data-url'), $(this).html());
 	});
 });
