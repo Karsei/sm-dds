@@ -11,10 +11,19 @@ class Rlist extends CI_Controller {
 
 		// 세션 로드
 		$this->load->library('session');
+
+		// 언어 파일 로드
+		$usrLang = $this->session->userdata('lang');
+
+		// 유저 언어에 따른 언어 파일 로드
+		$this->lang->load('global', $usrLang);
 	}
 
 	function getList()
 	{
+		// 언어 정보 담기
+		$data['langData'] = $this->lang;
+		
 		// 기본 정보 담기
 		$data['authid'] = $this->session->userdata('auth_id');
 		$data['surl'] = base_url();
@@ -41,8 +50,8 @@ class Rlist extends CI_Controller {
 		$data['pageSideCount'] = $pageSideCount;
 		$data['pageRecords'] = $pageRecords;
 		$data['pageNum'] = $pageNum;
-		$data['listCount'] = $this->list_m->GetList($type, $pageNum, $pageRecords, true);
-		$data['list'] = $this->list_m->GetList($type, $pageNum, $pageRecords, false);
+		$data['listCount'] = $this->list_m->GetList($type, $pageNum, $pageRecords, $data['authid'], true);
+		$data['list'] = $this->list_m->GetList($type, $pageNum, $pageRecords, $data['authid'], false);
 
 		// 전체 페이지 갯수 파악
 		$data['pageTotal'] = ceil($data['listCount'] / $pageRecords);
@@ -53,7 +62,15 @@ class Rlist extends CI_Controller {
 
 	function doProcess()
 	{
-		echo 'TEST';
+		// 기본 준비
+		$authid = $this->session->userdata('auth_id');
+
+		// 타입 분별
+		$type = $this->input->post('t', TRUE);
+		$itemidx = $this->input->post('idx', TRUE);
+
+		// 작업 처리
+		$this->list_m->SetList($type, $itemidx, $authid);
 	}
 
 	function index()

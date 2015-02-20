@@ -103,6 +103,7 @@ int dds_eItemCategoryList[DDS_ENV_ITEMCG_MAX + 1][ItemCG];
 int dds_iUserMoney[MAXPLAYERS + 1];
 int dds_iUserAppliedItem[MAXPLAYERS + 1][DDS_ENV_ITEMCG_MAX + 1][Apply];
 bool dds_eUserItemCGStatus[MAXPLAYERS + 1][DDS_ENV_ITEMCG_MAX + 1][SettingItem];
+char dds_sUserRefData[MAXPLAYERS + 1][256];
 
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
@@ -175,6 +176,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	CreateNative("DDS_GetClientAppliedDB", Native_DDS_GetClientAppliedDB);
 	CreateNative("DDS_GetClientAppliedItem", Native_DDS_GetClientAppliedItem);
 	CreateNative("DDS_GetClientItemCategorySetting", Native_DDS_GetClientItemCategorySetting);
+	CreateNative("DDS_GetClientRefData", Native_DDS_GetClientRefData);
 	CreateNative("DDS_UseDataProcess", Native_DDS_UseDataProcess);
 	CreateNative("DDS_GetSecureUserMin", Native_DDS_GetSecureUserMin);
 
@@ -230,7 +232,7 @@ public void OnMapEnd()
  * @param client			클라이언트 인덱스
  * @param auth				클라이언트 고유 번호(타입 2)
  */
-public void OnClientAuthorized(client, const String:auth[])
+public void OnClientAuthorized(int client, const char[] auth)
 {
 	// 플러그인이 꺼져 있을 때는 동작 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
@@ -250,7 +252,7 @@ public void OnClientAuthorized(client, const String:auth[])
  *
  * @param client			클라이언트 인덱스
  */
-public void OnClientDisconnect(client)
+public void OnClientDisconnect(int client)
 {
 	// 게임에 없으면 통과
 	if (!IsClientInGame(client))	return;
@@ -286,7 +288,7 @@ public void OnClientDisconnect(client)
 
 
 /*******************************************************
- G E N E R A L   F U N C T I O N S
+ * G E N E R A L   F U N C T I O N S
 *******************************************************/
 /**
  * 초기화 :: 서버 데이터
@@ -363,6 +365,9 @@ public void Init_UserData(int client, int mode)
 					dds_eUserItemCGStatus[i][k][CATECODE] = 0;
 					dds_eUserItemCGStatus[i][k][VALUE] = false;
 				}
+
+				// 참고 데이터
+				Format(dds_sUserRefData[i], 256, "");
 			}
 		}
 		case 2:
@@ -388,6 +393,9 @@ public void Init_UserData(int client, int mode)
 				dds_eUserItemCGStatus[client][i][CATECODE] = 0;
 				dds_eUserItemCGStatus[client][i][VALUE] = false;
 			}
+
+			// 참고 데이터
+			Format(dds_sUserRefData[client], 256, "");
 		}
 	}
 
@@ -1415,7 +1423,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		// 로그 출력
 		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%s||%s||%d", sTmpName, sTargetAuthId, sCGName, sItemName, iItemIdx);
-		Log_Data(client, "item-give", sMakeLogParam);
+		Log_Data(client, "item-takeaway", sMakeLogParam);
 	}
 
 	// 포워드 실행
@@ -1657,6 +1665,12 @@ public void Log_CodeError(int client, int errcode, const char[] errordec)
 			// [아이템 처리 시스템] 아이템을 상대방으로부터 빼앗을 때
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemproc item takeaway");
 			Format(sDetOutput, sizeof(sDetOutput), "%s Deleting User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 2027:
+		{
+			// [아이템 뺏기] 대상 클라이언트의 아이템 목록을 불러올 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemtakeaway list");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Retriving User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
 		}
 	}
 
@@ -3286,6 +3300,193 @@ public void Menu_ItemGive_Target(int client, int itemidx)
 	mMain.Display(client, MENU_TIME_FOREVER);
 }
 
+/**
+ * 메뉴 :: 아이템 뺏기-대상 메뉴 출력
+ *
+ * @param client			클라이언트 인덱스
+ */
+public void Menu_ItemTakeAWay(int client)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlItemTakeAWay);
+
+	// 제목 설정
+	Format(buffer, sizeof(buffer), "%t\n%t: %t-%t\n ", "menu common title", "menu common curpos", "menu itemtakeaway", "global target");
+	mMain.SetTitle(buffer);
+
+	// 전달 파라메터 등록
+	char sSendParam[16];
+
+	// 갯수 파악
+	int count;
+
+	// 메뉴 아이템 등록
+	for (int i = 0; i < MaxClients; i++)
+	{
+		// 서버는 통과
+		if (i == 0)	continue;
+
+		// 게임 내에 없으면 통과
+		if (!IsClientInGame(i))	continue;
+
+		// 봇이면 통과
+		if (IsFakeClient(i))	continue;
+
+		// 인증이 되어 있지 않으면 통과
+		if (!IsClientAuthorized(i))	continue;
+
+		// 본인은 통과
+		if (i == client)	continue;
+
+		Format(buffer, sizeof(buffer), "%N", i);
+		IntToString(GetClientUserId(i), sSendParam, sizeof(sSendParam));
+		mMain.AddItem(sSendParam, buffer);
+
+		// 갯수 증가
+		count++;
+	}
+
+	// 유저가 없을 때
+	if (count == 0)
+	{
+		// '없음' 출력
+		Format(buffer, sizeof(buffer), "%t", "global nothing");
+		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
+/**
+ * 메뉴 :: 아이템 뺏기-전체 세부 메뉴 출력
+ *
+ * @param db					데이터베이스 연결 핸들
+ * @param results				결과 쿼리
+ * @param error					오류 문자열
+ * @param data					기타(0 - 클라이언트 인덱스, 1 - 대상 클라이언트 유저 ID)
+ */
+public void Menu_ItemTakeAWay_CateIn(Database db, DBResultSet results, const char[] error, any data)
+{
+	/******
+	 * @param data				Handle / ArrayList
+	 * 					0 - 클라이언트 인덱스(int), 1 - 대상 클라이언트 유저 ID(int)
+	 ******/
+	// 타입 변환(*!*핸들 누수가 있는지?)
+	ArrayList hData = view_as<ArrayList>(data);
+
+	int client = hData.Get(0);
+	int tarusrid = hData.Get(1);
+
+	delete hData;
+
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	// 쿼리 오류 검출
+	if (db == null || error[0])
+	{
+		Log_CodeError(0, 2027, error);
+		return;
+	}
+
+	// '전체' 아이템 종류 이름 추출
+	char sCGName[16];
+	SelectedGeoNameToString(client, dds_eItemCategoryList[0][NAME], sCGName, sizeof(sCGName));
+
+	// 메뉴 및 제목 설정
+	char buffer[256];
+	Menu mMain = new Menu(Main_hdlItemTakeAWay_CateIn);
+
+	Format(buffer, sizeof(buffer), "%t\n%t: %t-%s\n ", "menu common title", "menu common curpos", "menu itemtakeaway", sCGName);
+	mMain.SetTitle(buffer);
+	mMain.ExitBackButton = true;
+
+	// 갯수 파악
+	int count;
+
+	// 종류 항목은 '전체'로 선택
+	int catecode = 0;
+
+	// 쿼리 결과
+	while (results.MoreRows)
+	{
+		// 제시할 행이 없다면 통과
+		if (!results.FetchRow())	continue;
+
+		// 아이템 정보
+		int iTmpDbIdx = results.FetchInt(0);
+		int iTmpItIdx = results.FetchInt(2);
+		int iTmpItAp = results.FetchInt(3);
+
+		// 0번은 있을 수 없지만 혹시 모르므로 제외
+		if (iTmpItIdx == 0)	continue;
+
+		// '전체' 항목이 아니면서 선택한 아이템 종류가 아닌 아이템은 제외
+		if ((catecode != dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE]) && catecode != 0)	continue;
+
+		// 체크되는 아이템의 아이템 종류가 등록되어 있는 아이템 종류가 없는 경우는 제외
+		// 이유: 유저가 가지고 있는 아이템 중 그에 맞는 아이템 종류가 활성화되지 않은 아이템 종류인 경우를 피하려는 것 때문
+		bool bInCate = false;
+		for (int i = 0; i <= dds_iItemCategoryCount; i++)
+		{
+			// '전체'는 제외
+			if (i == 0)	continue;
+
+			// 유효한지 파악
+			if (dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE] == dds_eItemCategoryList[i][CODE])
+			{
+				bInCate = true;
+				break;
+			}
+		}
+		if (!bInCate)	continue;
+
+		// 번호를 문자열로 치환
+		char sTempIdx[32];
+		Format(sTempIdx, sizeof(sTempIdx), "%d||%d||%d||%d", iTmpDbIdx, iTmpItIdx, iTmpItAp, tarusrid);
+
+		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
+		char sItemCGName[16];
+		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
+
+		// 클라이언트 국가에 따른 아이템 이름 추출
+		char sItemName[32];
+		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][NAME], sItemName, sizeof(sItemName));
+
+		// 아이템이 장착되어 있는지 작성
+		char sApStr[16];
+		Format(sApStr, sizeof(sApStr), "");
+		if (iTmpItAp > 0)
+			Format(sApStr, sizeof(sApStr), " - %t", "global applied");
+
+		// 메뉴 아이템 등록
+		Format(buffer, sizeof(buffer), "[%s] %s%s", sItemCGName, sItemName, sApStr);
+		mMain.AddItem(sTempIdx, buffer);
+
+		// 갯수 증가
+		count++;
+
+		#if defined _DEBUG_
+		DDS_PrintToChat(client, "\x05:: DEBUG ::\x01 Item TakeaWay-CateIn Menu ~ CG (TarUsrId: %d, ItemName: %s, ItemIdx: %d, Count: %d)", tarusrid, sItemName, iTmpItIdx, count);
+		#endif
+	}
+
+	// 아이템이 없을 때
+	if (count == 0)
+	{
+		// '없음' 출력
+		Format(buffer, sizeof(buffer), "%t", "global nothing");
+		mMain.AddItem("0", buffer, ITEMDRAW_DISABLED);
+	}
+
+	// 메뉴 출력
+	mMain.Display(client, MENU_TIME_FOREVER);
+}
+
 
 /**
  * 찾기 :: 아이템 목록 변수 인덱스 추출
@@ -3469,13 +3670,7 @@ public Action:Command_Say(int client, int args)
 	Format(sCmhTrans, sizeof(sCmhTrans), "%t", "command itemtakeaway");
 	if (bChkCmd && StrEqual(sMainCmd, sCmhTrans, false))
 	{
-		ArrayList hSendParam = CreateArray(64);
-		hSendParam.PushString(sParamStr[0]);
-		hSendParam.PushString(sParamStr[1]);
-		hSendParam.PushString(sParamStr[2]);
-		hSendParam.PushString(sParamStr[3]);
-
-		Command_ItemTakeAWay(client, hSendParam);
+		Command_ItemTakeAWay(client);
 	}
 
 	// 초기화
@@ -3525,7 +3720,6 @@ public void Command_Profile(int client, const char[] name)
 	 *
 	 * !<"command profile"> <대상이름>
 	************************************/
-
 	// 대상이 빈칸일 경우
 	if (strlen(name) <= 0)
 	{
@@ -3586,7 +3780,6 @@ public void Command_Gift(int client, ArrayList data)
 	 *
 	 * !<"command gift"> <"global money"> <대상 이름> <양>
 	************************************/
-
 	// 행동 구분이 빈칸일 경우
 	if (strlen(sGetParam[0]) <= 0)
 	{
@@ -3675,20 +3868,25 @@ public void Command_ItemGive(int client, ArrayList data)
 	delete data;
 
 	// ENV 확인
-
-	// 번역 준비
-	char sCmdTrans[32];
+	char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+	UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+	SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_GIVE", "||", ":", sGetEnv, sizeof(sGetEnv));
+	if (!StringToInt(sGetEnv))
+	{
+		DDS_PrintToChat(client, "%t", "error access");
+		return;
+	}
 
 	/***********************************
 	 * ~사용법~
 	 *
 	 * !<"command itemgive"> <대상 이름> <아이템 번호>
 	************************************/
-
 	// 별 다른 파라메터가 없을 경우
 	if (strlen(sGetParam[0]) <= 0)
 	{
 		// 메뉴 띄우기
+		Menu_ItemGive(client);
 		return;
 	}
 
@@ -3749,85 +3947,29 @@ public void Command_ItemGive(int client, ArrayList data)
  * 커맨드 :: 아이템 뺏기
  *
  * @param client				클라이언트 인덱스
- * @param data					추가 값
  */
-public void Command_ItemTakeAWay(int client, ArrayList data)
+public void Command_ItemTakeAWay(int client)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
 
-	// 파라메터 값 수령
-	char sGetParam[4][64];
-
-	data.GetString(0, sGetParam[0], 64);
-	data.GetString(1, sGetParam[1], 64);
-	data.GetString(2, sGetParam[2], 64);
-	data.GetString(3, sGetParam[3], 64);
-
-	delete data;
-
 	// ENV 확인
-
-	// 번역 준비
-	char sCmdTrans[32];
+	char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+	UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+	SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_TAKEAWAY", "||", ":", sGetEnv, sizeof(sGetEnv));
+	if (!StringToInt(sGetEnv))
+	{
+		DDS_PrintToChat(client, "%t", "error access");
+		return;
+	}
 
 	/***********************************
 	 * ~사용법~
 	 *
-	 * !<"command itemtakeaway"> <대상 이름> <아이템 번호>
+	 * !<"command itemtakeaway">
 	************************************/
-
-	// 별 다른 파라메터가 없을 경우
-	if (strlen(sGetParam[0]) <= 0)
-	{
-		// 메뉴 띄우기
-		return;
-	}
-
-	// 대상이 빈칸일 경우
-	if (strlen(sGetParam[1]) <= 0)
-	{
-		DDS_PrintToChat(client, "%t", "error command notarget");
-		return;
-	}
-
-	// 쌍따옴표로 구성이 안되어 있을 경우
-	if (!CheckDQM(sGetParam[1]))
-	{
-		DDS_PrintToChat(client, "%t", "error command notarget nodqm");
-		return;
-	}
-
-	// 대상을 찾는데 없을 경우
-	if (SearchTargetByName(sGetParam[1]) == 0)
-	{
-		DDS_PrintToChat(client, "%t", "error command notarget ingame");
-		return;
-	}
-
-	// 대상을 찾는데 2명 이상일 경우
-	if (SearchTargetByName(sGetParam[1]) == -1)
-	{
-		DDS_PrintToChat(client, "%t", "error command notarget more");
-		return;
-	}
-
-	// 아이템 번호가 빈칸일 경우
-	if (strlen(sGetParam[2]) <= 0)
-	{
-		DDS_PrintToChat(client, "%t", "error command nomoney");
-		return;
-	}
-
-	// 아이템 번호가 쌍따옴표로 구성이 안되어 있을 경우
-	if (!CheckDQM(sGetParam[2]))
-	{
-		DDS_PrintToChat(client, "%t", "error command nomoney nodqm");
-		return;
-	}
-
-	// 아이템 번호 쌍따옴표 제거
-	StripQuotes(sGetParam[2]);
+	// 메뉴 띄우기
+	Menu_ItemTakeAWay(client);
 }
 
 /**
@@ -3842,7 +3984,7 @@ public void Command_Init(int client)
 	if (!dds_hCV_PluginSwitch.BoolValue)	return;
 
 	// 접근 가능한 권한이 있는지 확인
-	char sGetEnv[256];
+	char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
 	UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
 	SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_INIT", "||", ":", sGetEnv, sizeof(sGetEnv));
 
@@ -4054,6 +4196,7 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 
 	// 임시 정보 저장
 	int iTempMoney;
+	char sTempRefData[256];
 
 	// 쿼리 결과
 	while (results.MoreRows)
@@ -4063,6 +4206,7 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 
 		// 데이터 추가
 		iTempMoney = results.FetchInt(2);
+		results.FetchString(4, sTempRefData, sizeof(sTempRefData));
 
 		// 유저 파악 갯수 증가
 		count++;
@@ -4089,7 +4233,7 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 
 		// 쿼리 전송
 		Format(sSendQuery, sizeof(sSendQuery), 
-			"INSERT INTO `dds_user_profile` (`idx`, `authid`, `money`, `ingame`) VALUES (NULL, '%s', '0', '1')", 
+			"INSERT INTO `dds_user_profile` (`idx`, `authid`, `money`, `ingame`, `refdata`) VALUES (NULL, '%s', '0', '1', '')", 
 			sUsrAuthId);
 		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
 
@@ -4107,6 +4251,9 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 
 		// 금액 로드
 		dds_iUserMoney[client] = iTempMoney;
+
+		// 참고 데이터 로드
+		Format(dds_sUserRefData[client], 256, sTempRefData);
 
 		// 인게임 처리
 		Format(sSendQuery, sizeof(sSendQuery), "UPDATE `dds_user_profile` SET `ingame` = '1' WHERE `authid` = '%s'", sUsrAuthId);
@@ -5389,7 +5536,7 @@ public Main_hdlItemGive_CateIn(Menu menu, MenuAction action, int client, int ite
 }
 
 /**
- * 메뉴 핸들 :: 아이템 선물 메뉴 핸들러
+ * 메뉴 핸들 :: 아이템 주기-대상 메뉴 핸들러
  *
  * @param menu				메뉴 핸들
  * @param action			메뉴 액션
@@ -5433,6 +5580,103 @@ public Main_hdlItemGive_Target(Menu menu, MenuAction action, int client, int ite
 		if (item == MenuCancel_ExitBack)
 		{
 			Menu_ItemGive_CateIn(client, iBackCGCode);
+		}
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 아이템 뺏기-대상 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlItemTakeAWay(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+		int iInfo = StringToInt(sInfo);
+
+		/**
+		 * iInfo
+		 * 
+		 * @Desc 대상 클라이언트 유저 ID
+		 */
+		// 대상 클라이언트 구분
+		int iTarget = GetClientOfUserId(iInfo);
+		char sTarAuthId[20];
+		GetClientAuthId(iTarget, AuthId_SteamID64, sTarAuthId, sizeof(sTarAuthId));
+
+		// 파라메터 생성
+		ArrayList sSendParam = CreateArray(12);
+		sSendParam.Push(client);
+		sSendParam.Push(iInfo);
+
+		// 쿼리 전송
+		char sSendQuery[256];
+		Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_item` WHERE `authid` = '%s' ORDER BY `idx` DESC", sTarAuthId);
+		dds_hSQLDatabase.Query(Menu_ItemTakeAWay_CateIn, sSendQuery, sSendParam);
+	}
+}
+
+/**
+ * 메뉴 핸들 :: 아이템 뺏기-전체 메뉴 핸들러
+ *
+ * @param menu				메뉴 핸들
+ * @param action			메뉴 액션
+ * @param client 			클라이언트 인덱스
+ * @param item				메뉴 아이템 소유 문자열
+ */
+public Main_hdlItemTakeAWay_CateIn(Menu menu, MenuAction action, int client, int item)
+{
+	if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+
+	if (action == MenuAction_Select)
+	{
+		char sInfo[32];
+		menu.GetItem(item, sInfo, sizeof(sInfo));
+
+		// 파라메터 분리
+		char sExpStr[4][16];
+		ExplodeString(sInfo, "||", sExpStr, sizeof(sExpStr), sizeof(sExpStr[]));
+
+		/**
+		 * sExpStr
+		 * 
+		 * @Desc ('||' 기준 배열 분리) [0] - 데이터베이스 번호, [1] - 아이템 번호, [2] - 아이템 장착 유무, [3] - 대상 클라이언트 유저 ID
+		 */
+		// 
+		char sSendParam[32];
+
+		// 장착되어 있으면 장착 해제 처리
+		if (StringToInt(sExpStr[2]) == 1)
+		{
+			int iTarget = GetClientOfUserId(StringToInt(sExpStr[3]));
+			Format(sSendParam, sizeof(sSendParam), "%d", dds_eItemList[Find_GetItemListIndex(StringToInt(sExpStr[1]))][CATECODE]);
+			System_DataProcess(iTarget, "curitem-cancel", sSendParam);
+		}
+
+		// 그리고 빼앗음
+		Format(sSendParam, sizeof(sSendParam), "%d||%d||%d", StringToInt(sExpStr[0]), StringToInt(sExpStr[1]), StringToInt(sExpStr[3]));
+		System_DataProcess(client, "item-takeaway", sSendParam);
+	}
+
+	if (action == MenuAction_Cancel)
+	{
+		if (item == MenuCancel_ExitBack)
+		{
+			Menu_ItemTakeAWay(client);
 		}
 	}
 }
@@ -5840,6 +6084,34 @@ public int Native_DDS_GetClientItemCategorySetting(Handle:plugin, numParams)
 	}
 
 	return dds_eUserItemCGStatus[client][selectidx][VALUE];
+}
+
+/**
+ * Native :: DDS_GetClientRefData
+ *
+ * @brief	클라이언트이 기타 참고 데이터를 반환
+ */
+public int Native_DDS_GetClientRefData(Handle:plugin, numParams)
+{
+	int client = GetNativeCell(1);
+
+	// 클라이언트가 인증 절차를 밝았는지의 여부
+	if (!IsClientAuthorized(client))
+	{
+		ThrowNativeError(SP_ERROR_NATIVE, "%s client %d is not authorized.", DDS_ENV_CORE_CHAT_GLOPREFIX, client);
+		return false;
+	}
+
+	// 클라이언트가 봇인지 여부
+	if (IsFakeClient(client))
+	{
+		ThrowNativeError(SP_ERROR_NATIVE, "%s client %d is a bot. We don't support this bot client.", DDS_ENV_CORE_CHAT_GLOPREFIX, client);
+		return false;
+	}
+
+	SetNativeString(2, dds_sUserRefData[client], 256);
+
+	return true;
 }
 
 /**

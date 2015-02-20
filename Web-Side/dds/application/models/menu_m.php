@@ -5,16 +5,24 @@ class Menu_m extends CI_Model {
 	function __construct()
 	{
 		parent::__construct();
+
+		// 유저 세션 로드
+		$this->load->library('session');
+		$usrLang = $this->session->userdata('lang');
+
+		// 유저 언어에 따른 언어-메뉴 파일 로드
+		$this->lang->load('menu', $usrLang);
 	}
 
 	function GetMenu()
 	{
+		$langLoad = $this->lang;
 		$menuList = array(
-			array("홈", "home", "fa-home", 0),
-			array("내 정보", "myinfo", "fa-user", 0),
-			array("아이템 구매", "buy", "fa-shopping-cart", 0),
-			array("관리", "admin", "fa-cog", 1),
-			array("로그아웃", "auth/logout", "fa-user-times", 0)
+			array($langLoad->line('menu_home'), "home", "fa-home", 0),
+			array($langLoad->line('menu_myinfo'), "myinfo", "fa-user", 0),
+			array($langLoad->line('menu_itembuy'), "buy", "fa-shopping-cart", 0),
+			array($langLoad->line('menu_admin'), "admin", "fa-cog", 1),
+			array($langLoad->line('menu_logout'), "auth/logout", "fa-user-times", 0)
 		);
 
 		return $menuList;

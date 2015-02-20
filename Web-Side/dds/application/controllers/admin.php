@@ -21,6 +21,13 @@ class Admin extends CI_Controller {
 			redirect('/auth/login');
 		}
 
+		// 언어 파일 로드
+		$usrLang = $this->session->userdata('lang');
+
+		// 유저 언어에 따른 언어 파일 로드
+		$this->lang->load('menu', $usrLang);
+		$this->lang->load('global', $usrLang);
+
 		// 메뉴 모델 로드
 		$this->load->model('menu_m');
 	}
@@ -28,13 +35,17 @@ class Admin extends CI_Controller {
 	public function index()
 	{
 		// 기본 정보
-		$tdata['title'] = '관리';
+		$langLoad = $this->lang;
+		$tdata['title'] = $langLoad->line('menu_admin');
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
 
 		// 정보 담기
 		$pdata['authid'] = $this->session->userdata('auth_id');
+
+		// 언어 담기
+		$pdata['langData'] = $langLoad;
 
 		// 출력
 		$this->load->view('_top', $tdata);

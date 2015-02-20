@@ -191,6 +191,15 @@ native int DDS_GetClientAppliedItem(int client, int catecode);
 native bool DDS_GetClientItemCategorySetting(int client, int catecode);
 
 /**
+ * @brief	클라이언트의 기타 참고 데이터를 가져옵니다.
+ *
+ * @param client				클라이언트 인덱스
+ * @param data					데이터가 담길 문자열
+ * @return	정상적으로 가져 왔으면 true, 그렇지 않다면 false
+ */
+native bool DDS_GetClientRefData(int client, char[] data);
+
+/**
  * @brief	DDS 플러그인에 있는 데이터 처리 시스템을 이용합니다.
  *
  * @param client				클라이언트 인덱스

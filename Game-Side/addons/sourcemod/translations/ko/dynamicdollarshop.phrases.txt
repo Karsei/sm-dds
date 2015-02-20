@@ -122,6 +122,29 @@
 	}
 
 	/*************************************
+	 * 채팅 (Chat)
+	 *************************************/
+	"chat display dead"
+	{
+		"ko"				"사망"
+	}
+
+	"chat display spec"
+	{
+		"ko"				"관전"
+	}
+
+	"chat display red"
+	{
+		"ko"				"테러리스트"
+	}
+
+	"chat display blue"
+	{
+		"ko"				"대테러부대"
+	}
+
+	/*************************************
 	 * 메뉴 (Menu)
 	 *************************************/
 	/*** 공통 ***/
@@ -259,6 +282,16 @@
 	"menu itemgift"
 	{
 		"ko"				"아이템 선물"
+	}
+
+	"menu itemgive"
+	{
+		"ko"				"아이템 주기"
+	}
+
+	"menu itemtakeaway"
+	{
+		"ko"				"아이템 뺏기"
 	}
 
 	"menu initdatabase"
@@ -628,5 +661,10 @@
 	"error sql itemproc money update"
 	{
 		"ko"				"유저의 금액을 갱신하는 도중 오류가 발생했습니다."
+	}
+
+	"error sql itemtakeaway list"
+	{
+		"ko"				"유저 아이템을 뺏기 위해 목록을 불러오면서 오류가 발생하였습니다."
 	}
 }

@@ -7,7 +7,7 @@ class List_m extends CI_Model {
 		parent::__construct();
 	}
 
-	function GetList($type, $limitc, $limitidx, $numcheck = false)
+	function GetList($type, $limitc, $limitidx, $authid, $numcheck = false)
 	{
 		if (strcmp($type, 'inven') == 0)
 		{
@@ -86,6 +86,20 @@ class List_m extends CI_Model {
 				return $q->num_rows();
 			else
 				return $q->result_array();
+		}
+	}
+
+	function SetList($type, $itemidx, $authid)
+	{
+		if (strcmp($type, 'item-buy') == 0)
+		{
+			$setdata = array(
+				'authid' => $authid,
+				'ilidx' => $itemidx,
+				'buydate' => time()
+			);
+			$this->db->set($setdata);
+			$this->db->insert('dds_user_item');
 		}
 	}
 }

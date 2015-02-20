@@ -6,6 +6,9 @@ class Auth extends CI_Controller {
 	{
 		parent::__construct();
 
+		// 기본 언어 설정
+		$defLang = 'korean';
+
 		// OpenID 로드
 		$hostUrl = array('url' => base_url());
 		$this->load->library('LightOpenID', $hostUrl);
@@ -37,9 +40,17 @@ class Auth extends CI_Controller {
 			{
 				preg_match("/^http:\/\/steamcommunity\.com\/openid\/id\/(7[0-9]{15,25}+)$/", $oid->identity, $stid);
 				$this->session->set_userdata('auth_id', $stid[1]);
+				$this->session->set_userdata('lang', $defLang);
 				redirect('/auth/login/');
 			}
 		}
+
+		// 언어 파일 로드
+		$usrLang = $this->session->userdata('lang');
+
+		// 유저 언어에 따른 언어 파일 로드
+		$this->lang->load('menu', $usrLang);
+		$this->lang->load('global', $usrLang);
 	}
 
 	public function index()
@@ -61,6 +72,10 @@ class Auth extends CI_Controller {
 
 		// 로그인 페이지
 		$data['setform'] = $this->auth_m->MakeSignin();
+
+		// 언어 로드
+		$data['langData'] = $this->lang;
+
 		$this->load->view('page_login', $data);
 	}
 

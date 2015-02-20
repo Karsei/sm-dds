@@ -7,7 +7,7 @@
         <meta name="keywords" content="Dynamic Dollar Shop">
         <meta name="author" content="Karsei">
         
-        <title><? echo PRODUCT_NAME; ?> :: Login</title>
+        <title><? echo PRODUCT_NAME; ?> :: <? echo $langData->line('login_title'); ?></title>
         <link rel="stylesheet" href="<? echo assets_url(); ?>css/login.css">
         <link rel="shortcut icon" type="image/x-icon" href="<? echo images_url(); ?>favicon.ico">
     </head>
@@ -19,11 +19,7 @@
             </div>
         
             <div id="login">
-                <h2>환영합니다!</h2>
-                <p>웹 패널로 접속하기 위해서는 로그인이 필요합니다.<br>별 다른 가입없이 스팀 아이디로 로그인이 가능합니다.</p>
-                <p>(참고로, 서버에 접속하시면 자동으로 가입됩니다.)</p>
-                <p>아래의 이미지를 클릭하시면 로그인을 하실 수 있습니다.</p>
-
+                <? echo $langData->line('login_index'); ?>
                 <? echo $setform; ?>
             </div>
         

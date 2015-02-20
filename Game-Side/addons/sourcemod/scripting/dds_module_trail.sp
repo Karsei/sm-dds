@@ -99,7 +99,7 @@ public void OnLibraryAdded(const char[] name)
  * @param client			클라이언트 인덱스
  * @param auth				클라이언트 고유 번호(타입 2)
  */
-public void OnClientAuthorized(client, const String:auth[])
+public void OnClientAuthorized(int client, const char[] auth)
 {
 	// 플러그인이 꺼져 있을 때는 동작 안함
 	if (!DDS_IsPluginOn())	return;
@@ -116,7 +116,7 @@ public void OnClientAuthorized(client, const String:auth[])
  *
  * @param client			클라이언트 인덱스
  */
-public void OnClientDisconnect(client)
+public void OnClientDisconnect(int client)
 {
 	// 게임에 없으면 통과
 	if (!IsClientInGame(client))	return;
@@ -130,7 +130,7 @@ public void OnClientDisconnect(client)
 
 
 /*******************************************************
- G E N E R A L   F U N C T I O N S
+ * G E N E R A L   F U N C T I O N S
 *******************************************************/
 /**
  * 초기화 :: 유저 엔티티 데이터

@@ -122,6 +122,29 @@
 	}
 
 	/*************************************
+	 * 채팅 (Chat)
+	 *************************************/
+	"chat display dead"
+	{
+		"en"				"DEAD"
+	}
+
+	"chat display spec"
+	{
+		"en"				"SPEC"
+	}
+
+	"chat display red"
+	{
+		"en"				"Terrorist"
+	}
+
+	"chat display blue"
+	{
+		"en"				"Counter-Terrorist"
+	}
+
+	/*************************************
 	 * 메뉴 (Menu)
 	 *************************************/
 	/*** 공통 ***/
@@ -259,6 +282,16 @@
 	"menu itemgift"
 	{
 		"en"				"Item Gift"
+	}
+
+	"menu itemgive"
+	{
+		"en"				"Item Give"
+	}
+
+	"menu itemtakeaway"
+	{
+		"en"				"Item Seize"
 	}
 
 	"menu initdatabase"
@@ -650,5 +683,10 @@
 	"error sql itemproc money update"
 	{
 		"en"				"An error has occurred while updating user money."
+	}
+
+	"error sql itemtakeaway list"
+	{
+		"en"				"An error has occurred while loading the user items."
 	}
 }

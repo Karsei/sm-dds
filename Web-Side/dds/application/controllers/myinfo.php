@@ -21,6 +21,13 @@ class Myinfo extends CI_Controller {
 			redirect('/auth/login');
 		}
 
+		// 언어 파일 로드
+		$usrLang = $this->session->userdata('lang');
+
+		// 유저 언어에 따른 언어 파일 로드
+		$this->lang->load('menu', $usrLang);
+		$this->lang->load('global', $usrLang);
+
 		// 메뉴 모델 로드
 		$this->load->model('menu_m');
 
@@ -31,7 +38,8 @@ class Myinfo extends CI_Controller {
 	public function index()
 	{
 		// 기본 정보
-		$tdata['title'] = '내 정보';
+		$langLoad = $this->lang;
+		$tdata['title'] = $langLoad->line('menu_myinfo');
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
@@ -46,6 +54,9 @@ class Myinfo extends CI_Controller {
 		$pdata['profileimg'] = $proinfo['avatarfull'];
 		$pdata['profileurl'] = $proinfo['profileurl'];
 		$pdata['lastlogoff'] = date("Y-m-d H:i:s", $proinfo['lastlogoff']);
+
+		// 언어 담기
+		$pdata['langData'] = $langLoad;
 
 		// 출력
 		$this->load->view('_top', $tdata);

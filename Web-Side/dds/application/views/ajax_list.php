@@ -15,12 +15,12 @@ if (isset($list)) {
                         <table>
                             <thead>
                                 <tr>
-                                    <td>번호</td>
-                                    <td>종류</td>
-                                    <td>이름</td>
-                                    <td>구매일자</td>
-                                    <td>상태</td>
-                                    <td>선택</td>
+                                    <td><? echo $langData->line('tb_cate_idx'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_category'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_name'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_buydate'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_status'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_action'); ?></td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -31,16 +31,16 @@ if (isset($list)) {
                                     <td><? echo $inven['icname']; ?></td>
                                     <td><? echo $inven['ilname']; ?></td>
                                     <td><? echo date("Y-m-d H:i:s", $inven['buydate']); ?></td>
-                                    <td><? echo str_replace(array(0, 1), array('소지', '적용됨'), $inven['aplied']); ?></td>
+                                    <td><? echo str_replace(array(0, 1), array($langData->line('myinfo_list_have'), $langData->line('myinfo_list_applied')), $inven['aplied']); ?></td>
                                     <td><?
-                                    if ($inven['aplied'] >= 1) echo '<span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">버리기</span>';
-                                    else echo '<span data-dt="item-apply" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnapl">장착</span><span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid=" ' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">버리기</span>'; 
+                                    if ($inven['aplied'] >= 1) echo '<span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">' . $langData->line('myinfo_list_drop') . '</span>';
+                                    else echo '<span data-dt="item-apply" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnapl">' . $langData->line('myinfo_list_apply') . '</span><span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid=" ' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">' . $langData->line('myinfo_list_drop') . '</span>'; 
                                     ?></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
 								<tr>
-									<td colspan="6">결과가 없습니다.</td>
+									<td colspan="6"><? echo $langData->line('msg_results_none'); ?></td>
 								</tr>
                             </tbody>
                         </table>
@@ -70,12 +70,12 @@ for ($i = 0; $i < $pageTotal; $i++)
                         <table>
                             <thead>
                                 <tr>
-                                    <td>번호</td>
-                                    <td>종류</td>
-                                    <td>이름</td>
-                                    <td>금액</td>
-                                    <td>지속 속성</td>
-                                    <td>선택</td>
+                                    <td><? echo $langData->line('tb_cate_itidx'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_category'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_name'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_money'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_havtime'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_action'); ?></td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,12 +87,12 @@ for ($i = 0; $i < $pageTotal; $i++)
                                     <td><? echo $buy['itname']; ?></td>
                                     <td><? echo $buy['money']; ?></td>
                                     <td><? echo $buy['havtime']; ?></td>
-                                    <td><? echo '<span data-dt="item-buy" data-t="' . $type . '" data-ilidx="' . $buy['ilidx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnbuy">구매</span>'; ?></td>
+                                    <td><? echo '<span data-dt="item-buy" data-t="' . $type . '" data-ilidx="' . $buy['ilidx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnbuy">' . $langData->line('buy_list_buy') . '</span>'; ?></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
                                 <tr>
-                                    <td colspan="6">결과가 없습니다.</td>
+                                    <td colspan="6"><? echo $langData->line('msg_results_none'); ?></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -122,11 +122,11 @@ for ($i = 0; $i < $pageTotal; $i++)
                         <table>
                             <thead>
                                 <tr>
-                                    <td>번호</td>
-                                    <td>고유번호</td>
-                                    <td>금액</td>
-                                    <td>게임접속</td>
-                                    <td>행동</td>
+                                    <td><? echo $langData->line('tb_cate_usridx'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_authid'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_money'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_ingame'); ?></td>
+                                    <td><? echo $langData->line('tb_cate_action'); ?></td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -137,12 +137,12 @@ for ($i = 0; $i < $pageTotal; $i++)
                                     <td><? echo $usrlist['authid']; ?></td>
                                     <td><? echo $usrlist['money']; ?></td>
                                     <td><? echo $usrlist['ingame']; ?></td>
-                                    <td><? echo '수정'; ?></td>
+                                    <td><? echo $langData->line('admin_usrlist_modify'); ?></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
                                 <tr>
-                                    <td colspan="6">결과가 없습니다.</td>
+                                    <td colspan="6"><? echo $langData->line('msg_results_none'); ?></td>
                                 </tr>
                             </tbody>
                         </table>
