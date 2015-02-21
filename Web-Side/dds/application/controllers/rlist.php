@@ -68,11 +68,11 @@ class Rlist extends CI_Controller {
 
 		// 타입 분별
 		$type = $this->input->post('t', TRUE);
-		$itemidx = $this->input->post('idx', TRUE);
-		$icidx = $this->input->post('icidx', TRUE);
+		$oidx = $this->input->post('oidx', TRUE);
+		$tidx = $this->input->post('tidx', TRUE);
 
 		// 작업 처리
-		$this->list_m->SetList($type, $icidx, $itemidx, $authid);
+		$this->list_m->SetList($type, $tidx, $oidx, $authid);
 	}
 
 	function index()

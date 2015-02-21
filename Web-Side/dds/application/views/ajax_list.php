@@ -135,9 +135,9 @@ for ($i = 0; $i < $pageTotal; $i++)
                                 <tr>
                                     <td><? echo $usrlist['idx']; ?></td>
                                     <td><? echo $usrlist['authid']; ?></td>
-                                    <td><? echo $usrlist['money']; ?></td>
+                                    <td class="usrmoney" data-uidx="<? echo $usrlist['idx']; ?>"><? echo $usrlist['money']; ?></td>
                                     <td><? echo $usrlist['ingame']; ?></td>
-                                    <td><? echo $langData->line('admin_usrlist_modify'); ?></td>
+                                    <td><span class="btnusrmodify" data-dt="admin-usrmodify" data-t="<? echo $type; ?>" data-uidx="<? echo $usrlist['idx']; ?>" data-url="<? echo $surl; ?>" data-p="<? echo $pageIdx; ?>" data-aid="<? echo $authid; ?>"><? echo $langData->line('admin_usrlist_modify'); ?></span></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
