@@ -5,13 +5,17 @@ $lang['login_index'] = '<h2>환영합니다!</h2><p>웹 패널로 접속하기 �
 $lang['myinfo_profileadrs'] = '프로필 주소';
 $lang['myinfo_authid'] = '고유 번호';
 $lang['myinfo_logstatus'] = '로그인 상태';
+$lang['myinfo_logstatus_on'] = '온라인';
+$lang['myinfo_logstatus_off'] = '오프라인';
 $lang['myinfo_lastlogin'] = '마지막 접속(스팀)';
 $lang['myinfo_haveinven'] = '현재 가지고 있는 아이템';
 $lang['myinfo_list_have'] = '소지';
 $lang['myinfo_list_applied'] = '장착됨';
 $lang['myinfo_list_apply'] = '장착';
+$lang['myinfo_list_applycancel'] = '해제';
 $lang['myinfo_list_drop'] = '버리기';
 
+$lang['buy_mymoney'] = '현재 소유 금액';
 $lang['buy_list_buy'] = '구매';
 
 $lang['admin_usrlist_modify'] = '수정';

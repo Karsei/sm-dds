@@ -5,13 +5,17 @@ $lang['login_index'] = '<h2>Welcome!</h2><p>You have to login for using this web
 $lang['myinfo_profileadrs'] = 'Profile Address';
 $lang['myinfo_authid'] = 'Auth ID';
 $lang['myinfo_logstatus'] = 'Login Status';
+$lang['myinfo_logstatus_on'] = 'Online';
+$lang['myinfo_logstatus_off'] = 'Offline';
 $lang['myinfo_lastlogin'] = 'Last Login Date(Steam)';
 $lang['myinfo_haveinven'] = 'My Current Item';
 $lang['myinfo_list_have'] = 'Have';
 $lang['myinfo_list_applied'] = 'Applied';
 $lang['myinfo_list_apply'] = 'Apply';
+$lang['myinfo_list_applycancel'] = 'Cancel';
 $lang['myinfo_list_drop'] = 'Drop';
 
+$lang['buy_mymoney'] = 'My Current Money';
 $lang['buy_list_buy'] = 'Buy';
 
 $lang['admin_usrlist_modify'] = 'Modify';

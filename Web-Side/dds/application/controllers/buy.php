@@ -30,22 +30,24 @@ class Buy extends CI_Controller {
 
 		// 메뉴 모델 로드
 		$this->load->model('menu_m');
+		// 목록 모델 로드
+		$this->load->model('list_m');
 	}
 
 	public function index()
 	{
 		// 기본 정보
-		$langLoad = $this->lang;
-		$tdata['title'] = $langLoad->line('menu_itembuy');
+		$tdata['title'] = $this->lang->line('menu_itembuy');
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
 
 		// 정보 등록
 		$pdata['authid'] = $this->session->userdata('auth_id');
+		$pdata['usrprf'] = $this->list_m->GetProfile($pdata['authid']);
 
-		// 언어 담기
-		$pdata['langData'] = $langLoad;
+		// 기타 정보 담기
+		$pdata['langData'] = $this->lang;
 
 		// 출력
 		$this->load->view('_top', $tdata);

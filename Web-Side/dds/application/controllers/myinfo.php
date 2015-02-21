@@ -38,8 +38,7 @@ class Myinfo extends CI_Controller {
 	public function index()
 	{
 		// 기본 정보
-		$langLoad = $this->lang;
-		$tdata['title'] = $langLoad->line('menu_myinfo');
+		$tdata['title'] = $this->lang->line('menu_myinfo');
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
@@ -50,13 +49,13 @@ class Myinfo extends CI_Controller {
 		
 		$pdata['authid'] = $proinfo['steamid'];
 		$pdata['name'] = $proinfo['personaname'];
-		$pdata['logstatus'] = ($proinfo['personastate'] ? '접속' : '접속 해제');
+		$pdata['logstatus'] = $proinfo['personastate'];
 		$pdata['profileimg'] = $proinfo['avatarfull'];
 		$pdata['profileurl'] = $proinfo['profileurl'];
 		$pdata['lastlogoff'] = date("Y-m-d H:i:s", $proinfo['lastlogoff']);
 
-		// 언어 담기
-		$pdata['langData'] = $langLoad;
+		// 기타 정보 담기
+		$pdata['langData'] = $this->lang;
 
 		// 출력
 		$this->load->view('_top', $tdata);

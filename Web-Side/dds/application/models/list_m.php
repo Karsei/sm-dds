@@ -16,18 +16,18 @@ class List_m extends CI_Model {
 			 * 후에 총 6개 필드
 			**********************************************/
 			/*
-			SELECT dds_user_item.idx, dds_item_category.gloname AS icname, dds_item_list.gloname AS ilname, dds_user_item.buydate, dds_user_item.aplied
+			SELECT dds_user_item.idx, dds_item_list.icidx, dds_item_category.gloname AS icname, dds_item_list.gloname AS ilname, dds_user_item.buydate, dds_user_item.aplied
 			FROM `dds_user_item` 
 			LEFT JOIN `dds_item_list` ON `dds_user_item`.`ilidx` = `dds_item_list`.`ilidx` 
 			LEFT JOIN `dds_item_category` ON `dds_item_category`.`icidx` = `dds_item_list`.`icidx` 
 			WHERE `dds_item_category`.`status` = '1' 
-			ORDER BY `dds_user_item`.`ilidx` DESC;
+			ORDER BY `dds_user_item`.`ilidx` ASC;
 			*/
-			$this->db->select('dds_user_item.idx, dds_item_category.gloname AS icname, dds_item_list.gloname AS ilname, dds_user_item.buydate, dds_user_item.aplied');
+			$this->db->select('dds_user_item.idx, dds_item_list.icidx, dds_item_category.gloname AS icname, dds_item_list.gloname AS ilname, dds_user_item.buydate, dds_user_item.aplied');
 			$this->db->join('dds_item_list', 'dds_user_item.ilidx = dds_item_list.ilidx', 'left');
 			$this->db->join('dds_item_category', 'dds_item_category.icidx = dds_item_list.icidx', 'left');
-			$this->db->where(array('dds_item_category.status' => '1'));
-			$this->db->order_by('dds_user_item.ilidx', 'DESC');
+			$this->db->where(array('dds_item_category.status' => '1', 'dds_user_item.authid' => $authid));
+			$this->db->order_by('dds_user_item.idx', 'ASC');
 			// Limit 거꾸로임 ㄱ-
 			if (!$numcheck)	$this->db->limit($limitidx, $limitc);
 			$q = $this->db->get('dds_user_item');
@@ -89,18 +89,86 @@ class List_m extends CI_Model {
 		}
 	}
 
-	function SetList($type, $itemidx, $authid)
+	function SetList($type, $icidx, $itemidx, $authid)
 	{
-		if (strcmp($type, 'item-buy') == 0)
+		// 유저 프로필 로드
+		$this->db->where('dds_user_profile.authid', $authid);
+		$q = $this->db->get('dds_user_profile');
+		$usrProfile = $q->result_array();
+
+		$usr_Money = intval($usrProfile[0]['money']);
+		$usr_pInGame = intval($usrProfile[0]['ingame']);
+
+		// 게임 내에 있으면 동작 못하게 처리
+		if ($usr_pInGame == 1)
+		{
+			echo "err-ingame";
+			return;
+		}
+
+		// 행동 구분
+		if (strcmp($type, 'item-apply') == 0)
+		{
+			// 우선 해당 아이템과 같은 종류의 장착 아이템을 모두 장착 해제 시킨다.
+			$qready = "UPDATE `dds_user_item` LEFT JOIN `dds_item_list` ON `dds_user_item`.`ilidx` = `dds_item_list`.`ilidx` SET `dds_user_item`.`aplied` = '0' WHERE `dds_user_item`.`authid` = '" . $authid . "' AND `dds_item_list`.`icidx` = '" . $icidx . "' AND `dds_user_item`.`aplied` = '1'";
+			$this->db->query($qready);
+
+			// 그리고 장착 처리
+			$qready = "UPDATE `dds_user_item` SET `dds_user_item`.`aplied` = '1' WHERE `dds_user_item`.`authid` = '" . $authid . "' AND `dds_user_item`.`idx` = '" . $itemidx . "'";
+			$this->db->query($qready);
+		}
+		else if (strcmp($type, 'item-applycancel') == 0)
+		{
+			// 그리고 장착해제 처리
+			$qready = "UPDATE `dds_user_item` SET `dds_user_item`.`aplied` = '0' WHERE `dds_user_item`.`authid` = '" . $authid . "' AND `dds_user_item`.`idx` = '" . $itemidx . "'";
+			$this->db->query($qready);
+		}
+		else if (strcmp($type, 'item-drop') == 0)
 		{
 			$setdata = array(
-				'authid' => $authid,
-				'ilidx' => $itemidx,
-				'buydate' => time()
+				'dds_user_item.authid' => $authid,
+				'dds_user_item.idx' => $itemidx // 아이템 번호가 아닌 데이터베이스 번호(간.소.화)
+			);
+			$this->db->where($setdata);
+			$this->db->delete('dds_user_item');
+		}
+		else if (strcmp($type, 'item-buy') == 0)
+		{
+			// 우선 아이템 금액 확인 후 금액 조건 확인
+			$this->db->select('dds_item_list.ilidx, dds_item_list.money, dds_item_list.gloname AS ilname');
+			$this->db->where('dds_item_list.ilidx', $itemidx);
+			$sq = $this->db->get('dds_item_list');
+			$sqc = $sq->result_array();
+			if (intval($sqc[0]['money']) > $usr_Money)
+			{
+				echo 'err-moneymore';
+				return;
+			}
+
+			// 금액 감산 처리
+			$qready = "UPDATE `dds_user_profile` SET `dds_user_profile`.`money` = `dds_user_profile`.`money` - " . $sqc[0]['money'] . " WHERE `dds_user_profile`.`authid` = '" . $authid . "'";
+			$this->db->query($qready);
+
+			// 조건이 된다면 구매 처리
+			$setdata = array(
+				'dds_user_item.authid' => $authid,
+				'dds_user_item.ilidx' => $itemidx,
+				'dds_user_item.buydate' => time()
 			);
 			$this->db->set($setdata);
 			$this->db->insert('dds_user_item');
 		}
+
+		echo "true";
+	}
+
+	function GetProfile($authid)
+	{
+		// 유저 프로필 로드
+		$this->db->where('dds_user_profile.authid', $authid);
+		$q = $this->db->get('dds_user_profile');
+		
+		return $q->result_array();
 	}
 }
 

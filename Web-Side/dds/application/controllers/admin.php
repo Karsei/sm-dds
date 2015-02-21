@@ -35,8 +35,7 @@ class Admin extends CI_Controller {
 	public function index()
 	{
 		// 기본 정보
-		$langLoad = $this->lang;
-		$tdata['title'] = $langLoad->line('menu_admin');
+		$tdata['title'] = $this->lang->line('menu_admin');
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
@@ -44,8 +43,8 @@ class Admin extends CI_Controller {
 		// 정보 담기
 		$pdata['authid'] = $this->session->userdata('auth_id');
 
-		// 언어 담기
-		$pdata['langData'] = $langLoad;
+		// 기타 정보 담기
+		$pdata['langData'] = $this->lang;
 
 		// 출력
 		$this->load->view('_top', $tdata);

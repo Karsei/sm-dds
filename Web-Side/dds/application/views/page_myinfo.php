@@ -11,7 +11,7 @@
                             <li class="name"><? echo $name; ?></li>
                             <li><label><? echo $langData->line('myinfo_profileadrs'); ?></label><a href="<? echo $profileurl; ?>" target="_blank"><? echo $profileurl; ?></a></li>
                             <li><label><? echo $langData->line('myinfo_authid'); ?></label><? echo $authid; ?></li>
-                            <li><label><? echo $langData->line('myinfo_logstatus'); ?></label> <? echo $logstatus; ?></li>
+                            <li><label><? echo $langData->line('myinfo_logstatus'); ?></label> <? echo $logstatus ? $langData->line('myinfo_logstatus_on') : $langData->line('myinfo_logstatus_off'); ?></li>
                             <li><label><? echo $langData->line('myinfo_lastlogin'); ?></label><? echo $lastlogoff; ?></li>
                         </ul>
                     </div>

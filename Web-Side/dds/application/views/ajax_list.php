@@ -28,13 +28,13 @@ if (isset($list)) {
 <? $count++; ?>
                                 <tr>
                                     <td><? echo $count; ?></td>
-                                    <td><? echo $inven['icname']; ?></td>
-                                    <td><? echo $inven['ilname']; ?></td>
+                                    <td><? echo SplitStrByGeoName(GetCodeByLanguage($usrLang), $inven['icname']); ?></td>
+                                    <td><? echo SplitStrByGeoName(GetCodeByLanguage($usrLang), $inven['ilname']); ?></td>
                                     <td><? echo date("Y-m-d H:i:s", $inven['buydate']); ?></td>
                                     <td><? echo str_replace(array(0, 1), array($langData->line('myinfo_list_have'), $langData->line('myinfo_list_applied')), $inven['aplied']); ?></td>
                                     <td><?
-                                    if ($inven['aplied'] >= 1) echo '<span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">' . $langData->line('myinfo_list_drop') . '</span>';
-                                    else echo '<span data-dt="item-apply" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnapl">' . $langData->line('myinfo_list_apply') . '</span><span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-aid=" ' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">' . $langData->line('myinfo_list_drop') . '</span>'; 
+                                    if ($inven['aplied'] >= 1) echo '<span data-dt="item-applycancel" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-icidx="' . $inven['icidx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnaplcan">' . $langData->line('myinfo_list_applycancel') . '</span><span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-icidx="' . $inven['icidx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">' . $langData->line('myinfo_list_drop') . '</span>';
+                                    else echo '<span data-dt="item-apply" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-icidx="' . $inven['icidx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnapl">' . $langData->line('myinfo_list_apply') . '</span><span data-dt="item-drop" data-t="' . $type . '" data-ilidx="' . $inven['idx'] . '" data-icidx="' . $inven['icidx'] . '" data-aid=" ' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btndrop">' . $langData->line('myinfo_list_drop') . '</span>'; 
                                     ?></td>
                                 </tr>
 <? endforeach; ?>
@@ -83,8 +83,8 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? $count++; ?>
                                 <tr>
                                     <td><? echo $buy['ilidx']; ?></td>
-                                    <td><? echo $buy['icname']; ?></td>
-                                    <td><? echo $buy['itname']; ?></td>
+                                    <td><? echo SplitStrByGeoName(GetCodeByLanguage($usrLang), $buy['icname']); ?></td>
+                                    <td><? echo SplitStrByGeoName(GetCodeByLanguage($usrLang), $buy['itname']); ?></td>
                                     <td><? echo $buy['money']; ?></td>
                                     <td><? echo $buy['havtime']; ?></td>
                                     <td><? echo '<span data-dt="item-buy" data-t="' . $type . '" data-ilidx="' . $buy['ilidx'] . '" data-aid="' . $authid . '" data-url="' . $surl . '" data-p="' . $pageIdx . '" class="btnbuy">' . $langData->line('buy_list_buy') . '</span>'; ?></td>

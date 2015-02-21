@@ -5,6 +5,7 @@
                 </div>
                 <div class="detail">
                     <div class="buy">
+                        <p><? echo $langData->line('buy_mymoney'); ?>: <? echo $usrprf[0]['money']; ?></p>
                         <div class="buy-list">
                         </div>
                     </div>

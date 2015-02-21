@@ -20,12 +20,10 @@ class Rlist extends CI_Controller {
 	}
 
 	function getList()
-	{
-		// 언어 정보 담기
-		$data['langData'] = $this->lang;
-		
+	{	
 		// 기본 정보 담기
 		$data['authid'] = $this->session->userdata('auth_id');
+		$data['usrLang'] = $this->session->userdata('lang');
 		$data['surl'] = base_url();
 
 		// 페이지 양쪽 번호 범위 갯수
@@ -56,6 +54,9 @@ class Rlist extends CI_Controller {
 		// 전체 페이지 갯수 파악
 		$data['pageTotal'] = ceil($data['listCount'] / $pageRecords);
 
+		// 기타 정보 담기
+		$data['langData'] = $this->lang;
+
 		// 목록 출력
 		$this->load->view('ajax_list', $data);
 	}
@@ -68,9 +69,10 @@ class Rlist extends CI_Controller {
 		// 타입 분별
 		$type = $this->input->post('t', TRUE);
 		$itemidx = $this->input->post('idx', TRUE);
+		$icidx = $this->input->post('icidx', TRUE);
 
 		// 작업 처리
-		$this->list_m->SetList($type, $itemidx, $authid);
+		$this->list_m->SetList($type, $icidx, $itemidx, $authid);
 	}
 
 	function index()

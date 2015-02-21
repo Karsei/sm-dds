@@ -48,23 +48,52 @@ function loadList(stype, usrauthid, surl, spage)
 	});
 }
 
-function doProcess(stype, sdest, usrauthid, surl, silidx, spage)
+function doProcess(stype, sdest, usrauthid, surl, silidx, sicidx, spage)
 {
-	//console.log(stype);
-
 	var control = 'rlist';
 	var authId = usrauthid;
 	var baseUrl = surl;
 
+	sicidx = typeof sicidx !== 'undefined' ? sicidx : 0;
 	spage = typeof spage !== 'undefined' ? spage : 1;
 
 	$.ajax({
 		url: baseUrl + control + '/doProcess',
 		type: 'POST',
-		data: {'dds_t': getCookie('dds_c'), 't': sdest, 'idx': silidx},
+		data: {'dds_t': getCookie('dds_c'), 't': sdest, 'idx': silidx, 'icidx': sicidx},
 		success: function(data) {
-			console.log(data);
 			loadList(stype, authId, baseUrl, spage);
+			if (data == "true")
+			{
+				$.prompt("정상적으로 처리되었습니다.", {
+					title: "알림",
+					buttons: {"확인": true}
+				});
+			}
+			else
+			{
+				if (data == "err-moneymore")
+				{
+					$.prompt("금액이 부족합니다.", {
+						title: "알림",
+						buttons: {"확인": true}
+					});
+				}
+				else if (data == "err-ingame")
+				{
+					$.prompt("현재 게임 내에 있으면 실행하실 수 없습니다.", {
+						title: "알림",
+						buttons: {"확인": true}
+					});
+				}
+				else
+				{
+					$.prompt("요청을 실행하다가 오류가 발생했습니다.<p>오류 원인: " + data + "</p>", {
+						title: "알림",
+						buttons: {"확인": true}
+					});
+				}
+			}
 		},
 		complete: function(data) {
 			/*console.log('Complete');*/
@@ -111,11 +140,25 @@ function doProcess(stype, sdest, usrauthid, surl, silidx, spage)
 		var sDetail = $(this).attr('data-dt'); var sType = $(this).attr('data-t');
 		var sUsrAuth = $(this).attr('data-aid'); var sUrl = $(this).attr('data-url');
 		var sIlIdx = $(this).attr('data-ilidx'); var sPage = $(this).attr('data-p');
+		var sIcIdx = $(this).attr('data-icidx');
 		$.prompt("정말로 해당 아이템을 장착하시겠습니까?", {
 			title: "아이템 장착",
 			buttons: {"확인": true, "취소": false },
 			submit: function(e, v, m, f) {
-				if (v)	doProcess(sType, sDetail, sUsrAuth, sUrl, sIlIdx);
+				if (v)	doProcess(sType, sDetail, sUsrAuth, sUrl, sIlIdx, sIcIdx, sPage);
+			}
+		});
+	});
+	$(document).on('click', '.myinfo-list .btnaplcan', function() {
+		var sDetail = $(this).attr('data-dt'); var sType = $(this).attr('data-t');
+		var sUsrAuth = $(this).attr('data-aid'); var sUrl = $(this).attr('data-url');
+		var sIlIdx = $(this).attr('data-ilidx'); var sPage = $(this).attr('data-p');
+		var sIcIdx = $(this).attr('data-icidx');
+		$.prompt("정말로 해당 아이템을 장착 해제하시겠습니까?", {
+			title: "아이템 장착 해제",
+			buttons: {"확인": true, "취소": false },
+			submit: function(e, v, m, f) {
+				if (v)	doProcess(sType, sDetail, sUsrAuth, sUrl, sIlIdx, sIcIdx, sPage);
 			}
 		});
 	});
@@ -127,7 +170,7 @@ function doProcess(stype, sdest, usrauthid, surl, silidx, spage)
 			title: "아이템 버리기",
 			buttons: {"확인": true, "취소": false },
 			submit: function(e, v, m, f) {
-				if (v)	doProcess(sType, sDetail, sUsrAuth, sUrl, sIlIdx);
+				if (v)	doProcess(sType, sDetail, sUsrAuth, sUrl, sIlIdx, 0, sPage);
 			}
 		});
 	});
@@ -139,7 +182,7 @@ function doProcess(stype, sdest, usrauthid, surl, silidx, spage)
 			title: "아이템 구매",
 			buttons: {"확인": true, "취소": false },
 			submit: function(e, v, m, f) {
-				if (v)	doProcess(sType, sDetail, sUsrAuth, sUrl, sIlIdx);
+				if (v)	doProcess(sType, sDetail, sUsrAuth, sUrl, sIlIdx, 0, sPage);
 			}
 		});
 	});
