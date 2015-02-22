@@ -21,22 +21,28 @@ class Rlist extends CI_Controller {
 
 	function getList()
 	{	
-		// 기본 정보 담기
+		/********************************************
+		 * 기본 정보
+		*********************************************/
 		$data['authid'] = $this->session->userdata('auth_id');
 		$data['usrLang'] = $this->session->userdata('lang');
 		$data['surl'] = base_url();
 
+		// POST 로드 및 언어 로드
+		$type = $this->input->post('t', TRUE);
+		$cpage = $this->input->post('p', TRUE);
+		$data['type'] = $type;
+		$data['langData'] = $this->lang;
+
+		/********************************************
+		 * 페이지 조정
+		*********************************************/
 		// 페이지 양쪽 번호 범위 갯수
 		$pageSideCount = 4;
 		// 페이지 당 레코드 갯수
 		$pageRecords = 20;
 		// 페이지
 		$pageNum = 0;
-
-		// 타입 분별
-		$type = $this->input->post('t', TRUE);
-		$cpage = $this->input->post('p', TRUE);
-		$data['type'] = $type;
 
 		// 페이지 조정
 		if ($cpage == 0)	$cpage = 1; // 잡혀있지 않은 경우 번호 1로 세팅
@@ -54,10 +60,9 @@ class Rlist extends CI_Controller {
 		// 전체 페이지 갯수 파악
 		$data['pageTotal'] = ceil($data['listCount'] / $pageRecords);
 
-		// 기타 정보 담기
-		$data['langData'] = $this->lang;
-
-		// 목록 출력
+		/********************************************
+		 * 출력
+		*********************************************/
 		$this->load->view('ajax_list', $data);
 	}
 
@@ -68,11 +73,12 @@ class Rlist extends CI_Controller {
 
 		// 타입 분별
 		$type = $this->input->post('t', TRUE);
-		$oidx = $this->input->post('oidx', TRUE);
-		$tidx = $this->input->post('tidx', TRUE);
+		$odata = $this->input->post('odata', TRUE);
+		$tdata = $this->input->post('tdata', TRUE);
 
 		// 작업 처리
-		$this->list_m->SetList($type, $tidx, $oidx, $authid);
+		$rval = $this->list_m->SetList($type, $odata, $tdata, $authid);
+		echo $rval;
 	}
 
 	function index()

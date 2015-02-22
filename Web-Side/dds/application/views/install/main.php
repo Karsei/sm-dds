@@ -1,7 +1,3 @@
-            <div id="gloLoad">
-                <i class="fa fa-spinner fa-spin" alt="로딩중입니다.."></i>
-            </div>
-            
             <div class="header">
                 <h1 class="title">Dynamic Dollar Shop</h1>
                 <span class="step"><? echo $step; ?></span>

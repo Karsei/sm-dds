@@ -25,8 +25,4 @@
             </article>
         </section>
 
-        <script type="text/javascript">
-            ;$(function($) {
-                loadList('inven', <? echo $authid; ?>, '<? echo site_url(); ?>');
-            });
-        </script>
+        <script type="text/javascript">;$(function($){loadList('inven', '.myinfo-list');});</script>

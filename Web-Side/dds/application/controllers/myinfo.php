@@ -37,11 +37,21 @@ class Myinfo extends CI_Controller {
 
 	public function index()
 	{
-		// 기본 정보
+		/********************************************
+		 * 기본 정보
+		*********************************************/
+		// 기본
+		$User_AuthId = $this->session->userdata('auth_id');
+
+		// 상단
 		$tdata['title'] = $this->lang->line('menu_myinfo');
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
+		$tdata['usr_authid'] = $User_AuthId;
+
+		// 내용
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
+		$pdata['langData'] = $this->lang;
 
 		// 프로필 정보 로드
 		// ajax로 하고 싶지만 Access-Control-Allow-Origin 문제 때문에 그냥 서버에서 ㄱ-;
@@ -54,10 +64,9 @@ class Myinfo extends CI_Controller {
 		$pdata['profileurl'] = $proinfo['profileurl'];
 		$pdata['lastlogoff'] = date("Y-m-d H:i:s", $proinfo['lastlogoff']);
 
-		// 기타 정보 담기
-		$pdata['langData'] = $this->lang;
-
-		// 출력
+		/********************************************
+		 * 출력
+		*********************************************/
 		$this->load->view('_top', $tdata);
 		$this->load->view('page_myinfo', $pdata);
 		$this->load->view('_foot');

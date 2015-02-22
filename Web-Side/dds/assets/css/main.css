@@ -100,6 +100,22 @@ header {
 /*************************************
  * [section]
 **************************************/
+/*******************
+ * Sub Navi
+********************/
+.sub-ad-gnb li {
+    float: left;
+    margin-top: 15px;
+    margin-right: 20px;
+    padding: 15px;
+    font-weight: bold;
+    background-color: #c7e843;
+    cursor: pointer;
+}
+.sub-ad-gnb li:hover,
+.sub-ad-gnb .focus {
+    background-color: #c7a843;
+}
 
 /*******************
  * Article
@@ -262,6 +278,14 @@ article .myinfo label {
     line-height: 2.0em;
 }
 
+article .buy .buy-mymoney {
+    padding-left: 10px;
+    border-left: 5px solid #777777;
+}
+article .buy label {
+    font-weight: 600;
+}
+
 .myinfo-list thead td:nth-child(1) {
     width: 50px;
 }
@@ -275,7 +299,7 @@ article .myinfo label {
     width: 170px;
 }
 .myinfo-list thead td:nth-child(5) {
-    width: 50px;
+    width: 70px;
 }
 .myinfo-list thead td:nth-child(6) {
     width: 100px;
@@ -288,7 +312,7 @@ article .myinfo label {
 }
 
 .buy-list thead td:nth-child(1) {
-    width: 50px;
+    width: 85px;
 }
 .buy-list thead td:nth-child(2) {
     width: 120px;
@@ -307,7 +331,7 @@ article .myinfo label {
 }
 
 .admin-list thead td:nth-child(1) {
-    width: 50px;
+    width: 75px;
 }
 .admin-list thead td:nth-child(2) {
     width: 180px;

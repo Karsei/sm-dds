@@ -34,19 +34,26 @@ class Admin extends CI_Controller {
 
 	public function index()
 	{
-		// 기본 정보
+		/********************************************
+		 * 기본 정보
+		*********************************************/
+		// 기본
+		$User_AuthId = $this->session->userdata('auth_id');
+
+		// 상단
 		$tdata['title'] = $this->lang->line('menu_admin');
 		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
+		$tdata['usr_authid'] = $User_AuthId;
+
+		// 내용
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
-
-		// 정보 담기
-		$pdata['authid'] = $this->session->userdata('auth_id');
-
-		// 기타 정보 담기
+		$pdata['authid'] = $User_AuthId;
 		$pdata['langData'] = $this->lang;
 
-		// 출력
+		/********************************************
+		 * 출력
+		*********************************************/
 		$this->load->view('_top', $tdata);
 		$this->load->view('page_admin', $pdata);
 		$this->load->view('_foot');

@@ -87,9 +87,72 @@ class List_m extends CI_Model {
 			else
 				return $q->result_array();
 		}
+		else if (strcmp($type, 'itemlist') == 0)
+		{
+			/*********************************************
+			 * [아이템 관리 - 목록]
+			 * 후에 총 7개 필드
+			**********************************************/
+			$this->db->select('dds_item_list.ilidx, dds_item_category.gloname AS icname, dds_item_list.gloname AS itname, dds_item_list.money, dds_item_list.havtime, dds_item_list.env, dds_item_list.status');
+			$this->db->join('dds_item_category', 'dds_item_category.icidx = dds_item_list.icidx', 'left');
+			$this->db->order_by('ilidx', 'DESC');
+			// Limit 거꾸로임 ㄱ-
+			if (!$numcheck)	$this->db->limit($limitidx, $limitc);
+			$q = $this->db->get('dds_item_list');
+
+			// 갯수 파악 또는 결과
+			if ($numcheck)
+				return $q->num_rows();
+			else
+				return $q->result_array();
+		}
+		else if (strcmp($type, 'itemcglist') == 0)
+		{
+			/*********************************************
+			 * [아이템 종류 관리 - 목록]
+			 * 후에 총 5개 필드
+			**********************************************/
+			/*
+			SELECT * 
+			FROM `dds_item_category` 
+			ORDER BY `icidx` DESC;
+			*/
+			$this->db->order_by('icidx', 'DESC');
+			// Limit 거꾸로임 ㄱ-
+			if (!$numcheck)	$this->db->limit($limitidx, $limitc);
+			$q = $this->db->get('dds_item_category');
+
+			// 갯수 파악 또는 결과
+			if ($numcheck)
+				return $q->num_rows();
+			else
+				return $q->result_array();
+		}
+		else if (strcmp($type, 'dataloglist') == 0)
+		{
+			/*********************************************
+			 * [데이터 로그 관리 - 목록]
+			 * 후에 총 6개 필드
+			**********************************************/
+			/*
+			SELECT * 
+			FROM `dds_log_data` 
+			ORDER BY `idx` DESC;
+			*/
+			$this->db->order_by('idx', 'DESC');
+			// Limit 거꾸로임 ㄱ-
+			if (!$numcheck)	$this->db->limit($limitidx, $limitc);
+			$q = $this->db->get('dds_log_data');
+
+			// 갯수 파악 또는 결과
+			if ($numcheck)
+				return $q->num_rows();
+			else
+				return $q->result_array();
+		}
 	}
 
-	function SetList($type, $tidx, $oidx, $authid)
+	function SetList($type, $oidx, $tidx, $authid)
 	{
 		// 유저 프로필 로드
 		$this->db->where('dds_user_profile.authid', $authid);
@@ -102,8 +165,7 @@ class List_m extends CI_Model {
 		// 게임 내에 있으면 동작 못하게 처리
 		if ($usr_pInGame == 1)
 		{
-			echo "err-ingame";
-			return;
+			return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_nogame'));
 		}
 
 		// 행동 구분
@@ -141,8 +203,7 @@ class List_m extends CI_Model {
 			$sqc = $sq->result_array();
 			if (intval($sqc[0]['money']) > $usr_Money)
 			{
-				echo 'err-moneymore';
-				return;
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_moneymore'));
 			}
 
 			// 금액 감산 처리
@@ -163,8 +224,7 @@ class List_m extends CI_Model {
 			$qready = "UPDATE `dds_user_profile` SET `dds_user_profile`.`money` = '" . $tidx . "' WHERE `dds_user_profile`.`idx` = '" . $oidx . "'";
 			$this->db->query($qready);
 		}
-
-		echo "true";
+		return json_encode(array('result' => true, 'title' => 'msg_title_notice', 'msg' => 'msg_results_success'));
 	}
 
 	function GetProfile($authid)

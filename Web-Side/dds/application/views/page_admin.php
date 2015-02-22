@@ -2,17 +2,17 @@
             <article>
                 <div class="title">
                     <i class="fa <? echo $icon; ?> fa-2x"></i><h3 class="clearfix"><? echo $title; ?></h3>
-                    <nav>
+                    <nav class="sub-ad-gnb">
                         <ul class="clearfix">
-                            <li>유저 관리</li>
-                            <li>아이템 관리</li>
-                            <li>아이템 종류 관리</li>
+                            <li><span data-t="usrlist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_usrlist'); ?></span></li>
+                            <li><span data-t="itemlist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_itemlist'); ?></span></li>
+                            <li><span data-t="itemcglist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_itemcglist'); ?></span></li>
+                            <li><span data-t="dataloglist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_dataloglist'); ?></span></li>
                         </ul>
                     </nav>
                 </div>
                 <div class="detail">
-                    <h4>유저 관리</h4>
-                    <div class="admin-user">
+                    <div class="admin">
                         <div class="admin-list">
                         </div>
                     </div>
@@ -20,8 +20,4 @@
             </article>
         </section>
 
-        <script type="text/javascript">
-            ;$(function($) {
-                loadList('usrlist', <? echo $authid; ?>, '<? echo site_url(); ?>');
-            });
-        </script>
+        <script type="text/javascript">;$(function($){loadList('usrlist','.admin-list');});</script>
