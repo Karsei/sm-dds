@@ -18,6 +18,8 @@
                     </div>
                 </div>
             </article>
+            <div class="detail-info">
+            </div>
         </section>
 
         <script type="text/javascript">;$(function($){loadList('usrlist','.admin-list');});</script>

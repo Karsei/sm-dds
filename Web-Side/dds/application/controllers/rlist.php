@@ -35,6 +35,11 @@ class Rlist extends CI_Controller {
 		$data['langData'] = $this->lang;
 
 		/********************************************
+		 * 기타 필요 정보 삽입
+		*********************************************/
+		$data['usrprofile'] = $this->list_m->GetProfile($data['authid']);
+
+		/********************************************
 		 * 페이지 조정
 		*********************************************/
 		// 페이지 양쪽 번호 범위 갯수
@@ -78,6 +83,39 @@ class Rlist extends CI_Controller {
 
 		// 작업 처리
 		$rval = $this->list_m->SetList($type, $odata, $tdata, $authid);
+		echo $rval;
+	}
+
+	function makeDetInfo()
+	{
+		// 타입 분별
+		$type = $this->input->post('t', TRUE);
+
+		$rval = '';
+		if (strcmp($type, 'itemlist-add') == 0)
+		{
+			$rval .= '<h4>' . $this->lang->line('admin_itemlist_add') . '</h4>';
+			$rval .= '<ul>';
+			$rval .= '<li><label>종류 코드</label><input type="text" maxlength="8" /></li>';
+			$rval .= '<li><label>이름</label><input type="text" maxlength="30" /></li>';
+			$rval .= '<li><label>금액</label><input type="text" maxlength="30" /></li>';
+			$rval .= '<li><label>지속 속성</label><input type="text" maxlength="15" /></li>';
+			$rval .= '<li><label>ENV</label><input type="text" maxlength="15" /></li>';
+			$rval .= '<li><label>활성화</label><input type="radio" name="ilad_status" value="0" />이용안함<input type="radio" name="ilad_status" value="1" checked />이용함</li>';
+			$rval .= '</ul>';
+		}
+		else if (strcmp($type, 'itemcglist-add') == 0)
+		{
+			$rval .= '<h4>' . $this->lang->line('admin_itemcglist_add') . '</h4>';
+			$rval .= '<ul>';
+			$rval .= '<li><label>이름</label><input type="text" maxlength="30" /></li>';
+			$rval .= '<li><label>우선 순위</label><input type="text" maxlength="30" /></li>';
+			$rval .= '<li><label>지속 속성</label><input type="text" maxlength="15" /></li>';
+			$rval .= '<li><label>ENV</label><input type="text" maxlength="15" /></li>';
+			$rval .= '<li><label>활성화</label><input type="radio" name="icad_status" value="0" />이용안함<input type="radio" name="icad_status" value="1" checked />이용함</li>';
+			$rval .= '</ul>';
+		}
+
 		echo $rval;
 	}
 

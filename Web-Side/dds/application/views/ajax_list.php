@@ -67,6 +67,7 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? endif; ?>
 <? /** BUY **/ ?>
 <? elseif (strcmp($type, 'buy') == 0): ?>
+                        <p class="buy-mymoney"><label><? echo $langData->line('buy_mymoney'); ?></label>: <? echo $usrprofile[0]['money']; ?></p>
                         <table>
                             <thead>
                                 <tr>

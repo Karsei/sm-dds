@@ -27,6 +27,11 @@ $lang['admin_list_nouse'] = 'No';
 $lang['admin_list_gameon'] = 'On';
 $lang['admin_list_gameoff'] = 'Off';
 
+$lang['admin_itemlist_add'] = 'Add Item';
+$lang['admin_itemlist_modify'] = 'Modify Item';
+$lang['admin_itemcglist_add'] = 'Add Item Category';
+$lang['admin_itemcglist_modify'] = 'Modify Item Category';
+
 
 $lang['btn_modify'] = 'Modify';
 $lang['btn_done'] = 'Done';

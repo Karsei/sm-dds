@@ -34,6 +34,23 @@ function getCookie(name) {
 }
 
 /**
+ * 숫자만 입력하도록 설정
+ *
+ * @param obj				DOM 객체
+ */
+function ChkNum(obj)
+{
+	var $obj = $(obj);
+	if ((event.keyCode >= 48) && (event.keyCode <= 57)) {
+		if (isNaN($obj.html()))
+			return true;
+	}
+	else {
+		event.returnValue = false;
+	}
+}
+
+/**
  * 프로그래스 바 초기화
  */
 function initProgress() {
@@ -203,6 +220,29 @@ function loadTransMsg(msg, getStr)
 	});
 }
 
+/**
+ * 세부 정보 삽입
+ *
+ * @param stype				타입 배분
+ * @param starget			대상 목표
+ */
+function makeDetInfo(stype, starget)
+{
+	var controller = 'rlist';
+
+	$.ajax({
+		url: base_Url + controller + '/makeDetInfo',
+		type: 'POST',
+		data: {
+			'dds_t': getCookie('dds_c'), 
+			't': stype
+		},
+		success: function(data) {
+			$(starget).find('article').html(data);
+		}
+	});
+}
+
 // 최초 실행
 ;$(function($) {
 	// 프로그래스 바 설정
@@ -284,6 +324,25 @@ function loadTransMsg(msg, getStr)
 		var $getTarget = $(this).find('span');
 		var $tgType = $getTarget.attr('data-t');
 		loadList($tgType, '.admin-list', base_Url, 1);
+
+		// 세부 페이지 생성
+		var $detTarget = $('.detail-info');
+		if ($tgType == 'itemlist') {
+			loadTransMsg('admin_itemlist_add', function(iladoutput) {
+				var output = '<article>';
+				output += '</article>';
+				$detTarget.html(output);
+			});
+			makeDetInfo('itemlist-add', '.detail-info');
+		}
+		else if ($tgType == 'itemcglist') {
+			loadTransMsg('admin_itemcglist_add', function(iladoutput) {
+				var output = '<article>';
+				output += '</article>';
+				$detTarget.html(output);
+			});
+			makeDetInfo('itemcglist-add', '.detail-info');
+		}
 	});
 	$(document).on('click', '.admin-list .btnusrmodify', function() {
 		var $mtable = $(this); // 선택 칼럼
@@ -318,7 +377,7 @@ function loadTransMsg(msg, getStr)
 			else
 			{
 				usrMoney = $mtarget.html();
-				$mtarget.html('<input type="text" value="' + usrMoney + '">');
+				$mtarget.html('<input type="text" onkeypress="ChkNum(this);" value="' + usrMoney + '">');
 			
 				$mtable.html(done_output);
 			}

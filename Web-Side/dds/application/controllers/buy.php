@@ -30,8 +30,6 @@ class Buy extends CI_Controller {
 
 		// 메뉴 모델 로드
 		$this->load->model('menu_m');
-		// 목록 모델 로드
-		$this->load->model('list_m');
 	}
 
 	public function index()
@@ -50,7 +48,6 @@ class Buy extends CI_Controller {
 		// 내용
 		$pdata['icon'] = $this->menu_m->GetIcon($tdata['title']);
 		$pdata['title'] = $tdata['title'];
-		$pdata['usrprf'] = $this->list_m->GetProfile($User_AuthId);
 		$pdata['langData'] = $this->lang;
 
 		/********************************************

@@ -27,6 +27,11 @@ $lang['admin_list_nouse'] = '이용안함';
 $lang['admin_list_gameon'] = '접속';
 $lang['admin_list_gameoff'] = '접속안함';
 
+$lang['admin_itemlist_add'] = '아이템 추가';
+$lang['admin_itemlist_modify'] = '아이템 수정';
+$lang['admin_itemcglist_add'] = '아이템 종류 추가';
+$lang['admin_itemcglist_modify'] = '아이템 종류 수정';
+
 
 $lang['btn_modify'] = '수정';
 $lang['btn_done'] = '완료';
