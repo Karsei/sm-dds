@@ -23,13 +23,17 @@
     </head>
     
     <body>
-        <div class="ddscon row">
-            <header class="row">
-                <h2 id="title"><? echo PRODUCT_NAME; ?></h2>
-                <nav id="gnb">
-                    <ul class="clearfix">
-                        <? echo $menuset; ?>
-                    </ul>
-                </nav>
-            </header>
+        <nav class="header nav">
+            <div class="container">
+                <div class="page-title">
+                    <h1><? echo PRODUCT_NAME; ?></h2>
+                </div>
+                <ul class="nav nav-menu">
+                    <? echo $menuset; ?>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="container">
+            
             

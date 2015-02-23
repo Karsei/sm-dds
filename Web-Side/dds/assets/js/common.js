@@ -238,7 +238,7 @@ function makeDetInfo(stype, starget)
 			't': stype
 		},
 		success: function(data) {
-			$(starget).find('article').html(data);
+			$(starget).html(data);
 		}
 	});
 }
@@ -273,7 +273,7 @@ function makeDetInfo(stype, starget)
 	$(document).on('click', '.detail-pagination td', function() {
 		loadList($(this).attr('data-t'), $(this).attr('data-tar'), $(this).html());
 	});
-	$(document).on('click', '.myinfo-list .btnapl', function() {
+	$(document).on('click', '#user-invenlist .btnapl', function() {
 		// 목록 갱신 관련
 		var sType = $(this).attr('data-t'); var sPage = $(this).attr('data-p');
 
@@ -282,10 +282,10 @@ function makeDetInfo(stype, starget)
 		var sIlIdx = $(this).attr('data-ilidx'); 
 		var sIcIdx = $(this).attr('data-icidx');
 		loadPromptMsg2('msg_title_notice', 'msg_contents_itemuse', (function() {
-			doProcess(sType, sDetail, '.myinfo-list', sIlIdx, sIcIdx, sPage);
+			doProcess(sType, sDetail, '#myinfo-list', sIlIdx, sIcIdx, sPage);
 		}));
 	});
-	$(document).on('click', '.myinfo-list .btnaplcan', function() {
+	$(document).on('click', '#user-invenlist .btnaplcan', function() {
 		// 목록 갱신 관련
 		var sType = $(this).attr('data-t'); var sPage = $(this).attr('data-p');
 
@@ -294,10 +294,10 @@ function makeDetInfo(stype, starget)
 		var sIlIdx = $(this).attr('data-ilidx');
 		var sIcIdx = $(this).attr('data-icidx');
 		loadPromptMsg2('msg_title_notice', 'msg_contents_itemcancel', (function() {
-			doProcess(sType, sDetail, '.myinfo-list', sIlIdx, sIcIdx, sPage);
+			doProcess(sType, sDetail, '#myinfo-list', sIlIdx, sIcIdx, sPage);
 		}));
 	});
-	$(document).on('click', '.myinfo-list .btndrop', function() {
+	$(document).on('click', '#user-invenlist .btndrop', function() {
 		// 목록 갱신 관련
 		var sType = $(this).attr('data-t'); var sPage = $(this).attr('data-p');
 
@@ -305,10 +305,10 @@ function makeDetInfo(stype, starget)
 		var sDetail = $(this).attr('data-dt');
 		var sIlIdx = $(this).attr('data-ilidx');
 		loadPromptMsg2('msg_title_notice', 'msg_contents_itemdrop', (function() {
-			doProcess(sType, sDetail, '.myinfo-list', sIlIdx, 0, sPage);
+			doProcess(sType, sDetail, '#myinfo-list', sIlIdx, 0, sPage);
 		}));
 	});
-	$(document).on('click', '.buy-list .btnbuy', function() {
+	$(document).on('click', '#user-buylist .btnbuy', function() {
 		// 목록 갱신 관련
 		var sType = $(this).attr('data-t'); var sPage = $(this).attr('data-p');
 
@@ -317,34 +317,30 @@ function makeDetInfo(stype, starget)
 		var sUsrAuth = $(this).attr('data-aid');
 		var sIlIdx = $(this).attr('data-ilidx');
 		loadPromptMsg2('msg_title_notice', 'msg_contents_itembuy', (function() {
-			doProcess(sType, sDetail, '.buy-list', sIlIdx, 0, sPage);
+			doProcess(sType, sDetail, '#buy-list', sIlIdx, 0, sPage);
 		}));
 	});
-	$(document).on('click', '.sub-ad-gnb li', function() {
+	$(document).on('click', '#admin > .nav-add-menu > li', function() {
 		var $getTarget = $(this).find('span');
 		var $tgType = $getTarget.attr('data-t');
-		loadList($tgType, '.admin-list', base_Url, 1);
+		loadList($tgType, '#admin-list', base_Url, 1);
 
 		// 세부 페이지 생성
-		var $detTarget = $('.detail-info');
+		var $detTarget = $('#admin-info');
 		if ($tgType == 'itemlist') {
 			loadTransMsg('admin_itemlist_add', function(iladoutput) {
-				var output = '<article>';
-				output += '</article>';
-				$detTarget.html(output);
+				//$detTarget.html(output);
 			});
-			makeDetInfo('itemlist-add', '.detail-info');
+			makeDetInfo('itemlist-add', '#admin-info');
 		}
 		else if ($tgType == 'itemcglist') {
 			loadTransMsg('admin_itemcglist_add', function(iladoutput) {
-				var output = '<article>';
-				output += '</article>';
-				$detTarget.html(output);
+				//$detTarget.html(output);
 			});
-			makeDetInfo('itemcglist-add', '.detail-info');
+			makeDetInfo('itemcglist-add', '#admin-info');
 		}
 	});
-	$(document).on('click', '.admin-list .btnusrmodify', function() {
+	$(document).on('click', '#admin-userlist .btnusrmodify', function() {
 		var $mtable = $(this); // 선택 칼럼
 		var $mtarget; // 금액 칼럼
 

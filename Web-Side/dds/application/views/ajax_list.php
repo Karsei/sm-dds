@@ -12,7 +12,7 @@ if (isset($list)) {
 ?>
 <? /** INVENTORY **/ ?>
 <? if (strcmp($type, 'inven') == 0): ?>
-                        <table>
+                        <table id="user-invenlist">
                             <thead>
                                 <tr>
                                     <td><? echo $langData->line('tb_cate_idx'); ?></td>
@@ -55,9 +55,9 @@ for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar=".myinfo-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<td data-t="' . $type . '" data-tar="#myinfo-list" class="focus">' . ($i + 1) .'</td>';
         else
-            echo '<td data-t="' . $type . '" data-tar=".myinfo-list">' . ($i + 1) . '</td>';
+            echo '<td data-t="' . $type . '" data-tar="#myinfo-list">' . ($i + 1) . '</td>';
 }
 
 ?>
@@ -68,7 +68,7 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? /** BUY **/ ?>
 <? elseif (strcmp($type, 'buy') == 0): ?>
                         <p class="buy-mymoney"><label><? echo $langData->line('buy_mymoney'); ?></label>: <? echo $usrprofile[0]['money']; ?></p>
-                        <table>
+                        <table id="user-buylist">
                             <thead>
                                 <tr>
                                     <td><? echo $langData->line('tb_cate_itidx'); ?></td>
@@ -108,9 +108,9 @@ for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar=".buy-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<td data-t="' . $type . '" data-tar="#buy-list" class="focus">' . ($i + 1) .'</td>';
         else
-            echo '<td data-t="' . $type . '" data-tar=".buy-list">' . ($i + 1) . '</td>';
+            echo '<td data-t="' . $type . '" data-tar="#buy-list">' . ($i + 1) . '</td>';
 }
 
 ?>
@@ -120,8 +120,10 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? endif; ?>
 <? /** ADMIN-UserList **/ ?>
 <? elseif (strcmp($type, 'usrlist') == 0): ?>
-                        <h4><? echo $langData->line('admin_usrlist'); ?></h4>
-                        <table>
+                        <div class="box-sub-title">
+                            <h1><? echo $langData->line('admin_usrlist'); ?></h1>
+                        </div>
+                        <table id="admin-userlist">
                             <thead>
                                 <tr>
                                     <td><? echo $langData->line('tb_cate_usridx'); ?></td>
@@ -159,9 +161,9 @@ for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar=".admin-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<td data-t="' . $type . '" data-tar="#admin-list" class="focus">' . ($i + 1) .'</td>';
         else
-            echo '<td data-t="' . $type . '" data-tar=".admin-list">' . ($i + 1) . '</td>';
+            echo '<td data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</td>';
 }
 
 ?>
@@ -171,8 +173,10 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? endif; ?>
 <? /** ADMIN-ItemList **/ ?>
 <? elseif (strcmp($type, 'itemlist') == 0): ?>
-                        <h4><? echo $langData->line('admin_itemlist'); ?></h4>
-                        <table>
+                        <div class="box-sub-title">
+                            <h1><? echo $langData->line('admin_itemlist'); ?></h1>
+                        </div>
+                        <table id="admin-itemlist">
                             <thead>
                                 <tr>
                                     <td><? echo $langData->line('tb_cate_itidx'); ?></td>
@@ -216,9 +220,9 @@ for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar=".admin-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<td data-t="' . $type . '" data-tar="#admin-list" class="focus">' . ($i + 1) .'</td>';
         else
-            echo '<td data-t="' . $type . '" data-tar=".admin-list">' . ($i + 1) . '</td>';
+            echo '<td data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</td>';
 }
 
 ?>
@@ -228,8 +232,10 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? endif; ?>
 <? /** ADMIN-ItemCGList **/ ?>
 <? elseif (strcmp($type, 'itemcglist') == 0): ?>
-                        <h4><? echo $langData->line('admin_itemcglist'); ?></h4>
-                        <table>
+                        <div class="box-sub-title">
+                            <h1><? echo $langData->line('admin_itemcglist'); ?></h1>
+                        </div>
+                        <table id="admin-itemcglist">
                             <thead>
                                 <tr>
                                     <td><? echo $langData->line('tb_cate_icidx'); ?></td>
@@ -269,9 +275,9 @@ for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar=".admin-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<td data-t="' . $type . '" data-tar="#admin-list" class="focus">' . ($i + 1) .'</td>';
         else
-            echo '<td data-t="' . $type . '" data-tar=".admin-list">' . ($i + 1) . '</td>';
+            echo '<td data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</td>';
 }
 
 ?>
@@ -281,8 +287,10 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? endif; ?>
 <? /** ADMIN-DataLogList **/ ?>
 <? elseif (strcmp($type, 'dataloglist') == 0): ?>
-                        <h4><? echo $langData->line('admin_dataloglist'); ?></h4>
-                        <table>
+                        <div class="box-sub-title">
+                            <h1><? echo $langData->line('admin_dataloglist'); ?></h1>
+                        </div>
+                        <table id="admin-dataloglist">
                             <thead>
                                 <tr>
                                     <td><? echo $langData->line('tb_cate_idx'); ?></td>
@@ -322,9 +330,9 @@ for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar=".admin-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<td data-t="' . $type . '" data-tar="#admin-list" class="focus">' . ($i + 1) .'</td>';
         else
-            echo '<td data-t="' . $type . '" data-tar=".admin-list">' . ($i + 1) . '</td>';
+            echo '<td data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</td>';
 }
 
 ?>

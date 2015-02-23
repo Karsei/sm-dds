@@ -96,11 +96,11 @@ class Rlist extends CI_Controller {
 		{
 			$rval .= '<h4>' . $this->lang->line('admin_itemlist_add') . '</h4>';
 			$rval .= '<ul>';
-			$rval .= '<li><label>종류 코드</label><input type="text" maxlength="8" /></li>';
-			$rval .= '<li><label>이름</label><input type="text" maxlength="30" /></li>';
-			$rval .= '<li><label>금액</label><input type="text" maxlength="30" /></li>';
-			$rval .= '<li><label>지속 속성</label><input type="text" maxlength="15" /></li>';
-			$rval .= '<li><label>ENV</label><input type="text" maxlength="15" /></li>';
+			$rval .= '<li><label>종류 코드</label><input class="input-line" type="text" maxlength="8" /></li>';
+			$rval .= '<li><label>이름</label><input class="input-line" type="text" maxlength="30" /></li>';
+			$rval .= '<li><label>금액</label><input class="input-line" type="text" maxlength="30" /></li>';
+			$rval .= '<li><label>지속 속성</label><input class="input-line" type="text" maxlength="15" /></li>';
+			$rval .= '<li><label>ENV</label><input class="input-line" type="text" maxlength="15" /></li>';
 			$rval .= '<li><label>활성화</label><input type="radio" name="ilad_status" value="0" />이용안함<input type="radio" name="ilad_status" value="1" checked />이용함</li>';
 			$rval .= '</ul>';
 		}

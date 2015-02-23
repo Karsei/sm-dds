@@ -1,25 +1,22 @@
-        <section id="contents" class="row">
+
+        <section class="row">
             <article>
-                <div class="title">
-                    <i class="fa <? echo $icon; ?> fa-2x"></i><h3 class="clearfix"><? echo $title; ?></h3>
-                    <nav class="sub-ad-gnb">
-                        <ul class="clearfix">
-                            <li><span data-t="usrlist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_usrlist'); ?></span></li>
-                            <li><span data-t="itemlist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_itemlist'); ?></span></li>
-                            <li><span data-t="itemcglist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_itemcglist'); ?></span></li>
-                            <li><span data-t="dataloglist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_dataloglist'); ?></span></li>
-                        </ul>
-                    </nav>
-                </div>
-                <div class="detail">
-                    <div class="admin">
-                        <div class="admin-list">
-                        </div>
+                <div id="admin" class="box">
+                    <div class="box-title">
+                        <i class="fa <? echo $icon; ?> fa-2x"></i><h1 class="clearfix"><? echo $title; ?></h1>
+                    </div>
+                    <ul class="nav nav-add-menu">
+                        <li><a href="#"><span data-t="usrlist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_usrlist'); ?></span></a></li>
+                        <li><a href="#"><span data-t="itemlist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_itemlist'); ?></span></a></li>
+                        <li><a href="#"><span data-t="itemcglist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_itemcglist'); ?></span></a></li>
+                        <li><a href="#"><span data-t="dataloglist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_dataloglist'); ?></span></a></li>
+                    </ul>
+                    <div id="admin-list">
                     </div>
                 </div>
+                <div id="admin-info" class="box">
+                </div>
             </article>
-            <div class="detail-info">
-            </div>
         </section>
 
-        <script type="text/javascript">;$(function($){loadList('usrlist','.admin-list');});</script>
+        <script type="text/javascript">;$(function($){loadList('usrlist','#admin-list');});</script>

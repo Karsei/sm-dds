@@ -1,13 +1,8 @@
 /**
- *
- * Dynamic Dollar Shop (DDS)
- * - Init
- *
  * Author By. Karsei
- * (c) 2012 - 2015 
+ * (c) 2015 
  *
  * http://karsei.pe.kr
- *
  */
 var base_Url = '';
 var base_Authid = '';

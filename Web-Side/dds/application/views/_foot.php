@@ -1,9 +1,9 @@
 	        
 	        <footer class="row">
-	        	<div id="copyright">
+	        	<div class="copyright">
 	            	Copyright (c) 2012-2015 Karsei All Rights Reserved
 	            </div>
-	            <div id="lang">
+	            <div class="lang">
 	            	<span><a href="<? echo base_url(); ?>lang/switchlang/english">English</a></span><span><a href="<? echo base_url(); ?>lang/switchlang/korean">Korean</a></span>
 	            </div>
 	        </footer>

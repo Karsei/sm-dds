@@ -40,7 +40,7 @@ class Menu_m extends CI_Model {
 
 			// 현재 있는 페이지 포커스
 			if (strcmp($this->GetMenu()[$i][0], $focus) == 0) {
-				$classSet .= 'focus';
+				$classSet .= 'active';
 			}
 
 			// 적용

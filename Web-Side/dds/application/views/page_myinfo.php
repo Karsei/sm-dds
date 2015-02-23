@@ -1,10 +1,10 @@
         
-        <section id="contents" class="row">
+        <section class="row">
             <article>
-                <div class="title">
-                    <i class="fa <? echo $icon; ?> fa-2x"></i><h3 class="clearfix"><? echo $title; ?></h3>
-                </div>
-                <div class="detail">
+                <div id="myinfo" class="box">
+                    <div class="box-title">
+                        <i class="fa <? echo $icon; ?> fa-2x"></i><h1><? echo $title; ?></h1>
+                    </div>
                     <div class="myinfo clearfix">
                         <img class="profileimg" src="<? echo $profileimg; ?>" />
                         <ul>
@@ -15,14 +15,13 @@
                             <li><label><? echo $langData->line('myinfo_lastlogin'); ?></label><? echo $lastlogoff; ?></li>
                         </ul>
                     </div>
-
-                    <div class="myinfo-inven">
-                        <h4 class="sub"><? echo $langData->line('myinfo_haveinven'); ?></h4>
-                        <div class="myinfo-list">
-                        </div>
+                    <div class="box-sub-title">
+                        <h1><? echo $langData->line('myinfo_haveinven'); ?></h1>
+                    </div>
+                    <div id="myinfo-list">
                     </div>
                 </div>
             </article>
         </section>
 
-        <script type="text/javascript">;$(function($){loadList('inven', '.myinfo-list');});</script>
+        <script type="text/javascript">;$(function($){loadList('inven', '#myinfo-list');});</script>

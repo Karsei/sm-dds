@@ -12,19 +12,19 @@
 /*************************************
  * LAYOUT POSITION
 **************************************/
-header {
+.header > .container {
     position: relative;
 }
 
-header #title,
-header #gnb {
+.header > .container > .page-title,
+.header > .container > .nav-menu {
     position: absolute;
 }
-header #title {
+.header > .container > .page-title {
     top: 35px;
     left: 40px;
 }
-header #gnb {
+.header > .container > .nav-menu {
     top: 20px;
     right: 20px;
 }
@@ -36,124 +36,30 @@ section {
 footer {
     position: relative;
 }
-footer #lang {
+footer > .lang {
     position: absolute;
 }
-footer #lang {
+footer > .lang {
     top: 10px;
     right: 10px;
 }
 
 /*************************************
- * DEFAULT MAIN SET
-**************************************/
-a,
-a:visited,
-a:link,
-a:active,
-a:hover {
-    color: black;
-}
-
-.ddscon {
-    min-height: 100%;
-    background-color: white;
-}
-
-/*************************************
  * [header]
 **************************************/
-header {
-    min-height: 100px;
-    border-bottom: 1px solid #ededed;
-}
-
-/*******************
- * Title
-********************/
-#title {
-    font-size: 1.6em;
-    cursor: default;
-}
-
-/*******************
- * Navi
-********************/
-#gnb {
-    margin: 0px;
-    padding: 0px;
-}
-#gnb li {
+.header > .page-title {
     float: left;
-    padding: 20px;
-    border-right: 1px solid #ededed;
-    cursor: pointer;
-}
-#gnb li:last-child {
-    border: 0px;
-}
-#gnb li:hover,
-#gnb .focus {
-    background-color: #ededed;
 }
 
 /*************************************
  * [section]
 **************************************/
-/*******************
- * Sub Navi
-********************/
-.sub-ad-gnb li {
-    float: left;
-    margin-top: 15px;
-    margin-right: 20px;
-    padding: 15px;
-    font-weight: bold;
-    background-color: #c7e843;
-    cursor: pointer;
-}
-.sub-ad-gnb li:hover,
-.sub-ad-gnb .focus {
-    background-color: #c7a843;
-}
+
 
 /*******************
  * Article
 ********************/
-article {
-    margin: 20px;
-    padding: 20px;
-    background-color: #ededed;
-}
-article .title {
-    margin-bottom: 13px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #919191;
-}
-article .title h3 {
-    display: inline;
-    font-size: 1.6em;
-    font-weight: bold;
-}
-article .title i {
-    float: left;
-    margin-right: 10px;
-}
-
-article .detail {
-    //
-}
-article .detail h4 {
-    margin-bottom: 5px;
-    padding: 10px;
-    font-size: 1.4em;
-}
-article .detail p {
-    margin-bottom: 10px;
-    line-height: 1.6em;
-}
-
-article .detail table {
+article table {
     margin: 0 auto;
     text-align: center;
     border: 2px solid #5dacfc;
@@ -167,36 +73,36 @@ article .detail table {
     border-spacing: 0px;
     overflow: hidden;
 }
-article .detail td {
+article td {
     padding: 10px;
     cursor: default;
 }
-article .detail thead td {
+article thead td {
     text-align: center;
     font-weight: bold;
     color: white;
     background-color: #5dacfc;
     border-bottom: 1px solid #888888;
 }
-article .detail tbody tr:nth-child(odd) {
+article tbody tr:nth-child(odd) {
     background-color: #EAF1FE;
 }
-article .detail tbody tr:nth-child(even) {
+article tbody tr:nth-child(even) {
     background-color: #FFFFFF;
 }
-article .detail tbody tr:hover {
+article tbody tr:hover {
     background-color: #D4E2FD;
 }
-article .detail thead td {
+article thead td {
     border-right: 1px solid #a0cfff;
 }
-article .detail tbody td {
+article tbody td {
     border-right: 1px solid #888888;
 }
-article .detail td:last-child {
+article td:last-child {
     border-right: 0;
 }
-article .detail td:first-child {
+article td:first-child {
     text-align: center;
 }
 
@@ -237,14 +143,14 @@ article .detail td:first-child {
 /*******************
  * <MYINFO>
 ********************/
-article .myinfo {
+.myinfo {
     margin: 10px;
     margin-top: 30px;
     padding: 30px;
     background-color: #ECBF41; /*#EDDEC1*/
 }
 
-article .myinfo .profileimg {
+.myinfo .profileimg {
     float: left;
     width: 184px;
     height: 184px;
@@ -252,7 +158,7 @@ article .myinfo .profileimg {
     border: 2px solid #888888;
 }
 
-article .myinfo .name {
+.myinfo .name {
     margin-bottom: 15px;
     background-color: #D95656;
     color: white;
@@ -260,11 +166,11 @@ article .myinfo .name {
     font-weight: bold;
 }
 
-article .myinfo li {
+.myinfo li {
     line-height: 1.5em;
 }
 
-article .myinfo label {
+.myinfo label {
     margin-right: 10px;
     padding: 4px;
     font-weight: bold;
@@ -278,79 +184,124 @@ article .myinfo label {
     line-height: 2.0em;
 }
 
-article .buy .buy-mymoney {
+#buy-list > .buy-mymoney {
     padding-left: 10px;
     border-left: 5px solid #777777;
 }
-article .buy label {
+#buy-list > label {
     font-weight: 600;
 }
 
-.myinfo-list thead td:nth-child(1) {
-    width: 50px;
-}
-.myinfo-list thead td:nth-child(2) {
-    width: 120px;
-}
-.myinfo-list thead td:nth-child(3) {
-    width: 120px;
-}
-.myinfo-list thead td:nth-child(4) {
-    width: 170px;
-}
-.myinfo-list thead td:nth-child(5) {
-    width: 70px;
-}
-.myinfo-list thead td:nth-child(6) {
-    width: 100px;
-}
-.myinfo-list td span {
+#user-invenlist td span {
     margin-right: 10px;
 }
-.myinfo-list td span:last-child {
+#user-invenlist td span:last-child {
     margin-right: 0px;
 }
 
-.buy-list thead td:nth-child(1) {
-    width: 85px;
+#user-invenlist thead td:nth-child(1) {
+    width: 50px;
 }
-.buy-list thead td:nth-child(2) {
+#user-invenlist thead td:nth-child(2) {
     width: 120px;
 }
-.buy-list thead td:nth-child(3) {
+#user-invenlist thead td:nth-child(3) {
     width: 120px;
 }
-.buy-list thead td:nth-child(4) {
-    width: 100px;
+#user-invenlist thead td:nth-child(4) {
+    width: 170px;
 }
-.buy-list thead td:nth-child(5) {
-    width: 80px;
+#user-invenlist thead td:nth-child(5) {
+    width: 70px;
 }
-.buy-list thead td:nth-child(6) {
+#user-invenlist thead td:nth-child(6) {
     width: 100px;
 }
 
-.admin-list thead td:nth-child(1) {
-    width: 75px;
+#user-buylist thead td:nth-child(1) {
+    width: 85px;
 }
-.admin-list thead td:nth-child(2) {
-    width: 180px;
+#user-buylist thead td:nth-child(2) {
+    width: 120px;
 }
-.admin-list thead td:nth-child(3) {
+#user-buylist thead td:nth-child(3) {
+    width: 120px;
+}
+#user-buylist thead td:nth-child(4) {
     width: 100px;
 }
-.admin-list thead td:nth-child(4) {
+#user-buylist thead td:nth-child(5) {
+    width: 120px;
+}
+#user-buylist thead td:nth-child(6) {
+    width: 80px;
+}
+
+#admin-userlist thead td:nth-child(1) {
+    width: 75px;
+}
+#admin-userlist thead td:nth-child(2) {
+    width: 180px;
+}
+#admin-userlist thead td:nth-child(3) {
+    width: 100px;
+}
+#admin-userlist thead td:nth-child(4) {
     width: 90px;
 }
-.admin-list thead td:nth-child(5) {
+#admin-userlist thead td:nth-child(5) {
     width: 90px;
+}
+
+#admin-itemlist thead td:nth-child(1) {
+    width: 85px;
+}
+#admin-itemlist thead td:nth-child(2) {
+    width: 120px;
+}
+#admin-itemlist thead td:nth-child(3) {
+    width: 120px;
+}
+#admin-itemlist thead td:nth-child(4) {
+    width: 100px;
+}
+#admin-itemlist thead td:nth-child(5) {
+    width: 120px;
+}
+#admin-itemlist thead td:nth-child(6) {
+    width: 120px;
+}
+#admin-itemlist thead td:nth-child(7) {
+    width: 100px;
+}
+#admin-itemlist thead td:nth-child(8) {
+    width: 100px;
+}
+
+#admin-itemcglist thead td:nth-child(1) {
+    width: 120px;
+}
+#admin-itemcglist thead td:nth-child(2) {
+    width: 120px;
+}
+#admin-itemcglist thead td:nth-child(3) {
+    width: 80px;
+}
+#admin-itemcglist thead td:nth-child(4) {
+    width: 120px;
+}
+#admin-itemcglist thead td:nth-child(5) {
+    width: 100px;
+}
+#admin-itemcglist thead td:nth-child(6) {
+    width: 100px;
 }
 
 /*******************
  * <Item Buy>
 ********************/
 .buy {
-    // 
+    /**/
 }
 
 
@@ -358,12 +309,14 @@ article .buy label {
  * [footer]
 **************************************/
 footer {
-    padding: 10px;
+    padding-top: 15px;
+    padding-left: 15px;
+    margin-bottom: 30px;
     border-top: 1px solid #ededed;
 }
-footer #lang span {
+footer > .lang > span {
     margin-right: 20px;
 }
-footer #lang span:last-child {
+footer > .lang > .span:last-child {
     margin-right: 0px;
 }
