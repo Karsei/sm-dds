@@ -76,5 +76,16 @@ $lang['msg_results_none'] = '결과가 없습니다.';
 $lang['msg_results_success'] = '정상적으로 처리가 되었습니다.';
 $lang['msg_results_nogame'] = '현재 게임 내에 있으면 실행하실 수 없습니다.';
 $lang['msg_results_moneymore'] = '금액이 부족합니다.';
+$lang['msg_results_writecgcode'] = '아이템 종류 번호를 입력해주세요.';
+$lang['msg_results_writecgcode_num'] = '아이템 종류 번호에는 숫자만 입력 가능합니다.';
+$lang['msg_results_writename'] = '이름을 입력해주세요.';
+$lang['msg_results_writemoney'] = '금액을 입력해주세요.';
+$lang['msg_results_writemoney_num'] = '금액에는 숫자만 입력 가능합니다.';
+$lang['msg_results_writehavtime'] = '지속 속성을 입력해주세요.';
+$lang['msg_results_writehavtime_num'] = '지속 속성에는 숫자만 입력 가능합니다.';
+$lang['msg_results_writeenv'] = 'ENV를 입력해주세요.';
+$lang['msg_results_writeorderidx'] = '우선 순위를 입력해주세요.';
+$lang['msg_results_writeorderidx_num'] = '우선 순위에는 숫자만 입력 가능합니다.';
+$lang['msg_results_writeorderidx_dup'] = '활성화된 우선 순위 중에 중복되는 우선순위가 있으면 안됩니다.';
 
 ?>

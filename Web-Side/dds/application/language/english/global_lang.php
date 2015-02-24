@@ -76,5 +76,16 @@ $lang['msg_results_none'] = 'No results.';
 $lang['msg_results_success'] = 'Request is successfully.';
 $lang['msg_results_nogame'] = 'This user is in game. You can\'t execute this action.';
 $lang['msg_results_moneymore'] = 'There is not enough money.';
+$lang['msg_results_writecgcode'] = 'Please write a item category code.';
+$lang['msg_results_writecgcode_num'] = 'You have to write numeric integer with item category code.';
+$lang['msg_results_writename'] = 'Please write a item name.';
+$lang['msg_results_writemoney'] = 'Please write amount of money.';
+$lang['msg_results_writemoney_num'] = 'You have to write numeric integer with money.';
+$lang['msg_results_writehavtime'] = 'Please write a time property.';
+$lang['msg_results_writehavtime_num'] = 'You have to write numeric integer with a time property.';
+$lang['msg_results_writeenv'] = 'Please write a ENV.';
+$lang['msg_results_writeorderidx'] = 'Please write a priorty index.';
+$lang['msg_results_writeorderidx_num'] = 'You have to write numeric integer with a priorty index.';
+$lang['msg_results_writeorderidx_dup'] = 'You have to write independence priorty index among available status.';
 
 ?>

@@ -254,6 +254,31 @@ class List_m extends CI_Model {
 			$il_env = $data[4];
 			$il_status = $data[5];
 
+			if (strlen($il_code) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writecgcode'));
+			}
+			if (!is_numeric($il_code)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writecgcode_num'));
+			}
+			if (strlen($il_name) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writename'));
+			}
+			if (strlen($il_money) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writemoney'));
+			}
+			if (!is_numeric($il_money)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writemoney_num'));
+			}
+			if (strlen($il_havtime) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writehavtime'));
+			}
+			if (!is_numeric($il_havtime)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writehavtime_num'));
+			}
+			if (strlen($il_env) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv'));
+			}
+
 			$setdata = array(
 				'dds_item_list.gloname' => $il_name,
 				'dds_item_list.icidx' => $il_code,
@@ -272,6 +297,31 @@ class List_m extends CI_Model {
 			$ic_env = $data[2];
 			$ic_status = $data[3];
 
+			// 우선순위 겹치는지 확인
+			$setwhere = array(
+				'dds_item_category.orderidx' => $ic_orderidx,
+				'dds_item_category.status' => '1'
+			);
+			$this->db->where($setwhere);
+			$chk = $this->db->get('dds_item_category');
+			$chkC = $chk->num_rows();
+
+			if (strlen($ic_name) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writename'));
+			}
+			if (strlen($ic_orderidx) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeorderidx'));
+			}
+			if (!is_numeric($ic_orderidx)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeorderidx_num'));
+			}
+			if ($chkC >= 1) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeorderidx_dup'));
+			}
+			if (strlen($ic_env) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv'));
+			}
+
 			$setdata = array(
 				'dds_item_category.gloname' => $ic_name,
 				'dds_item_category.orderidx' => $ic_orderidx,
@@ -280,6 +330,96 @@ class List_m extends CI_Model {
 			);
 			$this->db->set($setdata);
 			$this->db->insert('dds_item_category');
+		}
+		else if (strcmp($type, 'modifyitem') == 0)
+		{
+			$il_code = $data[0];
+			$il_name = $data[1];
+			$il_money = $data[2];
+			$il_havtime = $data[3];
+			$il_env = $data[4];
+			$il_status = $data[5];
+			$il_hidden = $data[6];
+
+			if (strlen($il_code) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writecgcode'));
+			}
+			if (!is_numeric($il_code)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writecgcode_num'));
+			}
+			if (strlen($il_name) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writename'));
+			}
+			if (strlen($il_money) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writemoney'));
+			}
+			if (!is_numeric($il_money)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writemoney_num'));
+			}
+			if (strlen($il_havtime) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writehavtime'));
+			}
+			if (!is_numeric($il_havtime)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writehavtime_num'));
+			}
+			if (strlen($il_env) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv'));
+			}
+
+			$setdata = array(
+				'dds_item_list.gloname' => $il_name,
+				'dds_item_list.icidx' => $il_code,
+				'dds_item_list.money' => $il_money,
+				'dds_item_list.havtime' => $il_havtime,
+				'dds_item_list.env' => $il_env,
+				'dds_item_list.status' => $il_status
+			);
+			$this->db->set($setdata);
+			$this->db->where('dds_item_list.ilidx', $il_hidden);
+			$this->db->update('dds_item_list');
+		}
+		else if (strcmp($type, 'modifyitemcg') == 0)
+		{
+			$ic_name = $data[0];
+			$ic_orderidx = $data[1];
+			$ic_env = $data[2];
+			$ic_status = $data[3];
+			$ic_hidden = $data[4];
+
+			// 우선순위 겹치는지 확인
+			$setwhere = array(
+				'dds_item_category.orderidx' => $ic_orderidx,
+				'dds_item_category.status' => '1'
+			);
+			$this->db->where($setwhere);
+			$chk = $this->db->get('dds_item_category');
+			$chkC = $chk->num_rows();
+
+			if (strlen($ic_name) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writename'));
+			}
+			if (strlen($ic_orderidx) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeorderidx'));
+			}
+			if (!is_numeric($ic_orderidx)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeorderidx_num'));
+			}
+			if ($chkC >= 1) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeorderidx_dup'));
+			}
+			if (strlen($ic_env) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv'));
+			}
+
+			$setdata = array(
+				'dds_item_category.gloname' => $ic_name,
+				'dds_item_category.orderidx' => $ic_orderidx,
+				'dds_item_category.env' => $ic_env,
+				'dds_item_category.status' => $ic_status
+			);
+			$this->db->set($setdata);
+			$this->db->where('dds_item_category.icidx', $ic_hidden);
+			$this->db->update('dds_item_category');
 		}
 
 		return json_encode(array('result' => true, 'title' => 'msg_title_notice', 'msg' => 'msg_results_success'));

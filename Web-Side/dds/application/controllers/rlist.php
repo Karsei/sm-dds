@@ -95,6 +95,11 @@ class Rlist extends CI_Controller {
 		$rval = '';
 		if (strcmp($type, 'itemlist-add') == 0)
 		{
+			/***********************************
+			 *
+			 * 아이템 추가
+			 *
+			***********************************/
 			$rval .= '<div class="box-title">';
 			$rval .= '<h1>' . $this->lang->line('admin_itemlist_add') . '</h1>';
 			$rval .= '</div>';
@@ -125,7 +130,7 @@ class Rlist extends CI_Controller {
 			$rval .= '<label class="label">' . $this->lang->line('tb_cate_money') . '</label>';
 			$rval .= '</div>';
 			$rval .= '<div class="col-10">';
-			$rval .= '<input name="iladd-money" class="input-line x-short" type="text" maxlength="30" />';
+			$rval .= '<input name="iladd-money" class="input-line x-short" type="text" maxlength="30" value="0"/>';
 			$rval .= '</div></div>';
 			/** 아이템 지속 속성 **/
 			$rval .= '<div class="form-section">';
@@ -133,7 +138,7 @@ class Rlist extends CI_Controller {
 			$rval .= '<label class="label">' . $this->lang->line('tb_cate_havtime') . '</label>';
 			$rval .= '</div>';
 			$rval .= '<div class="col-10">';
-			$rval .= '<input name="iladd-havtime" class="input-line x-short" type="text" maxlength="15" />';
+			$rval .= '<input name="iladd-havtime" class="input-line x-short" type="text" maxlength="15" value="0"/>';
 			$rval .= '</div>';
 			$rval .= '</div>';
 			/** 아이템 ENV **/
@@ -162,6 +167,11 @@ class Rlist extends CI_Controller {
 		}
 		else if (strcmp($type, 'itemcglist-add') == 0)
 		{
+			/***********************************
+			 *
+			 * 아이템 종류 추가
+			 *
+			***********************************/
 			$rval .= '<div class="box-title">';
 			$rval .= '<h1>' . $this->lang->line('admin_itemcglist_add') . '</h1>';
 			$rval .= '</div>';
@@ -184,7 +194,7 @@ class Rlist extends CI_Controller {
 			$rval .= '<label class="label">' . $this->lang->line('tb_cate_orderidx') . '</label>';
 			$rval .= '</div>';
 			$rval .= '<div class="col-10">';
-			$rval .= '<input name="icadd-orderidx" class="input-line x-short" type="text" maxlength="4" />';
+			$rval .= '<input name="icadd-orderidx" class="input-line x-short" type="text" maxlength="4" value="0"/>';
 			$rval .= '</div>';
 			$rval .= '</div>';
 			/** 아이템 종류 ENV **/
@@ -213,6 +223,11 @@ class Rlist extends CI_Controller {
 		}
 		else if (strcmp($type, 'itemlist-modify') == 0)
 		{
+			/***********************************
+			 *
+			 * 아이템 수정
+			 *
+			***********************************/
 			$this->db->select('dds_item_list.icidx, dds_item_list.gloname, dds_item_list.money, dds_item_list.havtime, dds_item_list.env, dds_item_list.status');
 			$this->db->where('dds_item_list.ilidx', $dat);
 			$q = $this->db->get('dds_item_list');
@@ -235,11 +250,51 @@ class Rlist extends CI_Controller {
 			$rval .= '<label class="label">' . $this->lang->line('tb_cate_name') . '</label>';
 			$rval .= '</div>';
 			$rval .= '<div id="iladd-namesec" class="col-10">';
-			$rval .= '<div class="addname" data-num="1">';
-			$rval .= '<input name="iladd-langname" class="input-line xx-short" type="text" maxlength="2" placeholder="ko" value="ko" />';
-			$rval .= '<input name="iladd-name" class="input-line short" type="text" maxlength="30" />';
-			$rval .= '</div>';
-			$rval .= '<p><button id="btn_langadd" name="iladd-langadd">' . $this->lang->line('btn_langadd') . '</button></p>';
+
+			// 우선 앞에서부터 ||를 구분해 잘라버린다.
+			$chkName_RealData = '';
+			$chkName_FirIdx = 0;
+			$chkName_Pass = false;
+			$chkName_Count = 1;
+			while (!$chkName_Pass) {
+				if (strlen($qc[0]['gloname']) <= 0) {
+					$rval .= '<div class="addname" data-num="' . $chkName_Count . '">';
+					$rval .= '<input name="iladd-langname" class="input-line xx-short" type="text" maxlength="2" placeholder="ko" />';
+					$rval .= '<input name="iladd-name" class="input-line short" type="text" maxlength="30" />';
+					$rval .= '</div>';
+					$rval .= '<p><button id="btn_langadd" name="iladd-langadd">' . $this->lang->line('btn_langadd') . '</button></p>';
+					$chkName_Pass = true;
+					break;
+				}
+				$chkLineIdx = strpos($qc[0]['gloname'], "||", $chkName_FirIdx);
+				// 없다면 그대로 리얼데이터로 처리
+				if ($chkLineIdx === false)	{
+					$chkName_RealData = substr($qc[0]['gloname'], $chkName_FirIdx);
+					$chkName_Pass = true;
+				}
+				else {
+					$chkName_RealData = substr($qc[0]['gloname'], $chkName_FirIdx, $chkLineIdx);
+					$chkName_FirIdx = strlen($chkName_RealData) + 2;
+				}
+
+				$chkVal = explode(":", $chkName_RealData);
+
+				if ($chkName_Count <= 1) {
+					$rval .= '<div class="addname" data-num="' . $chkName_Count . '">';
+					$rval .= '<input name="iladd-langname" class="input-line xx-short" type="text" maxlength="2" placeholder="ko" value="' . $chkVal[0] . '" />';
+					$rval .= '<input name="iladd-name" class="input-line short" type="text" maxlength="30" value="' . $chkVal[1] . '" />';
+					$rval .= '</div>';
+					$rval .= '<p><button id="btn_langadd" name="iladd-langadd">' . $this->lang->line('btn_langadd') . '</button></p>';
+				} else {
+					$rval .= '<div class="addname" data-num="' . $chkName_Count . '">';
+					$rval .= '<input name="iladd-langname" class="input-line xx-short" type="text" maxlength="2" placeholder="ko" value="' . $chkVal[0] . '" />';
+					$rval .= '<input name="iladd-name" class="input-line short" type="text" maxlength="30" value="' . $chkVal[1] . '" />';
+					$rval .= '<button id="btn_langdelete" name="iladd-langdelete">' . $this->lang->line('btn_langdelete') . '</button>';
+					$rval .= '</div>';
+				}
+
+				$chkName_Count++;
+			}
 			$rval .= '</div>';
 			$rval .= '</div>';
 			/** 아이템 금액 **/
@@ -265,11 +320,51 @@ class Rlist extends CI_Controller {
 			$rval .= '<label class="label">' . $this->lang->line('tb_cate_env') . '</label>';
 			$rval .= '</div>';
 			$rval .= '<div id="iladd-envsec" class="col-10">';
-			$rval .= '<div class="addenv" data-num="1">';
-			$rval .= '<input name="iladd-env" class="input-line short" type="text" maxlength="40" />';
-			$rval .= '<input name="iladd-envvalue" class="input-line medium" type="text" maxlength="128" />';
-			$rval .= '</div>';
-			$rval .= '<p><button id="btn_envadd" name="iladd-envadd">' . $this->lang->line('btn_envadd') . '</button></p>';
+
+			// 우선 앞에서부터 ||를 구분해 잘라버린다.
+			$chkEnv_RealData = '';
+			$chkEnv_FirIdx = 0;
+			$chkEnv_Pass = false;
+			$chkEnv_Count = 1;
+			while (!$chkEnv_Pass) {
+				if (strlen($qc[0]['env']) <= 0) {
+					$rval .= '<div class="addenv" data-num="' . $chkEnv_Count . '">';
+					$rval .= '<input name="iladd-env" class="input-line short" type="text" maxlength="40" />';
+					$rval .= '<input name="iladd-envvalue" class="input-line medium" type="text" maxlength="128" />';
+					$rval .= '</div>';
+					$rval .= '<p><button id="btn_envadd" name="iladd-envadd">' . $this->lang->line('btn_envadd') . '</button></p>';
+					$chkEnv_Pass = true;
+					break;
+				}
+				$chkLineIdx = strpos($qc[0]['env'], "||", $chkEnv_FirIdx);
+				// 없다면 그대로 리얼데이터로 처리
+				if ($chkLineIdx === false)	{
+					$chkEnv_RealData = substr($qc[0]['env'], $chkEnv_FirIdx);
+					$chkEnv_Pass = true;
+				}
+				else {
+					$chkEnv_RealData = substr($qc[0]['env'], $chkEnv_FirIdx, $chkLineIdx);
+					$chkEnv_FirIdx = strlen($chkEnv_RealData) + 2;
+				}
+
+				$chkVal = explode(":", $chkEnv_RealData);
+
+				if ($chkEnv_Count <= 1) {
+					$rval .= '<div class="addenv" data-num="' . $chkEnv_Count . '">';
+					$rval .= '<input name="iladd-env" class="input-line short" type="text" maxlength="40" value="' . $chkVal[0] . '" />';
+					$rval .= '<input name="iladd-envvalue" class="input-line medium" type="text" maxlength="128" value="' . $chkVal[1] . '" />';
+					$rval .= '</div>';
+					$rval .= '<p><button id="btn_envadd" name="iladd-envadd">' . $this->lang->line('btn_envadd') . '</button></p>';
+				} else {
+					$rval .= '<div class="addenv" data-num="' . $chkEnv_Count . '">';
+					$rval .= '<input name="iladd-env" class="input-line short" type="text" maxlength="40" value="' . $chkVal[0] . '" />';
+					$rval .= '<input name="iladd-envvalue" class="input-line medium" type="text" maxlength="128" value="' . $chkVal[1] . '" />';
+					$rval .= '<button id="btn_envdelete" name="iladd-envdelete">' . $this->lang->line('btn_envdelete') . '</button>';
+					$rval .= '</div>';
+				}
+
+				$chkEnv_Count++;
+			}
 			$rval .= '</div>';
 			$rval .= '</div>';
 			/** 아이템 활성화 **/
@@ -286,7 +381,154 @@ class Rlist extends CI_Controller {
 			}
 			$rval .= '</div>';
 			$rval .= '</div>';
-			$rval .= '<button id="btn_modifyitem">' . $this->lang->line('btn_create') . '</button>';
+			$rval .= '<input name="iladd-hidden" type="hidden" value="' . $dat . '" />';
+			$rval .= '<button id="btn_modifyitem">' . $this->lang->line('btn_modify') . '</button>';
+		}
+		else if (strcmp($type, 'itemcglist-modify') == 0)
+		{
+			/***********************************
+			 *
+			 * 아이템 종류 수정
+			 *
+			***********************************/
+			$this->db->select('dds_item_category.icidx, dds_item_category.gloname, dds_item_category.orderidx, dds_item_category.env, dds_item_category.status');
+			$q = $this->db->get('dds_item_category');
+			$qc = $q->result_array();
+
+			$rval .= '<div class="box-title">';
+			$rval .= '<h1>' . $this->lang->line('admin_itemcglist_modify') . '</h1>';
+			$rval .= '</div>';
+			/** 아이템 종류 이름 **/
+			$rval .= '<div class="form-section">';
+			$rval .= '<div class="col-2">';
+			$rval .= '<label class="label">' . $this->lang->line('tb_cate_name') . '</label>';
+			$rval .= '</div>';
+			$rval .= '<div id="icadd-namesec" class="col-10">';
+
+			// 우선 앞에서부터 ||를 구분해 잘라버린다.
+			$chkName_RealData = '';
+			$chkName_FirIdx = 0;
+			$chkName_Pass = false;
+			$chkName_Count = 1;
+			while (!$chkName_Pass) {
+				if (strlen($qc[0]['gloname']) <= 0) {
+					$rval .= '<div class="addname" data-num="' . $chkName_Count . '">';
+					$rval .= '<input name="icadd-langname" class="input-line xx-short" type="text" maxlength="2" placeholder="ko" />';
+					$rval .= '<input name="icadd-name" class="input-line short" type="text" maxlength="30" />';
+					$rval .= '</div>';
+					$rval .= '<p><button id="btn_langadd" name="icadd-langadd">' . $this->lang->line('btn_langadd') . '</button></p>';
+					$chkName_Pass = true;
+					break;
+				}
+				$chkLineIdx = strpos($qc[0]['gloname'], "||", $chkName_FirIdx);
+				// 없다면 그대로 리얼데이터로 처리
+				if ($chkLineIdx === false)	{
+					$chkName_RealData = substr($qc[0]['gloname'], $chkName_FirIdx);
+					$chkName_Pass = true;
+				}
+				else {
+					$chkName_RealData = substr($qc[0]['gloname'], $chkName_FirIdx, $chkLineIdx);
+					$chkName_FirIdx = strlen($chkName_RealData) + 2;
+				}
+
+				$chkVal = explode(":", $chkName_RealData);
+
+				if ($chkName_Count <= 1) {
+					$rval .= '<div class="addname" data-num="' . $chkName_Count . '">';
+					$rval .= '<input name="icadd-langname" class="input-line xx-short" type="text" maxlength="2" placeholder="ko" value="' . $chkVal[0] . '" />';
+					$rval .= '<input name="icadd-name" class="input-line short" type="text" maxlength="30" value="' . $chkVal[1] . '" />';
+					$rval .= '</div>';
+					$rval .= '<p><button id="btn_langadd" name="icadd-langadd">' . $this->lang->line('btn_langadd') . '</button></p>';
+				} else {
+					$rval .= '<div class="addname" data-num="' . $chkName_Count . '">';
+					$rval .= '<input name="icadd-langname" class="input-line xx-short" type="text" maxlength="2" placeholder="ko" value="' . $chkVal[0] . '" />';
+					$rval .= '<input name="icadd-name" class="input-line short" type="text" maxlength="30" value="' . $chkVal[1] . '" />';
+					$rval .= '<button id="btn_langdelete" name="icadd-langdelete">' . $this->lang->line('btn_langdelete') . '</button>';
+					$rval .= '</div>';
+				}
+
+				$chkName_Count++;
+			}
+			$rval .= '</div>';
+			$rval .= '</div>';
+			/** 아이템 종류 우선 순위 **/
+			$rval .= '<div class="form-section">';
+			$rval .= '<div class="col-2">';
+			$rval .= '<label class="label">' . $this->lang->line('tb_cate_orderidx') . '</label>';
+			$rval .= '</div>';
+			$rval .= '<div class="col-10">';
+			$rval .= '<input name="icadd-orderidx" class="input-line x-short" type="text" maxlength="4" value="' . $qc[0]['orderidx'] . '"/>';
+			$rval .= '</div>';
+			$rval .= '</div>';
+			/** 아이템 종류 ENV **/
+			$rval .= '<div class="form-section">';
+			$rval .= '<div class="col-2">';
+			$rval .= '<label class="label">' . $this->lang->line('tb_cate_env') . '</label>';
+			$rval .= '</div>';
+			$rval .= '<div id="icadd-envsec" class="col-10">';
+
+			// 우선 앞에서부터 ||를 구분해 잘라버린다.
+			$chkEnv_RealData = '';
+			$chkEnv_FirIdx = 0;
+			$chkEnv_Pass = false;
+			$chkEnv_Count = 1;
+			while (!$chkEnv_Pass) {
+				if (strlen($qc[0]['env']) <= 0) {
+					$rval .= '<div class="addenv" data-num="' . $chkEnv_Count . '">';
+					$rval .= '<input name="icadd-env" class="input-line short" type="text" maxlength="40" />';
+					$rval .= '<input name="icadd-envvalue" class="input-line medium" type="text" maxlength="128" />';
+					$rval .= '</div>';
+					$rval .= '<p><button id="btn_envadd" name="icadd-envadd">' . $this->lang->line('btn_envadd') . '</button></p>';
+					$chkEnv_Pass = true;
+					break;
+				}
+				$chkLineIdx = strpos($qc[0]['env'], "||", $chkEnv_FirIdx);
+				// 없다면 그대로 리얼데이터로 처리
+				if ($chkLineIdx === false)	{
+					$chkEnv_RealData = substr($qc[0]['env'], $chkEnv_FirIdx);
+					$chkEnv_Pass = true;
+				}
+				else {
+					$chkEnv_RealData = substr($qc[0]['env'], $chkEnv_FirIdx, $chkLineIdx);
+					$chkEnv_FirIdx = strlen($chkEnv_RealData) + 2;
+				}
+
+				$chkVal = explode(":", $chkEnv_RealData);
+
+				if ($chkEnv_Count <= 1) {
+					$rval .= '<div class="addenv" data-num="' . $chkEnv_Count . '">';
+					$rval .= '<input name="icadd-env" class="input-line short" type="text" maxlength="40" value="' . $chkVal[0] . '" />';
+					$rval .= '<input name="icadd-envvalue" class="input-line medium" type="text" maxlength="128" value="' . $chkVal[1] . '" />';
+					$rval .= '</div>';
+					$rval .= '<p><button id="btn_envadd" name="icadd-envadd">' . $this->lang->line('btn_envadd') . '</button></p>';
+				} else {
+					$rval .= '<div class="addenv" data-num="' . $chkEnv_Count . '">';
+					$rval .= '<input name="icadd-env" class="input-line short" type="text" maxlength="40" value="' . $chkVal[0] . '" />';
+					$rval .= '<input name="icadd-envvalue" class="input-line medium" type="text" maxlength="128" value="' . $chkVal[1] . '" />';
+					$rval .= '<button id="btn_envdelete" name="icadd-envdelete">' . $this->lang->line('btn_envdelete') . '</button>';
+					$rval .= '</div>';
+				}
+
+				$chkEnv_Count++;
+			}
+			$rval .= '</div>';
+			$rval .= '</div>';
+			/** 아이템 종류 활성화 **/
+			$rval .= '<div class="form-section">';
+			$rval .= '<div class="col-2">';
+			$rval .= '<label class="label">' . $this->lang->line('tb_cate_status') . '</label>';
+			$rval .= '</div>';
+			$rval .= '<div class="col-10">';
+			if (intval($qc[0]['status']) == 0) {
+				$rval .= '<input name="icadd-status" type="radio" value="0" checked />' . $this->lang->line('admin_list_nouse') . '<input name="icadd-status" type="radio" value="1" />' . $this->lang->line('admin_list_use');
+			}
+			else {
+				$rval .= '<input name="icadd-status" type="radio" value="0" />' . $this->lang->line('admin_list_nouse') . '<input name="icadd-status" type="radio" value="1" checked />' . $this->lang->line('admin_list_use');
+			}
+			$rval .= '</div>';
+			$rval .= '</div>';
+			$rval .= '<input name="icadd-hidden" type="hidden" value="' . $dat . '" />';
+			$rval .= '<button id="btn_modifyitemcg">' . $this->lang->line('btn_modify') . '</button>';
 		}
 
 		echo $rval;

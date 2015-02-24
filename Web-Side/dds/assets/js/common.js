@@ -475,7 +475,7 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var sType = $(this).attr('data-t'); var sDetail = $(this).attr('data-dt');
 		var icIdx = $mtable.attr('data-icidx'); var sPage = $(this).attr('data-p');
 
-		//makeDetInfo('itemcglist-modify', '#admin-info', icIdx);
+		makeDetInfo('itemcglist-modify', '#admin-info', icIdx);
 	});
 	/** '아이템 종류 관리'에서 아이템 종류 정보를 삭제할 때 **/
 	$(document).on('click', '#admin-itemcglist .btn_itemcgdelete', function() {
@@ -553,6 +553,7 @@ function setDetInfo(stype, sdetail, starget, sdata)
 	});
 	/** [아이템 추가] 아이템 ENV 입력 폼 추가했던 것을 삭제 **/
 	$(document).on('click', '.addenv #btn_envdelete', function() {
+		// 상위 부모로부터 제거
 		$(this).parent().remove();
 	});
 	/** [아이템 추가] 정보 전송 **/
@@ -561,9 +562,21 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var $il_code = $il.find('input[name="iladd-code"]').val();
 		var $il_name = '';
 		$il.find('.addname').each(function() {
+			// 언어와 이름 파악
 			var $setLang = $(this).find('input[name="iladd-langname"]').val();
 			var $setName = $(this).find('input[name="iladd-name"]').val();
+
+			// 언어 공백은 없애준다.
+			$setLang.replace(/\s/gi, '');
+
+			// 언어 또는 이름이 비어있으면 패스
+			if ($setLang == '') {return true;}
+			if ($setName == '') {return true;}
+
+			// 이미 무언가 추가되어 있는 경우 라인컷 삽입
 			if ($il_name != '') {$il_name += '||';}
+
+			// 밸류컷으로 넣어준다.
 			$il_name += $setLang;
 			$il_name += ':';
 			$il_name += $setName;
@@ -572,9 +585,20 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var $il_havtime = $il.find('input[name="iladd-havtime"]').val();
 		var $il_env = '';
 		$il.find('.addenv').each(function() {
+			// ENV 이름과 값 파악
 			var $setEnv = $(this).find('input[name="iladd-env"]').val();
 			var $setEnvVal = $(this).find('input[name="iladd-envvalue"]').val();
+
+			// ENV 이름의 공백을 없애준다.
+			$setEnv.replace(/\s/gi, '');
+
+			// ENV 이름이 비어있으면 패스
+			if ($setEnv == '') {return true;}
+
+			// 이미 무언가 추가되어 있는 경우 라인컷 삽입
 			if ($il_env != '') {$il_env += '||';}
+
+			// 밸류컷으로 넣어준다.
 			$il_env += $setEnv;
 			$il_env += ':';
 			$il_env += $setEnvVal;
@@ -582,6 +606,58 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var $il_status = $il.find('input[name="iladd-status"]:checked').val();
 		var il_send = new Array($il_code, $il_name, $il_money, $il_havtime, $il_env, $il_status);
 		setDetInfo('itemlist', 'additem', '#admin-list', il_send);
+	});
+	/** [아이템 수정] 정보 전송 **/
+	$(document).on('click', '#admin-info #btn_modifyitem', function() {
+		var $il = $(this).parent();
+		var $il_code = $il.find('input[name="iladd-code"]').val();
+		var $il_name = '';
+		$il.find('.addname').each(function() {
+			// 언어와 이름 파악
+			var $setLang = $(this).find('input[name="iladd-langname"]').val();
+			var $setName = $(this).find('input[name="iladd-name"]').val();
+
+			// 언어 공백은 없애준다.
+			$setLang.replace(/\s/gi, '');
+
+			// 언어 또는 이름이 비어있으면 패스
+			if ($setLang == '') {return true;}
+			if ($setName == '') {return true;}
+
+			// 이미 무언가 추가되어 있는 경우 라인컷 삽입
+			if ($il_name != '') {$il_name += '||';}
+
+			// 밸류컷으로 넣어준다.
+			$il_name += $setLang;
+			$il_name += ':';
+			$il_name += $setName;
+		});
+		var $il_money = $il.find('input[name="iladd-money"]').val();
+		var $il_havtime = $il.find('input[name="iladd-havtime"]').val();
+		var $il_env = '';
+		$il.find('.addenv').each(function() {
+			// ENV 이름과 값 파악
+			var $setEnv = $(this).find('input[name="iladd-env"]').val();
+			var $setEnvVal = $(this).find('input[name="iladd-envvalue"]').val();
+
+			// ENV 이름의 공백을 없애준다.
+			$setEnv.replace(/\s/gi, '');
+
+			// ENV 이름이 비어있으면 패스
+			if ($setEnv == '') {return true;}
+
+			// 이미 무언가 추가되어 있는 경우 라인컷 삽입
+			if ($il_env != '') {$il_env += '||';}
+
+			// 밸류컷으로 넣어준다.
+			$il_env += $setEnv;
+			$il_env += ':';
+			$il_env += $setEnvVal;
+		});
+		var $il_status = $il.find('input[name="iladd-status"]:checked').val();
+		var $il_hidden = $il.find('input[name="iladd-hidden"]').val();
+		var il_send = new Array($il_code, $il_name, $il_money, $il_havtime, $il_env, $il_status, $il_hidden);
+		setDetInfo('itemlist', 'modifyitem', '#admin-list', il_send);
 	});
 
 	$(document).on('click', '#icadd-namesec #btn_langadd', function() {
@@ -618,11 +694,11 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		$prvTarget.each(function() {
 			prvNum = $(this).attr('data-num');
 		});
-		loadTransMsg('btn_langdelete', function(del_output) {
+		loadTransMsg('btn_envdelete', function(del_output) {
 			coutput += '<div class="addenv" data-num="' + (Number(prvNum) + 1) + '">';
 			coutput += '<input name="icadd-env" class="input-line short" type="text" maxlength="40" />';
 			coutput += '<input name="icadd-envvalue" class="input-line medium" type="text" maxlength="128" />';
-			coutput += '<button id="btnenvdelete" name="icadd-envdelete">';
+			coutput += '<button id="btn_envdelete" name="icadd-envdelete">';
 			coutput += del_output;
 			coutput += '</button>';
 			coutput += '</div>';
@@ -638,9 +714,21 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var $ic = $(this).parent();
 		var $ic_name = '';
 		$ic.find('.addname').each(function() {
+			// 언어와 이름 파악
 			var $setLang = $(this).find('input[name="icadd-langname"]').val();
 			var $setName = $(this).find('input[name="icadd-name"]').val();
+
+			// 언어 공백은 없애준다.
+			$setLang.replace(/\s/gi, '');
+
+			// 언어 또는 이름이 비어있으면 패스
+			if ($setLang == '') {return true;}
+			if ($setName == '') {return true;}
+
+			// 이미 무언가 추가되어 있는 경우 라인컷 삽입
 			if ($ic_name != '') {$ic_name += '||';}
+
+			// 밸류컷으로 넣어준다.
 			$ic_name += $setLang;
 			$ic_name += ':';
 			$ic_name += $setName;
@@ -650,7 +738,17 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		$ic.find('.addenv').each(function() {
 			var $setEnv = $(this).find('input[name="icadd-env"]').val();
 			var $setEnvVal = $(this).find('input[name="icadd-envvalue"]').val();
+
+			// ENV 이름의 공백을 없애준다.
+			$setEnv.replace(/\s/gi, '');
+
+			// ENV 이름이 비어있으면 패스
+			if ($setEnv == '') {return true;}
+
+			// 이미 무언가 추가되어 있는 경우 라인컷 삽입
 			if ($ic_env != '') {$ic_env += '||';}
+
+			// 밸류컷으로 넣어준다.
 			$ic_env += $setEnv;
 			$ic_env += ':';
 			$ic_env += $setEnvVal;
@@ -658,5 +756,54 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var $ic_status = $ic.find('input[name="icadd-status"]:checked').val();
 		var ic_send = new Array($ic_name, $ic_orderidx, $ic_env, $ic_status);
 		setDetInfo('itemcglist', 'additemcg', '#admin-list', ic_send);
+	});
+	/** [아이템 종류 수정] 정보 전송 **/
+	$(document).on('click', '#admin-info #btn_modifyitemcg', function() {
+		var $ic = $(this).parent();
+		var $ic_name = '';
+		$ic.find('.addname').each(function() {
+			// 언어와 이름 파악
+			var $setLang = $(this).find('input[name="icadd-langname"]').val();
+			var $setName = $(this).find('input[name="icadd-name"]').val();
+
+			// 언어 공백은 없애준다.
+			$setLang.replace(/\s/gi, '');
+
+			// 언어 또는 이름이 비어있으면 패스
+			if ($setLang == '') {return true;}
+			if ($setName == '') {return true;}
+
+			// 이미 무언가 추가되어 있는 경우 라인컷 삽입
+			if ($ic_name != '') {$ic_name += '||';}
+
+			// 밸류컷으로 넣어준다.
+			$ic_name += $setLang;
+			$ic_name += ':';
+			$ic_name += $setName;
+		});
+		var $ic_orderidx = $ic.find('input[name="icadd-orderidx"]').val();
+		var $ic_env = '';
+		$ic.find('.addenv').each(function() {
+			var $setEnv = $(this).find('input[name="icadd-env"]').val();
+			var $setEnvVal = $(this).find('input[name="icadd-envvalue"]').val();
+
+			// ENV 이름의 공백을 없애준다.
+			$setEnv.replace(/\s/gi, '');
+
+			// ENV 이름이 비어있으면 패스
+			if ($setEnv == '') {return true;}
+
+			// 이미 무언가 추가되어 있는 경우 라인컷 삽입
+			if ($ic_env != '') {$ic_env += '||';}
+
+			// 밸류컷으로 넣어준다.
+			$ic_env += $setEnv;
+			$ic_env += ':';
+			$ic_env += $setEnvVal;
+		});
+		var $ic_status = $ic.find('input[name="icadd-status"]:checked').val();
+		var $ic_hidden = $ic.find('input[name="icadd-hidden"]').val();
+		var ic_send = new Array($ic_name, $ic_orderidx, $ic_env, $ic_status, $ic_hidden);
+		setDetInfo('itemcglist', 'modifyitemcg', '#admin-list', ic_send);
 	});
 });
