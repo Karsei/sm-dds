@@ -93,7 +93,7 @@ class List_m extends CI_Model {
 			 * [아이템 관리 - 목록]
 			 * 후에 총 7개 필드
 			**********************************************/
-			$this->db->select('dds_item_list.ilidx, dds_item_category.gloname AS icname, dds_item_list.gloname AS itname, dds_item_list.money, dds_item_list.havtime, dds_item_list.env, dds_item_list.status');
+			$this->db->select('dds_item_list.ilidx, dds_item_list.icidx, dds_item_category.gloname AS icname, dds_item_list.gloname AS itname, dds_item_list.money, dds_item_list.havtime, dds_item_list.env, dds_item_list.status');
 			$this->db->join('dds_item_category', 'dds_item_category.icidx = dds_item_list.icidx', 'left');
 			$this->db->order_by('ilidx', 'DESC');
 			// Limit 거꾸로임 ㄱ-
@@ -224,6 +224,64 @@ class List_m extends CI_Model {
 			$qready = "UPDATE `dds_user_profile` SET `dds_user_profile`.`money` = '" . $tidx . "' WHERE `dds_user_profile`.`idx` = '" . $oidx . "'";
 			$this->db->query($qready);
 		}
+		else if (strcmp($type, 'admin-itemdelete') == 0)
+		{
+			$setdata = array(
+				'dds_item_list.ilidx' => $oidx
+			);
+			$this->db->where($setdata);
+			$this->db->delete('dds_item_list');
+		}
+		else if (strcmp($type, 'admin-itemcgdelete') == 0)
+		{
+			$setdata = array(
+				'dds_item_category.icidx' => $oidx
+			);
+			$this->db->where($setdata);
+			$this->db->delete('dds_item_category');
+		}
+		return json_encode(array('result' => true, 'title' => 'msg_title_notice', 'msg' => 'msg_results_success'));
+	}
+
+	function SetDetInfo($type, $data)
+	{
+		if (strcmp($type, 'additem') == 0)
+		{
+			$il_code = $data[0];
+			$il_name = $data[1];
+			$il_money = $data[2];
+			$il_havtime = $data[3];
+			$il_env = $data[4];
+			$il_status = $data[5];
+
+			$setdata = array(
+				'dds_item_list.gloname' => $il_name,
+				'dds_item_list.icidx' => $il_code,
+				'dds_item_list.money' => $il_money,
+				'dds_item_list.havtime' => $il_havtime,
+				'dds_item_list.env' => $il_env,
+				'dds_item_list.status' => $il_status
+			);
+			$this->db->set($setdata);
+			$this->db->insert('dds_item_list');
+		}
+		else if (strcmp($type, 'additemcg') == 0)
+		{
+			$ic_name = $data[0];
+			$ic_orderidx = $data[1];
+			$ic_env = $data[2];
+			$ic_status = $data[3];
+
+			$setdata = array(
+				'dds_item_category.gloname' => $ic_name,
+				'dds_item_category.orderidx' => $ic_orderidx,
+				'dds_item_category.env' => $ic_env,
+				'dds_item_category.status' => $ic_status
+			);
+			$this->db->set($setdata);
+			$this->db->insert('dds_item_category');
+		}
+
 		return json_encode(array('result' => true, 'title' => 'msg_title_notice', 'msg' => 'msg_results_success'));
 	}
 

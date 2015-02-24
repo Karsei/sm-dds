@@ -35,6 +35,12 @@ $lang['admin_itemcglist_modify'] = 'Modify Item Category';
 
 $lang['btn_modify'] = 'Modify';
 $lang['btn_done'] = 'Done';
+$lang['btn_langadd'] = 'Add Language';
+$lang['btn_langdelete'] = 'Delete Language';
+$lang['btn_envadd'] = 'Add ENV';
+$lang['btn_envdelete'] = 'Delete ENV';
+$lang['btn_delete'] = 'Delete';
+$lang['btn_create'] = 'Create';
 
 $lang['tb_cate_idx'] = 'IDX';
 $lang['tb_cate_itidx'] = 'Item IDX';
@@ -64,6 +70,8 @@ $lang['msg_contents_itemuse'] = 'Do you really use this item?';
 $lang['msg_contents_itemcancel'] = 'Do you really cancel this item?';
 $lang['msg_contents_itemdrop'] = 'Do you really drop this item?';
 $lang['msg_contents_itembuy'] = 'Do you really buy this item?';
+$lang['msg_contents_itemdelete'] = 'Do you really delete this item?';
+$lang['msg_contents_itemcgdelete'] = 'Do you really delete this item category?';
 $lang['msg_results_none'] = 'No results.';
 $lang['msg_results_success'] = 'Request is successfully.';
 $lang['msg_results_nogame'] = 'This user is in game. You can\'t execute this action.';

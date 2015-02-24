@@ -73,11 +73,12 @@ article table {
     border-spacing: 0px;
     overflow: hidden;
 }
-article td {
+article thead th,
+article tbody td {
     padding: 10px;
     cursor: default;
 }
-article thead td {
+article thead th {
     text-align: center;
     font-weight: bold;
     color: white;
@@ -93,12 +94,13 @@ article tbody tr:nth-child(even) {
 article tbody tr:hover {
     background-color: #D4E2FD;
 }
-article thead td {
+article thead th {
     border-right: 1px solid #a0cfff;
 }
 article tbody td {
     border-right: 1px solid #888888;
 }
+article th:last-child,
 article td:last-child {
     border-right: 0;
 }
@@ -109,35 +111,20 @@ article td:first-child {
 /*******************
  * Common things
 ********************/
-.detail-pagination {
-    margin: 10px;
+.pagination {
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 20px;
+    width: 400px;
+    text-align: center;
+    background-color: #ddd;
+    border: 1px solid #ddd;
+    border-radius: 10px;
 }
-.detail-pagination table {
-    border: 0px !important;
-    -moz-border-radius-bottom-left: 0px !important;
-    -webkit-border-bottom-left-radius: 0px !important;
-    border-bottom-left-radius: 0px !important;
-    -moz-border-radius-bottom-right: 0px !important;
-    -webkit-border-bottom-right-radius: 0px !important;
-    border-bottom-right-radius: 0px !important;
-    background-color: #FFFFFF !important;
-}
-.detail-pagination td {
-    background-color: #5C5C5C !important;
-    color: #DCDCDC !important;
-    border: 0px !important;
-    cursor: pointer !important;
-}
-.detail-pagination td:hover {
-    color: #F3F3F3 !important;
-}
-.detail-pagination .focus {
-    font-weight: bold !important;
-}
-.detail-pagination td:hover,
-.detail-pagination .focus {
-    background-color: #505050 !important;
-    color: white !important;
+
+.box-title {
+    margin-bottom: 20px;
 }
 
 /*******************
@@ -172,15 +159,13 @@ article td:first-child {
 
 .myinfo label {
     margin-right: 10px;
-    padding: 4px;
     font-weight: bold;
-    background-color: #777777;
-    color: #FFFFFF;
-    -webkit-border-radius: 10px;
-    -ms-border-radius: 10px;
-    -moz-border-radius: 10px;
-    -o-border-radius: 10px;
-    border-radius: 10px;
+    line-height: 2.0em;
+}
+
+#admin-info .label {
+    margin-right: 10px;
+    font-weight: bold;
     line-height: 2.0em;
 }
 
@@ -192,117 +177,115 @@ article td:first-child {
     font-weight: 600;
 }
 
-#user-invenlist td span {
+#admin-info {
+    display: none;
+}
+
+td span {
     margin-right: 10px;
 }
-#user-invenlist td span:last-child {
+td span:last-child {
     margin-right: 0px;
 }
 
-#user-invenlist thead td:nth-child(1) {
+#user-invenlist thead th:nth-child(1) {
     width: 50px;
 }
-#user-invenlist thead td:nth-child(2) {
+#user-invenlist thead th:nth-child(2) {
     width: 120px;
 }
-#user-invenlist thead td:nth-child(3) {
+#user-invenlist thead th:nth-child(3) {
     width: 120px;
 }
-#user-invenlist thead td:nth-child(4) {
+#user-invenlist thead th:nth-child(4) {
     width: 170px;
 }
-#user-invenlist thead td:nth-child(5) {
+#user-invenlist thead th:nth-child(5) {
     width: 70px;
 }
-#user-invenlist thead td:nth-child(6) {
+#user-invenlist thead th:nth-child(6) {
     width: 100px;
 }
 
-#user-buylist thead td:nth-child(1) {
+#user-buylist thead th:nth-child(1) {
     width: 85px;
 }
-#user-buylist thead td:nth-child(2) {
+#user-buylist thead th:nth-child(2) {
     width: 120px;
 }
-#user-buylist thead td:nth-child(3) {
+#user-buylist thead th:nth-child(3) {
     width: 120px;
 }
-#user-buylist thead td:nth-child(4) {
+#user-buylist thead th:nth-child(4) {
     width: 100px;
 }
-#user-buylist thead td:nth-child(5) {
+#user-buylist thead th:nth-child(5) {
     width: 120px;
 }
-#user-buylist thead td:nth-child(6) {
+#user-buylist thead th:nth-child(6) {
     width: 80px;
 }
 
-#admin-userlist thead td:nth-child(1) {
+#admin-userlist thead th:nth-child(1) {
     width: 75px;
 }
-#admin-userlist thead td:nth-child(2) {
+#admin-userlist thead th:nth-child(2) {
     width: 180px;
 }
-#admin-userlist thead td:nth-child(3) {
+#admin-userlist thead th:nth-child(3) {
     width: 100px;
 }
-#admin-userlist thead td:nth-child(4) {
+#admin-userlist thead th:nth-child(4) {
     width: 90px;
 }
-#admin-userlist thead td:nth-child(5) {
+#admin-userlist thead th:nth-child(5) {
     width: 90px;
 }
 
-#admin-itemlist thead td:nth-child(1) {
+#admin-itemlist thead th:nth-child(1) {
     width: 85px;
 }
-#admin-itemlist thead td:nth-child(2) {
+#admin-itemlist thead th:nth-child(2) {
     width: 120px;
 }
-#admin-itemlist thead td:nth-child(3) {
+#admin-itemlist thead th:nth-child(3) {
     width: 120px;
 }
-#admin-itemlist thead td:nth-child(4) {
+#admin-itemlist thead th:nth-child(4) {
     width: 100px;
 }
-#admin-itemlist thead td:nth-child(5) {
+#admin-itemlist thead th:nth-child(5) {
     width: 120px;
 }
-#admin-itemlist thead td:nth-child(6) {
+#admin-itemlist thead th:nth-child(6) {
     width: 120px;
 }
-#admin-itemlist thead td:nth-child(7) {
+#admin-itemlist thead th:nth-child(7) {
     width: 100px;
 }
-#admin-itemlist thead td:nth-child(8) {
+#admin-itemlist thead th:nth-child(8) {
     width: 100px;
 }
 
-#admin-itemcglist thead td:nth-child(1) {
+#admin-itemcglist thead th:nth-child(1) {
     width: 120px;
 }
-#admin-itemcglist thead td:nth-child(2) {
+#admin-itemcglist thead th:nth-child(2) {
     width: 120px;
 }
-#admin-itemcglist thead td:nth-child(3) {
+#admin-itemcglist thead th:nth-child(3) {
     width: 80px;
 }
-#admin-itemcglist thead td:nth-child(4) {
+#admin-itemcglist thead th:nth-child(4) {
     width: 120px;
 }
-#admin-itemcglist thead td:nth-child(5) {
+#admin-itemcglist thead th:nth-child(5) {
     width: 100px;
 }
-#admin-itemcglist thead td:nth-child(6) {
+#admin-itemcglist thead th:nth-child(6) {
     width: 100px;
 }
 
-/*******************
- * <Item Buy>
-********************/
-.buy {
-    /**/
-}
 
 
 /*************************************

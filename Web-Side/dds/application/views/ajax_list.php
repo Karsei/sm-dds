@@ -12,15 +12,15 @@ if (isset($list)) {
 ?>
 <? /** INVENTORY **/ ?>
 <? if (strcmp($type, 'inven') == 0): ?>
-                        <table id="user-invenlist">
+                        <table id="user-invenlist" class="table">
                             <thead>
                                 <tr>
-                                    <td><? echo $langData->line('tb_cate_idx'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_category'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_name'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_buydate'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_status'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_select'); ?></td>
+                                    <th><? echo $langData->line('tb_cate_idx'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_category'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_name'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_buydate'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_status'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_select'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -47,36 +47,32 @@ if (isset($list)) {
 <? else: ?>
                             </tbody>
                         </table>
-                        <div class="detail-pagination">
-                            <table>
-                                <tr>
+                        <ul class="pagination">
 <? 
 for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar="#myinfo-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<li class="active"><a href="#" data-t="' . $type . '" data-tar="#myinfo-list">' . ($i + 1) .'</a></li>';
         else
-            echo '<td data-t="' . $type . '" data-tar="#myinfo-list">' . ($i + 1) . '</td>';
+            echo '<li><a href="#" data-t="' . $type . '" data-tar="#myinfo-list">' . ($i + 1) . '</a></li>';
 }
 
 ?>
-                                </tr>
-                            </table>
-                        </div>
+                        </ul>
 <? endif; ?>
 <? /** BUY **/ ?>
 <? elseif (strcmp($type, 'buy') == 0): ?>
                         <p class="buy-mymoney"><label><? echo $langData->line('buy_mymoney'); ?></label>: <? echo $usrprofile[0]['money']; ?></p>
-                        <table id="user-buylist">
+                        <table id="user-buylist" class="table">
                             <thead>
                                 <tr>
-                                    <td><? echo $langData->line('tb_cate_itidx'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_category'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_name'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_money'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_havtime'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_select'); ?></td>
+                                    <th><? echo $langData->line('tb_cate_itidx'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_category'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_name'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_money'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_havtime'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_select'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -100,37 +96,33 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? else: ?>
                             </tbody>
                         </table>
-                        <div class="detail-pagination">
-                            <table>
-                                <tr>
+                        <ul class="pagination">
 <? 
 for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar="#buy-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<li class="active"><a href="#" data-t="' . $type . '" data-tar="#buy-list">' . ($i + 1) .'</a></li>';
         else
-            echo '<td data-t="' . $type . '" data-tar="#buy-list">' . ($i + 1) . '</td>';
+            echo '<li><a href="#" data-t="' . $type . '" data-tar="#buy-list">' . ($i + 1) . '</a></li>';
 }
 
 ?>
-                                </tr>
-                            </table>
-                        </div>
+                        </ul>
 <? endif; ?>
 <? /** ADMIN-UserList **/ ?>
 <? elseif (strcmp($type, 'usrlist') == 0): ?>
                         <div class="box-sub-title">
                             <h1><? echo $langData->line('admin_usrlist'); ?></h1>
                         </div>
-                        <table id="admin-userlist">
+                        <table id="admin-userlist" class="table">
                             <thead>
                                 <tr>
-                                    <td><? echo $langData->line('tb_cate_usridx'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_authid'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_money'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_ingame'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_select'); ?></td>
+                                    <th><? echo $langData->line('tb_cate_usridx'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_authid'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_money'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_ingame'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_select'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -141,7 +133,7 @@ for ($i = 0; $i < $pageTotal; $i++)
                                     <td><? echo $usrlist['authid']; ?></td>
                                     <td class="usrmoney" data-uidx="<? echo $usrlist['idx']; ?>"><? echo $usrlist['money']; ?></td>
                                     <td><? echo str_replace(array(0, 1), array($langData->line('admin_list_gameoff'), $langData->line('admin_list_gameon')), $usrlist['ingame']); ?></td>
-                                    <td><span class="btnusrmodify" data-dt="admin-usrmodify" data-t="<? echo $type; ?>" data-uidx="<? echo $usrlist['idx']; ?>" data-url="<? echo $surl; ?>" data-p="<? echo $pageIdx; ?>" data-aid="<? echo $authid; ?>"><? echo $langData->line('btn_modify'); ?></span></td>
+                                    <td><span class="btn_usrmodify" data-dt="admin-usrmodify" data-t="<? echo $type; ?>" data-uidx="<? echo $usrlist['idx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_modify'); ?></span></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
@@ -153,40 +145,36 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? else: ?>
                             </tbody>
                         </table>
-                        <div class="detail-pagination">
-                            <table>
-                                <tr>
+                        <ul class="pagination">
 <? 
 for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar="#admin-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<li class="active"><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) .'</a></li>';
         else
-            echo '<td data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</td>';
+            echo '<li><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</a></li>';
 }
 
 ?>
-                                </tr>
-                            </table>
-                        </div>
+                        </ul>
 <? endif; ?>
 <? /** ADMIN-ItemList **/ ?>
 <? elseif (strcmp($type, 'itemlist') == 0): ?>
                         <div class="box-sub-title">
                             <h1><? echo $langData->line('admin_itemlist'); ?></h1>
                         </div>
-                        <table id="admin-itemlist">
+                        <table id="admin-itemlist" class="table">
                             <thead>
                                 <tr>
-                                    <td><? echo $langData->line('tb_cate_itidx'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_category'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_name'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_money'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_havtime'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_env'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_status'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_select'); ?></td>
+                                    <th><? echo $langData->line('tb_cate_itidx'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_category'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_name'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_money'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_havtime'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_env'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_status'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_select'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -194,13 +182,13 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? $count++; ?>
                                 <tr>
                                     <td><? echo $itemlist['ilidx']; ?></td>
-                                    <td><? echo SplitStrByGeoName(GetCodeByLanguage($usrLang), $itemlist['icname']); ?></td>
+                                    <td><? echo SplitStrByGeoName(GetCodeByLanguage($usrLang), $itemlist['icname']). '(' . $itemlist['icidx'] . ')'; ?></td>
                                     <td><? echo SplitStrByGeoName(GetCodeByLanguage($usrLang), $itemlist['itname']); ?></td>
                                     <td><? echo $itemlist['money']; ?></td>
                                     <td><? echo $itemlist['havtime']; ?></td>
                                     <td><? echo $itemlist['env']; ?></td>
                                     <td><? echo str_replace(array(0, 1), array($langData->line('admin_list_nouse'), $langData->line('admin_list_use')), $itemlist['status']); ?></td>
-                                    <td>수정</td>
+                                    <td><span class="btn_itemmodify" data-dt="admin-itemmodify" data-t="<? echo $type; ?>" data-ilidx="<? echo $itemlist['ilidx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_modify'); ?></span><span class="btn_itemdelete" data-dt="admin-itemdelete" data-t="<? echo $type; ?>" data-ilidx="<? echo $itemlist['ilidx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_delete'); ?></span></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
@@ -212,38 +200,34 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? else: ?>
                             </tbody>
                         </table>
-                        <div class="detail-pagination">
-                            <table>
-                                <tr>
+                        <ul class="pagination">
 <? 
 for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar="#admin-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<li class="active"><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) .'</a></li>';
         else
-            echo '<td data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</td>';
+            echo '<li><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</a></li>';
 }
 
 ?>
-                                </tr>
-                            </table>
-                        </div>
+                        </ul>
 <? endif; ?>
 <? /** ADMIN-ItemCGList **/ ?>
 <? elseif (strcmp($type, 'itemcglist') == 0): ?>
                         <div class="box-sub-title">
                             <h1><? echo $langData->line('admin_itemcglist'); ?></h1>
                         </div>
-                        <table id="admin-itemcglist">
+                        <table id="admin-itemcglist" class="table">
                             <thead>
                                 <tr>
-                                    <td><? echo $langData->line('tb_cate_icidx'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_name'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_orderidx'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_env'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_status'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_select'); ?></td>
+                                    <th><? echo $langData->line('tb_cate_icidx'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_name'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_orderidx'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_env'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_status'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_select'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -255,7 +239,7 @@ for ($i = 0; $i < $pageTotal; $i++)
                                     <td><? echo $cglist['orderidx']; ?></td>
                                     <td><? echo $cglist['env']; ?></td>
                                     <td><? echo str_replace(array(0, 1), array($langData->line('admin_list_nouse'), $langData->line('admin_list_use')), $cglist['status']); ?></td>
-                                    <td>수정</td>
+                                    <td><span class="btn_itemcgmodify" data-dt="admin-itemcgmodify" data-t="<? echo $type; ?>" data-icidx="<? echo $cglist['icidx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_modify'); ?></span><span class="btn_itemcgdelete" data-dt="admin-itemcgdelete" data-t="<? echo $type; ?>" data-icidx="<? echo $cglist['icidx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_delete'); ?></span></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
@@ -267,38 +251,34 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? else: ?>
                             </tbody>
                         </table>
-                        <div class="detail-pagination">
-                            <table>
-                                <tr>
+                        <ul class="pagination">
 <? 
 for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar="#admin-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<li class="active"><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) .'</a></li>';
         else
-            echo '<td data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</td>';
+            echo '<li><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</a></li>';
 }
 
 ?>
-                                </tr>
-                            </table>
-                        </div>
+                        </ul>
 <? endif; ?>
 <? /** ADMIN-DataLogList **/ ?>
 <? elseif (strcmp($type, 'dataloglist') == 0): ?>
                         <div class="box-sub-title">
                             <h1><? echo $langData->line('admin_dataloglist'); ?></h1>
                         </div>
-                        <table id="admin-dataloglist">
+                        <table id="admin-dataloglist" class="table">
                             <thead>
                                 <tr>
-                                    <td><? echo $langData->line('tb_cate_idx'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_authid'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_action'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_data'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_date'); ?></td>
-                                    <td><? echo $langData->line('tb_cate_ip'); ?></td>
+                                    <th><? echo $langData->line('tb_cate_idx'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_authid'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_action'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_data'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_date'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_ip'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -322,23 +302,19 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? else: ?>
                             </tbody>
                         </table>
-                        <div class="detail-pagination">
-                            <table>
-                                <tr>
+                        <ul class="pagination">
 <? 
 for ($i = 0; $i < $pageTotal; $i++)
 {
     if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
         if ($pageIdx == ($i + 1))
-            echo '<td data-t="' . $type . '" data-tar="#admin-list" class="focus">' . ($i + 1) .'</td>';
+            echo '<li class="active"><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) .'</a></li>';
         else
-            echo '<td data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</td>';
+            echo '<li><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</a></li>';
 }
 
 ?>
-                                </tr>
-                            </table>
-                        </div>
+                        </ul>
 <? endif; ?>
 <? endif; ?>
 <?php } ?>

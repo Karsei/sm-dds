@@ -35,6 +35,12 @@ $lang['admin_itemcglist_modify'] = '아이템 종류 수정';
 
 $lang['btn_modify'] = '수정';
 $lang['btn_done'] = '완료';
+$lang['btn_langadd'] = '언어 추가';
+$lang['btn_langdelete'] = '언어 삭제';
+$lang['btn_envadd'] = 'ENV 추가';
+$lang['btn_envdelete'] = 'ENV 삭제';
+$lang['btn_delete'] = '삭제';
+$lang['btn_create'] = '생성';
 
 $lang['tb_cate_idx'] = '번호';
 $lang['tb_cate_itidx'] = '아이템 번호';
@@ -64,6 +70,8 @@ $lang['msg_contents_itemuse'] = '정말로 해당 아이템을 장착하시겠�
 $lang['msg_contents_itemcancel'] = '정말로 해당 아이템을 장착 해제하시겠습니까?';
 $lang['msg_contents_itemdrop'] = '정말로 해당 아이템을 버리시겠습니까?';
 $lang['msg_contents_itembuy'] = '해당 아이템을 구입하시겠습니까?';
+$lang['msg_contents_itemdelete'] = '정말로 해당 아이템을 삭제하시겠습니까?';
+$lang['msg_contents_itemcgdelete'] = '정말로 해당 아이템 종류를 삭제하시겠습니까?';
 $lang['msg_results_none'] = '결과가 없습니다.';
 $lang['msg_results_success'] = '정상적으로 처리가 되었습니다.';
 $lang['msg_results_nogame'] = '현재 게임 내에 있으면 실행하실 수 없습니다.';

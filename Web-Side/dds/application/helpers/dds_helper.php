@@ -54,6 +54,10 @@ function SplitStrByGeoName($geo, $gloname)
 	$lineCut = '||';
 	$valueCut = ':';
 
+	if (strlen($gloname) <= 0)
+	{
+		return '';
+	}
 	$geoidx = strpos($gloname, $geo);
 	$endidx = strpos($gloname, $lineCut, $geoidx);
 	$realData = '';

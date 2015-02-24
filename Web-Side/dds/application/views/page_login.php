@@ -14,7 +14,7 @@
     
     <body>
         <div id="container">
-            <div id="header">
+            <div id="title" class="page-title">
                 <h1><? echo PRODUCT_NAME; ?></h1>
             </div>
         

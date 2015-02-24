@@ -12,12 +12,12 @@
 /*************************************
  * LAYOUT POSITION
 **************************************/
-#header,
+#title,
 #login {
     position: absolute;
 }
 
-#header {
+#title {
     top: 200px;
     left: 100px;
 }
@@ -37,8 +37,8 @@ body {
 /*******************
  * [header]
 ********************/
-#header h1 {
-    padding: 8px;
+#title h1 {
+    padding: 15px;
     font-size: 3em;
     cursor: default;
     background-color: #303030;
