@@ -35,7 +35,8 @@ enum DataProcess
 	DataProc_MONEYGIFT,				// 금액 선물
 	DataProc_ITEMGIFT,				// 아이템 선물
 	DataProc_ITEMGIVE,				// 아이템 주기
-	DataProc_ITEMTAKEAWAY			// 아이템 뺏기
+	DataProc_ITEMTAKEAWAY,			// 아이템 뺏기
+	DataProc_USERREFDATA			// 클라이언트 기타 참고 데이터
 };
 
 /**

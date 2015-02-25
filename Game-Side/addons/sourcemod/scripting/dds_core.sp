@@ -509,6 +509,8 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 	 * 'item-give' - 아이템 주기
 	 * 'item-takeaway' - 아이템 뺏기
 	 *
+	 * 'user-refdata' - 클라이언트 기타 참고 데이터 설정
+	 *
 	*******************************************************************************/
 	if (StrEqual(process, "buy", false))
 	{
@@ -1425,6 +1427,70 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%s||%s||%d", sTmpName, sTargetAuthId, sCGName, sItemName, iItemIdx);
 		Log_Data(client, "item-takeaway", sMakeLogParam);
 	}
+	else if (StrEqual(process, "user-refdata", false))
+	{
+		/*************************************************
+		 *
+		 * [클라이언트 기타 참고 데이터 설정]
+		 *
+		**************************************************/
+		iSimpleProc = DataProc_USERREFDATA;
+
+		/*************************
+		 * 전달 파라메터 구분
+		 *
+		 * [0] - 구분 타입
+		 * [1] - 설정할 문자열
+		**************************/
+		char sTempStr[2][32];
+		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+		char sType[32];
+		Format(sType, sizeof(sType), sTempStr[0]);
+		char sValue[32];
+		Format(sValue, sizeof(sValue), sTempStr[1]);
+
+		/*************************
+		 * 설정 문자열 인젝션 필터
+		**************************/
+		SetPreventSQLInject(sValue, sValue, sizeof(sValue));
+
+		/*************************
+		 * 클라이언트 적용
+		**************************/
+		char sRefSet[256];
+		Format(sRefSet, sizeof(sRefSet), "%s:%s", sType, sValue);
+		if (strlen(dds_sUserRefData[client]) <= 0)	Format(sRefSet, sizeof(sRefSet), "%s", sRefSet);
+		Format(sRefSet, sizeof(sRefSet), "%s||%s", dds_sUserRefData[client], sRefSet);
+
+		Format(dds_sUserRefData[client], 256, sRefSet);
+
+		/*************************
+		 * 대상 아이템 정보 삭제
+		**************************/
+		// 오류 검출 생성
+		ArrayList hMakeErrIf = CreateArray(8);
+		hMakeErrIf.Push(client);
+		hMakeErrIf.Push(2028);
+
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"UPDATE `dds_user_profile` SET `refdata` = '%s' WHERE `authid` = '%s'", 
+			sRefSet, sClient_AuthId);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIf);
+
+		/*************************
+		 * 화면 출력
+		**************************/
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user refdata", sValue);
+		DDS_PrintToChat(client, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s", sType, sValue);
+		Log_Data(client, "user-refdata", sMakeLogParam);
+	}
 
 	// 포워드 실행
 	Forward_OnDataProcess(client, iSimpleProc, data);
@@ -1672,6 +1738,12 @@ public void Log_CodeError(int client, int errcode, const char[] errordec)
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql itemtakeaway list");
 			Format(sDetOutput, sizeof(sDetOutput), "%s Retriving User Item is Failure. (AuthID: %s)", sDetOutput, usrauth);
 		}
+		case 2028:
+		{
+			// [기타 참고 문자열] 클라이언트의 기타 참고 문자열을 설정할 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql user refdata");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Update User Profile is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
 	}
 
 	// 클라이언트와 서버 구분하여 로그 출력
@@ -1773,6 +1845,7 @@ public void Log_Data(int client, const char[] action, const char[] data)
 	 * 'money-gift' - 금액을 선물할 때
 	 * 'item-give' - 관리자가 아이템을 줄 때
 	 * 'item-takeaway' - 관리자가 아이템을 빼앗을 때
+	 * 'user-refdata' - 클라이언트가 기타 참고 데이터를 설정할 때
 	 *
 	*******************************************************************************/
 	if (StrEqual(action, "game-connect", false))
@@ -1914,6 +1987,17 @@ public void Log_Data(int client, const char[] action, const char[] data)
 		 * [아이템을 줄 때]
 		 *
 		 * (0) - 대상 이름, (1) - 대상 고유 번호, (2) - 아이템 종류 이름, (3) - 아이템 이름, (4) - 아이템 번호
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "user-refdata", false))
+	{
+		/*************************************************
+		 *
+		 * [클라이언트가 기타 참고 데이터를 설정할 때]
+		 *
+		 * (0) - 구분 타입, (1) - 설정할 문자열
 		 *
 		**************************************************/
 		Format(sSendParam, sizeof(sSendParam), data);
@@ -4168,9 +4252,6 @@ public Action:SQL_Timer_UserLoad(Handle timer, any client)
 	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_user_setting` WHERE `authid` = '%s'", sUsrAuthId);
 	dds_hSQLDatabase.Query(SQL_UserSettingLoad, sSendQuery, client);
 
-	/** 로그 작성 **/
-	Log_Data(client, "game-connect", "");
-
 	return Plugin_Stop;
 }
 
@@ -4442,6 +4523,9 @@ public void SQL_UserSettingLoad(Database db, DBResultSet results, const char[] e
 
 	// SQL 유저 상태 활성화
 	dds_bUserSQLStatus[client] = true;
+
+	/** 로그 작성 **/
+	Log_Data(client, "game-connect", "");
 }
 
 
@@ -6208,6 +6292,11 @@ public int Native_DDS_UseDataProcess(Handle:plugin, numParams)
 		{
 			// 아이템 뺏기
 			Format(sSelectStr, sizeof(sSelectStr), "item-takeaway");
+		}
+		case DataProc_USERREFDATA:
+		{
+			// 클라이언트 기타 참고 데이터 설정
+			Format(sSelectStr, sizeof(sSelectStr), "user-refdata");
 		}
 	}
 	System_DataProcess(client, sSelectStr, data);

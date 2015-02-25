@@ -34,6 +34,9 @@ bool dds_bGameCheck;
 // 팀 채팅
 bool dds_bTeamChat[MAXPLAYERS + 1];
 
+// 자유형 태그 설정
+bool dds_bUserTagSetting[MAXPLAYERS + 1];
+
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
 *******************************************************/
@@ -67,6 +70,9 @@ public void OnConfigsExecuted()
 	// 플러그인이 꺼져 있을 때는 동작 안함
 	if (!DDS_IsPluginOn())	return;
 
+	// 유저 태그 설정 초기화
+	Init_UserTagSetData(client, 1);
+
 	// 게임 식별
 	GetGameFolderName(dds_sGameIdentity, sizeof(dds_sGameIdentity));
 
@@ -90,6 +96,9 @@ public void OnClientAuthorized(int client, const char[] auth)
 
 	// 팀 채팅 초기화
 	dds_bTeamChat[client] = false;
+
+	// 태그 설정 초기화
+	Init_UserTagSetData(client, 2);
 }
 
 /**
@@ -107,6 +116,9 @@ public void OnClientDisconnect(int client)
 
 	// 팀 채팅 초기화
 	dds_bTeamChat[client] = false;
+
+	// 태그 설정 초기화
+	Init_UserTagSetData(client, 2);
 }
 
 /**
@@ -121,12 +133,74 @@ public void DDS_OnDataProcess(int client, const DataProcess process, const char[
 	// 장착을 제외한 것은 모두 패스
 	if ((process != DataProc_USE) && (process != DataProc_CURUSE))	return;
 
-	// ENV 확인
+	/*************************
+	 * 전달 파라메터 구분
+	 *
+	 * [0] - 데이터베이스 번호
+	 * [1] - 아이템 번호
+	**************************/
+	char sTempStr[2][16];
+	ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+	// 아이템 번호를 통해 ENV 파악
+	char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+	DDS_GetItemInfo(StringToInt(sTempStr[1]), ItemInfo_ENV, sGetEnv);
+
+	// 자유형 태그를 위한 ENV 확인
+	char sEnvFree[4];
+	SelectedStuffToString(sGetEnv, "ENV_DDS_PROPERTY_FREETAG", "||", ":", sEnvFree, sizeof(sEnvFree));
+
+	// 자유형 태그 속성을 가지고 있으면 설정 시작
+	if (StringToInt(sEnvVal))
+	{
+		// 우선 블록킹 처리
+		dds_bUserTagSetting[client] = true;
+
+		// 절차 채팅 출력
+		DDS_PrintToChat(client, "");
+
+		return;
+	}
+
+	// 태그 문자열을 위한 ENV 확인
+	char sEnvTagStr[32];
+	SelectedStuffToString(sGetEnv, "ENV_DDS_PROPERTY_TAGSTR", "||", ":", sEnvTagStr, sizeof(sEnvTagStr));
+
+	// 태그 설정
+	char sSendData[64];
+	Format(sSendData, sizeof(sSendData), "%s||%s", "USETAG", sEnvTagStr);
+	DDS_UseDataProcess(client, DataProc_USERREFDATA, sSendData);
 }
 
 /*******************************************************
  * G E N E R A L   F U N C T I O N S
 *******************************************************/
+/**
+ * 초기화 :: 유저 태그 설정
+ *
+ * @param client			클라이언트 인덱스
+ * @param mode				처리 모드(1 - 전체 초기화, 2 - 특정 클라이언트 초기화)
+ */
+public void Init_UserTagSetData(int client, int mode)
+{
+	switch (mode)
+	{
+		case 1:
+		{
+			for (int i = 0; i <= MAXPLAYERS; i++)
+			{
+				// 트레일 엔티티 초기화
+				dds_bUserTagSetting[i] = -1;
+			}
+		}
+		case 2:
+		{
+			// 트레일 엔티티 초기화
+			dds_bUserTagSetting[client] = -1;
+		}
+	}
+}
+
 /**
  * System :: 게임 별 구분 처리
  *
@@ -158,6 +232,35 @@ public void System_Identify(const char[] gamename)
 		// 게임 식별 완료
 		dds_bGameCheck = true;
 	}
+}
+
+
+/**
+ * 기타 :: 태그 설정 시 유효한 문자열인지 검사
+ *
+ * @param client				클라이언트 인덱스
+ * @param str					설정할 문자열
+ */
+public bool CheckValidTag(int client, char[] str)
+{
+	// 잠시 임시 문자열로 변경
+	char tempstr[64];
+	strcopy(tempstr, sizeof(tempstr), str);
+
+	// 앞 뒤 공백 제거
+	TrimString(tempstr);
+
+	// 아무것도 없으면 통과
+	if (strlen(tempstr) <= 0)	return false;
+
+	// 필터로 사용되는 것을 썼다면 통과
+	if (StrContains(tempstr, "##", false) != -1)	return false;
+	if (StrContains(tempstr, "@@", false) != -1)	return false;
+	if (StrContains(tempstr, "||", false) != -1)	return false;
+	if (StrContains(tempstr, "|", false) != -1)	return false;
+	if (StrContains(tempstr, ":", false) != -1)	return false;
+
+	return true;
 }
 
 
@@ -219,6 +322,28 @@ public Action:Command_Say(int client, int args)
 	 *
 	************************************************************************/
 	/****************************
+	 * 조건 확인
+	*****************************/
+	// 태그 설정을 하고 있는 중이라면 채팅 차단 후 해제
+	if (dds_bUserTagSetting[client])
+	{
+		if (CheckValidTag(client, sMainMsg))
+		{
+			// 인젝션 필터링
+			SetPreventSQLInject(sMainMsg, sMainMsg, sizeof(sMainMsg));
+
+			// 값 설정
+			char sSendData[64];
+			Format(sSendData, sizeof(sSendData), "%s||%s", "USETAG", sMainMsg);
+			DDS_UseDataProcess(client, DataProc_USERREFDATA, sSendData);
+
+			// 차단 해제
+			dds_bUserTagSetting[client] = false;
+		}
+		return Plugin_Handled;
+	}
+
+	/****************************
 	 * 메세지 포맷 지정
 	*****************************/
 	// 메시지 기본 형식 설정
@@ -227,7 +352,16 @@ public Action:Command_Say(int client, int args)
 	// 태그가 설정되었을 경우
 	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_TAG_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_TAG_ID) > 0))
 	{
-		Format(sDisplay, sizeof(sDisplay), "%s[%s] %s", StrEqual(dds_sGameIdentity, "csgo", false) ? " \x01\x0B\x04" : "\x04", , sDisplay);
+		// Ref Data 파악
+		char sRefData[256];
+		DDS_GetClientRefData(client, sRefData);
+
+		// 태그 문자열 로드
+		char sUseTag[32];
+		SelectedStuffToString(sRefData, "USETAG", "||", ":", sUseTag, sizeof(sUseTag));
+
+		// 적용
+		Format(sDisplay, sizeof(sDisplay), "%s[%s] %s", StrEqual(dds_sGameIdentity, "csgo", false) ? " \x01\x0B\x04" : "\x04", sUseTag, sDisplay);
 	}
 
 	/****************************

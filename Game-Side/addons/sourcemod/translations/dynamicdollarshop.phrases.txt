@@ -451,6 +451,12 @@
 		"en"				"You have got {2} {3} by killing '{1}'."
 	}
 
+	"system user refdata"
+	{
+		"#format"			"{1:s}"
+		"en"				"'{1}' have set to your data."
+	}
+
 	/*************************************
 	 * 오류 (Error)
 	 *************************************/
@@ -688,5 +694,10 @@
 	"error sql itemtakeaway list"
 	{
 		"en"				"An error has occurred while loading the user items."
+	}
+
+	"error sql user refdata"
+	{
+		"en"				"An error has occurred while updating user profile by setting ref data."
 	}
 }

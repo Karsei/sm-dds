@@ -4,12 +4,13 @@
 
 ※PS1. 여러 개 지정할 경우는 쉼표로 가능
 ※PS2. 괄호 안에 맨 앞에 있는 것은 기본값
+※PS3. 우선순위가 높은 ENV의 값에 따라 하위 우선순위에서 기본값은 상속으로 값이 결정
 
-우선순위: 등급(나중에 처리) > 아이템 > 아이템 종류
+우선순위: 아이템 종류 > 아이템 > 등급(나중에 처리)
 
  * 등급 별 지정 ENV
  <시스템 관련>
- ENV_DDS_SYS_GAME; 적용할 게임 종류(cstrike, csgo, tf2, ...)
+ ENV_DDS_SYS_GAME; 적용할 게임 종류(all, cstrike, csgo, tf2, ...)
 
  <접근 관련>
  ENV_DDS_ACCESS_GIVE; 아이템을 생성하여 클라이언트에게 주기(0, 1)
@@ -24,25 +25,33 @@
 
  * 아이템 별 지정 ENV
  <시스템 관련>
- ENV_DDS_SYS_GAME; 적용할 게임 종류(cstrike, csgo, tf2, ...)
+ ENV_DDS_SYS_GAME; 적용할 게임 종류(all, cstrike, csgo, tf2, ...)
 
- <속성 관련>
- ENV_DDS_PROPERTY_COLOR; 아이템 이용 색깔
- ENV_DDS_PROPERTY_ADRS; 아이템 이용 주소
- ENV_DDS_PROPERTY_POS; 아이템 이용 위치
- ENV_DDS_PROPERTY_ANG; 아이템 이용 각도
+ <정보 관련>
+ ENV_DDS_INFO_ADRS; 아이템 이용 주소(사용자 지정)
+ ENV_DDS_INFO_POS; 아이템 이용 위치(0 0 0, 사용자 지정)
+ ENV_DDS_INFO_ANG; 아이템 이용 각도(0 0 0, 사용자 지정)
+ ENV_DDS_INFO_COLOR; 아이템 이용 색깔(0 0 0 0, 사용자 지정)
+ ENV_DDS_INFO_TAGSTR; 태그 문자열(사용자 지정)
+ ENV_DDS_INFO_FREETAG; 자유형 태그 여부(0, 1)
 
-  ==== ENV_DDS_SYS_GAME:cstrike||ENV_DDS_PROPERTY_ADRS:||ENV_DDS_PROPERTY_POS:||ENV_DDS_PROPERTY_ANG:
+ <이용 관련>
+ ENV_DDS_LIMIT_BUY_CLASS; 구매 시 접근 가능한 등급 지정(all, none, 등급 번호)
+ ENV_DDS_LIMIT_USE_CLASS; 이용 시 접근 가능한 등급 지정(all, none, 등급 번호)
+ ENV_DDS_LIMIT_SHOW_LIST_CLASS; 메뉴 목록에서 등급 별 출력 여부(all, none, 등급 번호)
+ ENV_DDS_USE_TEAM; 이용 시 적용될 팀 지정((2,3), all, none, 팀 번호)
+
+  ==== ENV_DDS_SYS_GAME:all||ENV_DDS_INFO_POS:0 0 0||ENV_DDS_INFO_ANG:0 0 0||ENV_DDS_INFO_COLOR:0 0 0 0||ENV_DDS_INFO_TAGSTR:||ENV_DDS_INFO_FREETAG:0
 
 
  * 아이템 종류 별 지정 ENV
  <시스템 관련>
- ENV_DDS_SYS_GAME; 적용할 게임 종류(cstrike, csgo, tf2, ...)
-
- <접근 관련>
- ENV_DDS_ACCESS_CLASS; 접근 가능한 등급 지정(all, none, 코드)
+ ENV_DDS_SYS_GAME; 적용할 게임 종류(all, cstrike, csgo, tf2, ...)
 
  <이용 관련>
- ENV_DDS_USE_MONEY; 클라이언트의 금액을 사용함(1, 0)
+ ENV_DDS_LIMIT_BUY_CLASS; 구매 시 접근 가능한 등급 지정(all, none, 등급 번호)
+ ENV_DDS_LIMIT_USE_CLASS; 이용 시 접근 가능한 등급 지정(all, none, 등급 번호)
+ ENV_DDS_LIMIT_SHOW_LIST_CLASS; 메뉴 목록에서 등급 별 출력 여부(all, none, 등급 번호)
+ ENV_DDS_USE_TEAM; 이용 시 적용될 팀 지정((2,3), all , none, 팀 번호)
 
   ==== ENV_DDS_SYS_GAME:cstrike||ENV_DDS_ACCESS_CLASS:all||ENV_DDS_USE_MONEY:1
