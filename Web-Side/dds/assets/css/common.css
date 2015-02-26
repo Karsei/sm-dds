@@ -85,6 +85,17 @@ p {
     margin-bottom: 10px;
 }
 
+label {
+    display: inline-block;
+    max-width: 100%;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+i {
+    vertical-align: middle;
+}
+
 
 /*************************************
  * Adjust Page
@@ -121,8 +132,6 @@ p {
 /* Size Fix */
 .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {
     position: relative;
-    padding-left: 15px;
-    padding-right: 15px;
     min-height: 1px;
     float: left;
 }
@@ -161,6 +170,42 @@ p {
 }
 .col-12 {
     width: 100%;
+}
+.col-1-rev {
+    margin-left: 8.333%;
+}
+.col-2-rev {
+    margin-left: 16.666%;
+}
+.col-3-rev {
+    margin-left: 25%;
+}
+.col-4-rev {
+    margin-left: 33.333%;
+}
+.col-5-rev {
+    margin-left: 41.666%;
+}
+.col-6-rev {
+    margin-left: 50%;
+}
+.col-7-rev {
+    margin-left: 58.333%;
+}
+.col-8-rev {
+    margin-left: 66.666%;
+}
+.col-9-rev {
+    margin-left: 75%;
+}
+.col-10-rev {
+    margin-left: 83.333%;
+}
+.col-11-rev {
+    margin-left: 91.666%;
+}
+.col-12-rev {
+    margin-left: 100%;
 }
 
 /********************
@@ -236,14 +281,16 @@ p {
  * Input
 *********************/
 .input-line {
+    display: block;
     width: 100%;
     height: 20px;
     padding: 3px 6px;
     border: 1px solid #ccc;
     background-color: white;
-    color: #bbbbbb;
+    color: #bbb;
 }
 .input-line:focus {
+    color: #777;
     border-color: #3bafda;
 }
 .medium {
@@ -263,13 +310,15 @@ p {
 /********************
  * Form
 *********************/
-.form-section {
-    margin-bottom: 15px;
+.form-col .label {
+    text-align: right;
 }
-.form-section .input-line {
+.form-inline .input-line {
     display: inline-block;
     vertical-align: middle;
-    margin-bottom: 0px;
+}
+.form-section {
+    margin-bottom: 15px;
 }
 
 
@@ -358,10 +407,11 @@ p {
 /********************
  * label
 *********************/
-.label {
-    padding: 5px;
+.label-black {
+    padding-left: 5px;
+    padding-right: 5px;
     background-color: #777;
-    color: white;
+    color: #fff;
     -webkit-border-radius: 10px;
     -ms-border-radius: 10px;
     -moz-border-radius: 10px;

@@ -62,6 +62,8 @@ $lang['tb_cate_status'] = 'Status';
 $lang['tb_cate_date'] = 'Date';
 $lang['tb_cate_data'] = 'Data';
 $lang['tb_cate_ip'] = 'IP';
+$lang['tb_cate_code'] = 'Code';
+$lang['tb_cate_value'] = 'Value';
 
 $lang['msg_title_notice'] = 'Info';
 $lang['msg_button_yes'] = 'Yes';
@@ -87,5 +89,7 @@ $lang['msg_results_writeenv'] = 'Please write a ENV.';
 $lang['msg_results_writeorderidx'] = 'Please write a priorty index.';
 $lang['msg_results_writeorderidx_num'] = 'You have to write numeric integer with a priorty index.';
 $lang['msg_results_writeorderidx_dup'] = 'You have to write independence priorty index among available status.';
+$lang['msg_results_requestfail'] = 'An error has occured while trying to execute this request.';
+$lang['msg_results_nozero'] = 'You can\'t use zero(0).';
 
 ?>

@@ -127,6 +127,19 @@ article td:first-child {
     margin-bottom: 20px;
 }
 
+.border-logon {
+    border-color: #01C7FD;
+}
+.border-logoff {
+    border-color: #888;
+}
+.color-logon {
+    color: #01C7FD;
+}
+.color-logoff {
+    color: #888;
+}
+
 /*******************
  * <MYINFO>
 ********************/
@@ -136,49 +149,50 @@ article td:first-child {
     padding: 30px;
     background-color: #ECBF41; /*#EDDEC1*/
 }
-
-.myinfo .profileimg {
+#myinfo .profileimg {
     float: left;
     width: 184px;
     height: 184px;
     margin-right: 15px;
-    border: 2px solid #888888;
+    border: 2px solid #888;
 }
-
-.myinfo .name {
+#myinfo .name {
     margin-bottom: 15px;
     background-color: #D95656;
     color: white;
     font-size: 1.9em;
     font-weight: bold;
 }
-
-.myinfo li {
+#myinfo label {
+    margin-right: 10px;
+    line-height: 2.0em;
+}
+#myinfo li {
     line-height: 1.5em;
 }
 
-.myinfo label {
-    margin-right: 10px;
-    font-weight: bold;
-    line-height: 2.0em;
-}
-
-#admin-info .label {
-    margin-right: 10px;
-    font-weight: bold;
-    line-height: 2.0em;
-}
-
+/*******************
+ * <BUY>
+********************/
 #buy-list > .buy-mymoney {
     padding-left: 10px;
-    border-left: 5px solid #777777;
+    border-left: 5px solid #777;
 }
 #buy-list > label {
     font-weight: 600;
 }
 
+/*******************
+ * <ADMIN>
+********************/
 #admin-info {
     display: none;
+}
+#admin-info .input-line,
+#admin-info input[type="radio"],
+#admin-info button[id*="btn_lang"],
+#admin-info button[id*="btn_env"] {
+    margin-left: 15px;
 }
 
 td span {
@@ -258,12 +272,9 @@ td span:last-child {
     width: 120px;
 }
 #admin-itemlist thead th:nth-child(6) {
-    width: 120px;
-}
-#admin-itemlist thead th:nth-child(7) {
     width: 100px;
 }
-#admin-itemlist thead th:nth-child(8) {
+#admin-itemlist thead th:nth-child(7) {
     width: 100px;
 }
 
@@ -277,12 +288,9 @@ td span:last-child {
     width: 80px;
 }
 #admin-itemcglist thead th:nth-child(4) {
-    width: 120px;
-}
-#admin-itemcglist thead th:nth-child(5) {
     width: 100px;
 }
-#admin-itemcglist thead th:nth-child(6) {
+#admin-itemcglist thead th:nth-child(5) {
     width: 100px;
 }
 

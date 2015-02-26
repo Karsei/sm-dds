@@ -91,6 +91,9 @@ function loadList(stype, starget, spage)
 			if (data) {
 				$(starget).html(data);
 			}
+		},
+		error: function(req, status, error) {
+			loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', error);
 		}
 	});
 }
@@ -126,9 +129,21 @@ function doProcess(stype, sdetail, starget, sodata, stdata, spage)
 		success: function(data) {
 			// 다시 목록을 로드
 			loadList(stype, starget, spage);
-			// Json 파싱
-			var jdata = $.parseJSON(data);
-			loadPromptMsg(jdata.title, jdata.msg);
+
+			try {
+				// Json 파싱
+				var jdata = $.parseJSON(data);
+				if (typeof jdata == 'object') {
+					loadPromptMsg(jdata.title, jdata.msg);
+				} else {
+					loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', 'No Object');
+				}
+			} catch (e) {
+				loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', data + '<p>' + e + '</p>');
+			}
+		},
+		error: function(req, status, error) {
+			loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', error);
 		}
 	});
 }
@@ -152,12 +167,23 @@ function loadPromptMsg(title, msg)
 			'msg': msg
 		},
 		success: function(data) {
-			// Json 파싱
-			var jdata = $.parseJSON(data);
-			$.prompt(jdata.msg, {
-				title: jdata.title,
-				buttons: {"O": true}
-			});
+			try {
+				// Json 파싱
+				var jdata = $.parseJSON(data);
+				if (typeof jdata == 'object') {
+					$.prompt(jdata.msg, {
+						title: jdata.title,
+						buttons: {"O": true}
+					});
+				} else {
+					loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', 'No Object');
+				}
+			} catch (e) {
+				loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', data + '<p>' + e + '</p>');
+			}
+		},
+		error: function(req, status, error) {
+			loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', error);
 		}
 	});
 }
@@ -182,17 +208,69 @@ function loadPromptMsg2(title, msg, func)
 			'msg': msg
 		},
 		success: function(data) {
-			// Json 파싱
-			var jdata = $.parseJSON(data);
-			$.prompt(jdata.msg, {
-				title: jdata.title,
-				buttons: {"O": true, "X": false},
-				submit: function (e, v, m, f) {
-					if (v) {
-						func();
-					}
+			try {
+				// Json 파싱
+				var jdata = $.parseJSON(data);
+				if (typeof jdata == 'object') {
+					$.prompt(jdata.msg, {
+						title: jdata.title,
+						buttons: {"O": true, "X": false},
+						submit: function (e, v, m, f) {
+							if (v) {
+								func();
+							}
+						}
+					});
+				} else {
+					loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', 'No Object');
 				}
-			});
+			} catch (e) {
+				loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', data + '<p>' + e + '</p>');
+			}
+		},
+		error: function(req, status, error) {
+			loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', error);
+		}
+	});
+}
+
+/**
+ * 버튼이 하나인 오류 알림창 열기
+ *
+ * @param title				제목
+ * @param msg				일반 메세지
+ * @param errmsg			오류 메세지
+ */
+function loadPromptMsgError(title, msg, errmsg)
+{
+	var controller = 'msg';
+
+	$.ajax({
+		url: base_Url + controller + '/loadPromptMsg',
+		type: 'POST',
+		data: {
+			'dds_t': getCookie('dds_c'), 
+			'title': title,
+			'msg': msg
+		},
+		success: function(data) {
+			try {
+				// Json 파싱
+				var jdata = $.parseJSON(data);
+				if (typeof jdata == 'object') {
+					$.prompt(jdata.msg + '<p>' + errmsg + '</p>', {
+						title: jdata.title,
+						buttons: {"O": true}
+					});
+				} else {
+					console.log('Loaded JSON is not object!');
+				}
+			} catch (e) {
+				console.log('Error Occurred! - Data:' + data + ' / E: ' + e);
+			}
+		},
+		error: function(req, status, error) {
+			console.log('Error Occurred! - ' + data);
 		}
 	});
 }
@@ -216,6 +294,9 @@ function loadTransMsg(msg, getStr)
 		},
 		success: function(data) {
 			getStr(data);
+		},
+		error: function(req, status, error) {
+			loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', error);
 		}
 	});
 }
@@ -224,10 +305,11 @@ function loadTransMsg(msg, getStr)
  * 세부 정보 삽입
  *
  * @param stype				타입 배분
+ * @param sdetail			세부 행동 타입
  * @param starget			대상 목표
  * @param sdata				전송 데이터
  */
-function makeDetInfo(stype, starget, sdata)
+function makeDetInfo(stype, sdetail, starget, sdata)
 {
 	var controller = 'rlist';
 
@@ -240,10 +322,14 @@ function makeDetInfo(stype, starget, sdata)
 		data: {
 			'dds_t': getCookie('dds_c'), 
 			't': stype,
+			'dt': sdetail,
 			'dat': sdata
 		},
 		success: function(data) {
 			$(starget).html(data);
+		},
+		error: function(req, status, error) {
+			loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', error);
 		}
 	});
 }
@@ -271,9 +357,21 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		success: function(data) {
 			// 다시 목록을 로드
 			loadList(stype, starget);
-			// Json 파싱
-			var jdata = $.parseJSON(data);
-			loadPromptMsg(jdata.title, jdata.msg);
+			
+			try {
+				// Json 파싱
+				var jdata = $.parseJSON(data);
+				if (typeof jdata == 'object') {
+					loadPromptMsg(jdata.title, jdata.msg);
+				} else {
+					loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', 'No Object');
+				}
+			} catch (e) {
+				loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', data + '<p>' + e + '</p>');
+			}
+		},
+		error: function(req, status, error) {
+			loadPromptMsgError('msg_title_notice', 'msg_results_requestfail', error);
 		}
 	});
 }
@@ -388,12 +486,12 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		if ($tgType == 'itemlist') {
 			// '아이템 추가'
 			$detTarget.css('display', 'block');
-			makeDetInfo('itemlist-add', '#admin-info');
+			makeDetInfo('itemlist', 'add-item', '#admin-info');
 		}
 		else if ($tgType == 'itemcglist') {
 			// '아이템 종류 추가'
 			$detTarget.css('display', 'block');
-			makeDetInfo('itemcglist-add', '#admin-info');
+			makeDetInfo('itemcglist', 'add-itemcg', '#admin-info');
 		}
 		else {
 			// 세부 페이지 초기화
@@ -453,7 +551,7 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var sType = $(this).attr('data-t'); var sDetail = $(this).attr('data-dt');
 		var ilIdx = $mtable.attr('data-ilidx'); var sPage = $(this).attr('data-p');
 
-		makeDetInfo('itemlist-modify', '#admin-info', ilIdx);
+		makeDetInfo('itemlist', 'modify-item', '#admin-info', ilIdx);
 	});
 	/** '아이템 관리'에서 아이템 정보를 삭제할 때 **/
 	$(document).on('click', '#admin-itemlist .btn_itemdelete', function() {
@@ -475,7 +573,7 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var sType = $(this).attr('data-t'); var sDetail = $(this).attr('data-dt');
 		var icIdx = $mtable.attr('data-icidx'); var sPage = $(this).attr('data-p');
 
-		makeDetInfo('itemcglist-modify', '#admin-info', icIdx);
+		makeDetInfo('itemcglist', 'modify-itemcg', '#admin-info', icIdx);
 	});
 	/** '아이템 종류 관리'에서 아이템 종류 정보를 삭제할 때 **/
 	$(document).on('click', '#admin-itemcglist .btn_itemcgdelete', function() {
@@ -504,14 +602,13 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		// 데이터 처리 번호 파악
 		var prvNum = 0;
 		$prvTarget.each(function() {
-			console.log(prvNum);
 			prvNum = $(this).attr('data-num');
 		});
 
 		// 입력 폼 생성
 		loadTransMsg('btn_langdelete', function(del_output) {
 			coutput += '<div class="addname" data-num="' + (Number(prvNum) + 1) + '">';
-			coutput += '<input name="iladd-langname" class="input-line xx-short" type="text" maxlength="2" placeholder="en" value="" />';
+			coutput += '<input name="iladd-langname" class="input-line xx-short" type="text" maxlength="2" value="" />';
 			coutput += '<input name="iladd-name" class="input-line short" type="text" maxlength="30" />';
 			coutput += '<button id="btn_langdelete" name="iladd-langdelete">';
 			coutput += del_output;
@@ -667,12 +764,11 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var $prvTarget = $('.addname');
 		var prvNum = 0;
 		$prvTarget.each(function() {
-			console.log(prvNum);
 			prvNum = $(this).attr('data-num');
 		});
 		loadTransMsg('btn_langdelete', function(del_output) {
 			coutput += '<div class="addname" data-num="' + (Number(prvNum) + 1) + '">';
-			coutput += '<input name="icadd-langname" class="input-line xx-short" type="text" maxlength="2" placeholder="en" value="" />';
+			coutput += '<input name="icadd-langname" class="input-line xx-short" type="text" maxlength="2" value="" />';
 			coutput += '<input name="icadd-name" class="input-line short" type="text" maxlength="30" />';
 			coutput += '<button id="btn_langdelete" name="icadd-langdelete">';
 			coutput += del_output;

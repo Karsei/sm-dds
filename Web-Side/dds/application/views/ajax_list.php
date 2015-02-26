@@ -172,7 +172,6 @@ for ($i = 0; $i < $pageTotal; $i++)
                                     <th><? echo $langData->line('tb_cate_name'); ?></th>
                                     <th><? echo $langData->line('tb_cate_money'); ?></th>
                                     <th><? echo $langData->line('tb_cate_havtime'); ?></th>
-                                    <th><? echo $langData->line('tb_cate_env'); ?></th>
                                     <th><? echo $langData->line('tb_cate_status'); ?></th>
                                     <th><? echo $langData->line('tb_cate_select'); ?></th>
                                 </tr>
@@ -186,14 +185,13 @@ for ($i = 0; $i < $pageTotal; $i++)
                                     <td><? echo SplitStrByGeoName(GetCodeByLanguage($usrLang), $itemlist['itname']); ?></td>
                                     <td><? echo $itemlist['money']; ?></td>
                                     <td><? echo $itemlist['havtime']; ?></td>
-                                    <td><? echo $itemlist['env']; ?></td>
                                     <td><? echo str_replace(array(0, 1), array($langData->line('admin_list_nouse'), $langData->line('admin_list_use')), $itemlist['status']); ?></td>
                                     <td><span class="btn_itemmodify" data-dt="admin-itemmodify" data-t="<? echo $type; ?>" data-ilidx="<? echo $itemlist['ilidx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_modify'); ?></span><span class="btn_itemdelete" data-dt="admin-itemdelete" data-t="<? echo $type; ?>" data-ilidx="<? echo $itemlist['ilidx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_delete'); ?></span></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
                                 <tr>
-                                    <td colspan="8"><? echo $langData->line('msg_results_none'); ?></td>
+                                    <td colspan="7"><? echo $langData->line('msg_results_none'); ?></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -225,7 +223,6 @@ for ($i = 0; $i < $pageTotal; $i++)
                                     <th><? echo $langData->line('tb_cate_icidx'); ?></th>
                                     <th><? echo $langData->line('tb_cate_name'); ?></th>
                                     <th><? echo $langData->line('tb_cate_orderidx'); ?></th>
-                                    <th><? echo $langData->line('tb_cate_env'); ?></th>
                                     <th><? echo $langData->line('tb_cate_status'); ?></th>
                                     <th><? echo $langData->line('tb_cate_select'); ?></th>
                                 </tr>
@@ -237,14 +234,13 @@ for ($i = 0; $i < $pageTotal; $i++)
                                     <td><? echo $cglist['icidx']; ?></td>
                                     <td><? echo SplitStrByGeoName(GetCodeByLanguage($usrLang), $cglist['gloname']); ?></td>
                                     <td><? echo $cglist['orderidx']; ?></td>
-                                    <td><? echo $cglist['env']; ?></td>
                                     <td><? echo str_replace(array(0, 1), array($langData->line('admin_list_nouse'), $langData->line('admin_list_use')), $cglist['status']); ?></td>
                                     <td><span class="btn_itemcgmodify" data-dt="admin-itemcgmodify" data-t="<? echo $type; ?>" data-icidx="<? echo $cglist['icidx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_modify'); ?></span><span class="btn_itemcgdelete" data-dt="admin-itemcgdelete" data-t="<? echo $type; ?>" data-icidx="<? echo $cglist['icidx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_delete'); ?></span></td>
                                 </tr>
 <? endforeach; ?>
 <? if ($count == 0): ?>
                                 <tr>
-                                    <td colspan="6"><? echo $langData->line('msg_results_none'); ?></td>
+                                    <td colspan="5"><? echo $langData->line('msg_results_none'); ?></td>
                                 </tr>
                             </tbody>
                         </table>

@@ -62,6 +62,8 @@ $lang['tb_cate_status'] = '상태';
 $lang['tb_cate_date'] = '날짜';
 $lang['tb_cate_data'] = '데이터';
 $lang['tb_cate_ip'] = 'IP';
+$lang['tb_cate_code'] = '코드';
+$lang['tb_cate_value'] = '값';
 
 $lang['msg_title_notice'] = '알림';
 $lang['msg_button_yes'] = '예';
@@ -87,5 +89,7 @@ $lang['msg_results_writeenv'] = 'ENV를 입력해주세요.';
 $lang['msg_results_writeorderidx'] = '우선 순위를 입력해주세요.';
 $lang['msg_results_writeorderidx_num'] = '우선 순위에는 숫자만 입력 가능합니다.';
 $lang['msg_results_writeorderidx_dup'] = '활성화된 우선 순위 중에 중복되는 우선순위가 있으면 안됩니다.';
+$lang['msg_results_requestfail'] = '요청을 실행하는 도중 오류가 발생했습니다.';
+$lang['msg_results_nozero'] = '0은 쓸 수 없습니다.';
 
 ?>

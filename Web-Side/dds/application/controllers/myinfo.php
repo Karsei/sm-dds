@@ -54,6 +54,7 @@ class Myinfo extends CI_Controller {
 		$pdata['langData'] = $this->lang;
 
 		// 프로필 정보 로드
+		// https://developer.valvesoftware.com/wiki/Steam_Web_API#GetPlayerSummaries_.28v0002.29
 		// ajax로 하고 싶지만 Access-Control-Allow-Origin 문제 때문에 그냥 서버에서 ㄱ-;
 		$proinfo = $this->auth_m->LoadPlayerProfile($this->session->userdata('auth_id'));
 		

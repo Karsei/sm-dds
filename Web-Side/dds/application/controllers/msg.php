@@ -15,6 +15,12 @@ class Msg extends CI_Controller {
 
 		// 세션 로드
 		$this->load->library('session');
+		$cSess = $this->session;
+		
+		// 로그인 여부
+		if (!$cSess->userdata('auth_id')) {
+			redirect('/auth/login');
+		}
 
 		// 언어 파일 로드
 		$usrLang = $this->session->userdata('lang');

@@ -14,6 +14,7 @@
                     <div id="admin-list">
                     </div>
                 </div>
+
                 <div id="admin-info" class="box">
                 </div>
             </article>

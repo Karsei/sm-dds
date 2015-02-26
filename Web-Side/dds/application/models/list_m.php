@@ -7,6 +7,25 @@ class List_m extends CI_Model {
 		parent::__construct();
 	}
 
+	function GetTotalFormatValue($val)
+	{
+		// '||'를 기준으로 라인 커팅
+		$valList = explode('||', $val);
+
+		// 맨 마지막이 비어있는 경우는 제거
+		if (empty($valList[count($valList) - 1]))
+			array_pop($valList);
+
+		// ':'를 기준으로 값 커팅
+		$setList = array();
+		for ($i = 0; $i < count($valList); $i++) {
+			$tp_set = explode(':', $valList[$i]);
+			array_push($setList, array('name' => $tp_set[0], 'value' => $tp_set[1]));
+		}
+
+		return $setList;
+	}
+
 	function GetList($type, $limitc, $limitidx, $authid, $numcheck = false)
 	{
 		if (strcmp($type, 'inven') == 0)
@@ -152,97 +171,6 @@ class List_m extends CI_Model {
 		}
 	}
 
-	function SetList($type, $oidx, $tidx, $authid)
-	{
-		// 유저 프로필 로드
-		$this->db->where('dds_user_profile.authid', $authid);
-		$q = $this->db->get('dds_user_profile');
-		$usrProfile = $q->result_array();
-
-		$usr_Money = intval($usrProfile[0]['money']);
-		$usr_pInGame = intval($usrProfile[0]['ingame']);
-
-		// 게임 내에 있으면 동작 못하게 처리
-		if ($usr_pInGame == 1)
-		{
-			return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_nogame'));
-		}
-
-		// 행동 구분
-		if (strcmp($type, 'item-apply') == 0)
-		{
-			// 우선 해당 아이템과 같은 종류의 장착 아이템을 모두 장착 해제 시킨다.
-			$qready = "UPDATE `dds_user_item` LEFT JOIN `dds_item_list` ON `dds_user_item`.`ilidx` = `dds_item_list`.`ilidx` SET `dds_user_item`.`aplied` = '0' WHERE `dds_user_item`.`authid` = '" . $authid . "' AND `dds_item_list`.`icidx` = '" . $tidx . "' AND `dds_user_item`.`aplied` = '1'";
-			$this->db->query($qready);
-
-			// 그리고 장착 처리
-			$qready = "UPDATE `dds_user_item` SET `dds_user_item`.`aplied` = '1' WHERE `dds_user_item`.`authid` = '" . $authid . "' AND `dds_user_item`.`idx` = '" . $oidx . "'";
-			$this->db->query($qready);
-		}
-		else if (strcmp($type, 'item-applycancel') == 0)
-		{
-			// 그리고 장착해제 처리
-			$qready = "UPDATE `dds_user_item` SET `dds_user_item`.`aplied` = '0' WHERE `dds_user_item`.`authid` = '" . $authid . "' AND `dds_user_item`.`idx` = '" . $oidx . "'";
-			$this->db->query($qready);
-		}
-		else if (strcmp($type, 'item-drop') == 0)
-		{
-			$setdata = array(
-				'dds_user_item.authid' => $authid,
-				'dds_user_item.idx' => $oidx // 아이템 번호가 아닌 데이터베이스 번호(간.소.화)
-			);
-			$this->db->where($setdata);
-			$this->db->delete('dds_user_item');
-		}
-		else if (strcmp($type, 'item-buy') == 0)
-		{
-			// 우선 아이템 금액 확인 후 금액 조건 확인
-			$this->db->select('dds_item_list.ilidx, dds_item_list.money, dds_item_list.gloname AS ilname');
-			$this->db->where('dds_item_list.ilidx', $oidx);
-			$sq = $this->db->get('dds_item_list');
-			$sqc = $sq->result_array();
-			if (intval($sqc[0]['money']) > $usr_Money)
-			{
-				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_moneymore'));
-			}
-
-			// 금액 감산 처리
-			$qready = "UPDATE `dds_user_profile` SET `dds_user_profile`.`money` = `dds_user_profile`.`money` - " . $sqc[0]['money'] . " WHERE `dds_user_profile`.`authid` = '" . $authid . "'";
-			$this->db->query($qready);
-
-			// 조건이 된다면 구매 처리
-			$setdata = array(
-				'dds_user_item.authid' => $authid,
-				'dds_user_item.ilidx' => $oidx,
-				'dds_user_item.buydate' => time()
-			);
-			$this->db->set($setdata);
-			$this->db->insert('dds_user_item');
-		}
-		else if (strcmp($type, 'admin-usrmodify') == 0)
-		{
-			$qready = "UPDATE `dds_user_profile` SET `dds_user_profile`.`money` = '" . $tidx . "' WHERE `dds_user_profile`.`idx` = '" . $oidx . "'";
-			$this->db->query($qready);
-		}
-		else if (strcmp($type, 'admin-itemdelete') == 0)
-		{
-			$setdata = array(
-				'dds_item_list.ilidx' => $oidx
-			);
-			$this->db->where($setdata);
-			$this->db->delete('dds_item_list');
-		}
-		else if (strcmp($type, 'admin-itemcgdelete') == 0)
-		{
-			$setdata = array(
-				'dds_item_category.icidx' => $oidx
-			);
-			$this->db->where($setdata);
-			$this->db->delete('dds_item_category');
-		}
-		return json_encode(array('result' => true, 'title' => 'msg_title_notice', 'msg' => 'msg_results_success'));
-	}
-
 	function SetDetInfo($type, $data)
 	{
 		if (strcmp($type, 'additem') == 0)
@@ -259,6 +187,9 @@ class List_m extends CI_Model {
 			}
 			if (!is_numeric($il_code)) {
 				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writecgcode_num'));
+			}
+			if (intval($il_code) == 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_nozero'));
 			}
 			if (strlen($il_name) <= 0) {
 				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writename'));
@@ -347,6 +278,9 @@ class List_m extends CI_Model {
 			if (!is_numeric($il_code)) {
 				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writecgcode_num'));
 			}
+			if (intval($il_code) == 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_nozero'));
+			}
 			if (strlen($il_name) <= 0) {
 				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writename'));
 			}
@@ -394,6 +328,7 @@ class List_m extends CI_Model {
 			$this->db->where($setwhere);
 			$chk = $this->db->get('dds_item_category');
 			$chkC = $chk->num_rows();
+			$chkQ = $chk->result_array();
 
 			if (strlen($ic_name) <= 0) {
 				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writename'));
@@ -404,7 +339,7 @@ class List_m extends CI_Model {
 			if (!is_numeric($ic_orderidx)) {
 				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeorderidx_num'));
 			}
-			if ($chkC >= 1) {
+			if (($chkC >= 1 ) && $chkQ[0]['orderidx'] != $ic_orderidx) {
 				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeorderidx_dup'));
 			}
 			if (strlen($ic_env) <= 0) {
