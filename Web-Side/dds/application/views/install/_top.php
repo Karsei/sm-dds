@@ -1,3 +1,11 @@
+<!--
+
+ Dynamic Dollar Shop
+
+ Developed by. Karsei (http://karsei.pe.kr)
+ Copyright (c) 2012-2015 Karsei All Rights Reserved.
+
+-->
 <!DOCTYPE html>
 <html>
     <head>
