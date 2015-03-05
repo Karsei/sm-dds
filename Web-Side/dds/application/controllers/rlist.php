@@ -281,8 +281,8 @@ class Rlist extends CI_Controller {
 			// 불러온 값 적용
 			if ($qcount > 0)
 			{
-				foreach ($qc as $e_name => $e_value) {
-					array_push($rst_env, array('name' => $e_name, 'value' => $e_value));
+				for ($i = 0; $i < $qcount; $i++) {
+					array_push($rst_env, array('name' => $qc[$i]['twocate'], 'value' => (empty($qc[$i]['setdata'])) ? '' : $qc[$i]['setdata']));
 				}
 			}
 		}
@@ -306,8 +306,8 @@ class Rlist extends CI_Controller {
 			// 불러온 값 적용
 			if ($qcount > 0)
 			{
-				foreach ($qc as $e_name => $e_value) {
-					array_push($rst_env, array('name' => $e_name, 'value' => $e_value));
+				for ($i = 0; $i < $qcount; $i++) {
+					array_push($rst_env, array('name' => $qc[$i]['twocate'], 'value' => (empty($qc[$i]['setdata'])) ? '' : $qc[$i]['setdata']));
 				}
 			}
 		}
@@ -690,11 +690,11 @@ class Rlist extends CI_Controller {
 			$rval .= '<div class="col-10">';
 
 			// 값
-			$rval .= '<input name="envadd-twocate" class="input-line x-short" type="text" maxlength="64" value="' . $rst_twocate . '"/>';
+			$rval .= '<input name="envadd-twocate" class="input-line short" type="text" maxlength="64" value="' . $rst_twocate . '"/>';
 			$rval .= '</div></div>';
 
 
-			/** ENV 이름 **/
+			/** ENV 값 **/
 			$rval .= '<div class="form-section">';
 
 			// 라벨
@@ -702,7 +702,7 @@ class Rlist extends CI_Controller {
 			$rval .= '<div class="col-10">';
 
 			// 값
-			$rval .= '<input name="envadd-setdata" class="input-line x-short" type="text" maxlength="128" value="' . $rst_setdata . '"/>';
+			$rval .= '<input name="envadd-setdata" class="input-line medium" type="text" maxlength="128" value="' . $rst_setdata . '"/>';
 			$rval .= '</div></div>';
 
 
@@ -714,7 +714,7 @@ class Rlist extends CI_Controller {
 			$rval .= '<div class="col-10">';
 
 			// 값
-			$rval .= '<input name="envadd-desc" class="input-line x-short" type="text" maxlength="256" value="' . $rst_desc . '"/>';
+			$rval .= '<input name="envadd-desc" class="input-line medium" type="text" maxlength="256" value="' . $rst_desc . '"/>';
 			$rval .= '</div></div>';
 
 			/** 버튼 삽입! **/

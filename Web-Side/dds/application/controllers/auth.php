@@ -76,9 +76,13 @@ class Auth extends CI_Controller {
 	public function login()
 	{
 		// 로그인되어 있으면 기본 화면으로 리다이렉트
-		if ($this->session->userdata('auth_id') && $this->session->userdata('inauth')) {
+		if ($this->session->userdata('auth_id') && (strcmp($this->session->userdata('inauth'), 'yes') == 0)) {
 			redirect('/home/');
 		}
+
+		// 등록이 안되어 있을 때
+		if (strcmp($this->session->userdata('inauth'), 'no') == 0)
+			echo '<script>alert("서버에 등록된 사용자가 아닙니다.");</script>';
 
 		// 로그인 페이지
 		$data['setform'] = $this->auth_m->MakeSignin();

@@ -82,7 +82,7 @@ function GetTotalFormatValue($val)
 	$setList = array();
 	for ($i = 0; $i < count($valList); $i++) {
 		$tp_set = explode(':', $valList[$i]);
-		array_push($setList, array('name' => $tp_set[0], 'value' => $tp_set[1]));
+		array_push($setList, array('name' => $tp_set[0], 'value' => (isset($tp_set[1])) ? $tp_set[1] : ''));
 	}
 
 	return $setList;

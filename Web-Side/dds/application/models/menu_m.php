@@ -33,26 +33,27 @@ class Menu_m extends CI_Model {
 		$rval = '';
 
 		// UCM을 통해 관리 권한이 있는지 확인
-		$this->db->select('ucm_user_profile.idx, ucm_class_list.authid, ucm_class_list.env');
+		$this->db->select('ucm_user_profile.idx, ucm_class_list.env');
 		$this->db->join('ucm_class_list', 'ucm_user_profile.clidx = ucm_class_list.clidx', 'left');
 		$this->db->where('ucm_user_profile.authid', $authid);
 		$q = $this->db->get('ucm_user_profile');
 		$qc = $q->result_array();
+		$qCount = $q->num_rows();
 
 		// 관리자 ENV 찾기
-		$qEnv = GetTotalFormatValue($qc[0]['env']);
+		$qEnv = ($qCount > 0) ? GetTotalFormatValue($qc[0]['env']) : GetTotalFormatValue('ENV_DDS_ACCESS_WEB_MANAGE:0');
 		$qwVal = 0;
-		foreach ($qEnv as $wName => $wVal)
+		for ($i = 0; $i < count($qEnv); $i++)
 		{
-			if (strcmp($wName, 'ENV_DDS_ACCESS_WEB_MANAGE') == 0) {
-				$qwVal = intval($wVal);
+			if (strcmp($qEnv[$i]['name'], 'ENV_DDS_ACCESS_WEB_MANAGE') == 0) {
+				$qwVal = intval($qEnv[$i]['value']);
 				break;
 			}
 		}
 
 		for ($i = 0; $i < count($this->GetMenu()); $i++) {
 			// 관리자용 처리
-			if (($this->GetMenu()[$i][2] > $qwVal) && ($this->GetMenu()[$i][2] == 1))	continue;
+			if (($this->GetMenu()[$i][3] > $qwVal) && ($this->GetMenu()[$i][3] == 1))	continue;
 
 			// 클래스 처리
 			$classSet = '';

@@ -35,9 +35,9 @@ class Auth_m extends CI_Model {
 	function VerifyServerPlayer($authid)
 	{
 		$this->db->select('dds_user_profile.idx, dds_user_profile.authid, dds_user_profile.nickname');
-		$this->db->where('dds_user_profile.authid', $authid));
+		$this->db->where('dds_user_profile.authid', $authid);
 		$q = $this->db->get('dds_user_profile');
-		return ($q->num_rows() > 0) ? true : false;
+		return ($q->num_rows() > 0) ? 'yes' : 'no';
 	}
 }
 
