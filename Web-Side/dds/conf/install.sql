@@ -16,6 +16,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 CREATE TABLE IF NOT EXISTS `dds_user_profile` (
 	`idx` INT(16) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`authid` VARCHAR(20) NOT NULL,
+	`nickname` VARCHAR(32) NOT NULL DEFAULT '',
 	`money` INT(16) UNSIGNED NOT NULL DEFAULT '0',
 	`ingame` TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
 	`refdata` VARCHAR(256) NOT NULL DEFAULT '',
@@ -75,7 +76,8 @@ CREATE TABLE IF NOT EXISTS `dds_env_list` (
 	`idx` INT(32) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`onecate` VARCHAR(20) NOT NULL,
 	`twocate` VARCHAR(64) NOT NULL,
-	`setdata` VARCHAR(256) NOT NULL DEFAULT '',
+	`setdata` VARCHAR(128) NOT NULL DEFAULT '',
+	`desc` TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (`idx`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
@@ -84,15 +86,22 @@ CREATE TABLE IF NOT EXISTS `dds_env_list` (
  * [Nid Table Records to Game Databases]
 ************************/
 /** ENV LIST **/
-INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`) VALUES (NULL, 'item', 'ENV_DDS_SYS_GAME', 'cstrike');
-INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`) VALUES (NULL, 'item', 'ENV_DDS_PROPERTY_ADRS', '');
-INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`) VALUES (NULL, 'item', 'ENV_DDS_PROPERTY_POS', '0 0 0');
-INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`) VALUES (NULL, 'item', 'ENV_DDS_PROPERTY_ANG', '0 0 0');
-INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`) VALUES (NULL, 'item', 'ENV_DDS_PROPERTY_COLOR', '0 0 0 0');
-
-INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`) VALUES (NULL, 'itemcategory', 'ENV_DDS_SYS_GAME', 'cstrike');
-INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`) VALUES (NULL, 'itemcategory', 'ENV_DDS_ACCESS_CLASS', 'all');
-INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`) VALUES (NULL, 'itemcategory', 'ENV_DDS_USE_MONEY', '1');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_SYS_GAME', 'all', '아이템이 적용될 게임 이름을 적습니다. 게임 이름은 서버의 SRCDS 실행 파일이 있는 게임 폴더의 이름으로 결정됩니다. 모두 적용하려면 [all]을 적어주시고, 따로 적용하시려면 ,(콤마)로 구분해서 적어주세요. 전부 허용을 안한다면 [none]을 적어주세요. 기본값은 [all]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_INFO_ADRS', '', '아이템을 사용하는데 있어 필요한 파일을 적습니다. 예를 들어 플러그인에서 모델을 로드할 때 본 ENV 설정값을 로드하여 적용하듯이 활용하시면 됩니다. 기본값은 빈칸으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_INFO_POS', '0 0 0', '아이템을 사용하는데 있어 필요한 위치 정보를 적습니다. 빈칸을 구분으로 x, y, z정보를 적어주시면 됩니다. 기본값은 [0 0 0]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_INFO_ANG', '0 0 0', '아이템을 사용하는데 있어 필요한 각도 정보를 적습니다. 빈칸을 구분으로 3구간으로 나눠 적어주시면 됩니다. 기본값은 [0 0 0]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_INFO_COLOR', '0 0 0 0', '아이템을 사용하는데 있어 필요한 색깔 정보를 적습니다. 빈칸을 구분으로 R, G, B, A정보를 적어주시면 됩니다. 기본값은 [0 0 0 0]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_INFO_TAGSTR', '', '아이템을 사용하는데 있어 태그 문자열을 적습니다. 태그와 관련된 아이템을 만드실 경우 플러그인에서 본 ENV 설정값을 로드하여 적용하시면 됩니다. 기본값은 빈칸으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_INFO_FREETAG', '0', '아이템을 사용하는데 있어 자유형 태그인지를 적습니다. 태그와 관련된 아이템을 만드실 경우 플러그인에서 본 ENV 설정값을 로드하여 적용하시면 됩니다. 활성화를 하려면 [1]을 적어주시면 됩니다. 기본값은 [0]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_LIMIT_BUY_CLASS', 'all', '아이템을 구매하는데 있어 허용할 등급 번호를 적습니다. 모두 적용하려면 [all]을 적어주시고, 따로 적용하사려면 ,(콤마)로 구분해서 적어주세요. 전부 허용을 안한다면 [none]을 적어주세요. 기본값은 [all]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_LIMIT_USE_CLASS', 'all', '아이템을 이용/장착하는데 있어 허용할 등급 번호를 적습니다. 모두 적용하려면 [all]을 적어주시고, 따로 적용하사려면 ,(콤마)로 구분해서 적어주세요. 전부 허용을 안한다면 [none]을 적어주세요. 기본값은 [all]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_LIMIT_SHOW_LIST_CLASS', 'all', '아이템의 목록 출력이 보여질 등급 번호를 적습니다. 모두 적용하려면 [all]을 적어주시고, 따로 적용하사려면 ,(콤마)로 구분해서 적어주세요. 전부 허용을 안한다면 [none]을 적어주세요. 기본값은 [all]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item', 'ENV_DDS_USE_TEAM', '2,3', '아이템을 사용할 때 적용될 팀의 번호를 적습니다. 모두 적용하려면 [all]을 적어주시고, 따로 적용하사려면 ,(콤마)로 구분해서 적어주세요. 전부 허용을 안한다면 [none]을 적어주세요. 기본값은 [2,3]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item-category', 'ENV_DDS_SYS_GAME', 'all', '아이템이 적용될 게임 이름을 적습니다. 게임 이름은 서버의 SRCDS 실행 파일이 있는 게임 폴더의 이름으로 결정됩니다. 모두 적용하려면 all을 적어주시고, 따로 적용하시려면 ,(콤마)로 구분해서 적어주세요.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item-category', 'ENV_DDS_LIMIT_BUY_CLASS', 'all', '아이템 종류 내의 아이템을 구매하는데 있어 허용할 등급 번호를 적습니다. 모두 적용하려면 [all]을 적어주시고, 따로 적용하사려면 ,(콤마)로 구분해서 적어주세요. 전부 허용을 안한다면 [none]을 적어주세요. 기본값은 [all]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item-category', 'ENV_DDS_LIMIT_USE_CLASS', 'all', '아이템 종류 내의 아이템을 이용/장착하는데 있어 허용할 등급 번호를 적습니다. 모두 적용하려면 [all]을 적어주시고, 따로 적용하사려면 ,(콤마)로 구분해서 적어주세요. 전부 허용을 안한다면 [none]을 적어주세요. 기본값은 [all]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item-category', 'ENV_DDS_LIMIT_SHOW_LIST_CLASS', 'all', '아이템 종류 내의 아이템의 목록 출력이 보여질 등급 번호를 적습니다. 모두 적용하려면 [all]을 적어주시고, 따로 적용하사려면 ,(콤마)로 구분해서 적어주세요. 전부 허용을 안한다면 [none]을 적어주세요. 기본값은 [all]으로 정해져 있습니다.');
+INSERT INTO `dds_env_list` (`idx`, `onecate`, `twocate`, `setdata`, `desc`) VALUES (NULL, 'item-category', 'ENV_DDS_USE_TEAM', '2,3', '아이템 종류 내의 아이템을 사용할 때 적용될 팀의 번호를 적습니다. 모두 적용하려면 [all]을 적어주시고, 따로 적용하사려면 ,(콤마)로 구분해서 적어주세요. 전부 허용을 안한다면 [none]을 적어주세요. 기본값은 [2,3]으로 정해져 있습니다.');
 
 
 /** Apply Env List to Item and Item Category **/

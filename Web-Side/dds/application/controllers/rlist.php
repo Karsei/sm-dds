@@ -14,7 +14,7 @@ class Rlist extends CI_Controller {
 		$cSess = $this->session;
 		
 		// 로그인 여부
-		if (!$cSess->userdata('auth_id')) {
+		if (!$cSess->userdata('auth_id') || !$cSess->userdata('inauth')) {
 			redirect('/auth/login');
 		}
 
@@ -44,6 +44,7 @@ class Rlist extends CI_Controller {
 		 * 기타 필요 정보 삽입
 		*********************************************/
 		$data['usrprofile'] = $this->list_m->GetProfile($data['authid']);
+		$data['nid'] = $this->list_m;
 
 		/********************************************
 		 * 페이지 조정
@@ -219,6 +220,19 @@ class Rlist extends CI_Controller {
 			$this->db->where($setdata);
 			$this->db->delete('dds_item_category');
 		}
+		else if (strcmp($type, 'admin-envdelete') == 0)
+		{
+			/**********************************************
+			 *
+			 * [ENV 관리 - ENV 삭제]
+			 *
+			***********************************************/
+			$setdata = array(
+				'dds_env_list.idx' => $odata
+			);
+			$this->db->where($setdata);
+			$this->db->delete('dds_env_list');
+		}
 		echo json_encode(array('result' => true, 'title' => 'msg_title_notice', 'msg' => 'msg_results_success'));
 	}
 
@@ -239,8 +253,12 @@ class Rlist extends CI_Controller {
 		$rst_money = 0;
 		$rst_havtime = 0;
 		$rst_orderidx = 0;
-		$rst_env = array(array('name' => '', 'value' => ''));
+		$rst_env = array();
 		$rst_status = 1;
+		$rst_onecate = '';
+		$rst_twocate = '';
+		$rst_setdata = '';
+		$rst_desc = '';
 
 		// 세부 행동 설정시 행동별 값 설정 처리
 		if (strcmp($detail, 'add-item') == 0)
@@ -252,6 +270,21 @@ class Rlist extends CI_Controller {
 			***********************************/
 			// 제목 설정
 			$rst_title = $this->lang->line('admin_itemlist_add');
+
+			// 등록된 기본 ENV 목록 로드
+			$this->db->select('dds_env_list.twocate, dds_env_list.setdata, dds_env_list.desc');
+			$this->db->where('dds_env_list.onecate', 'item');
+			$q = $this->db->get('dds_env_list');
+			$qc = $q->result_array();
+			$qcount = $q->num_rows();
+
+			// 불러온 값 적용
+			if ($qcount > 0)
+			{
+				foreach ($qc as $e_name => $e_value) {
+					array_push($rst_env, array('name' => $e_name, 'value' => $e_value));
+				}
+			}
 		}
 		else if (strcmp($detail, 'add-itemcg') == 0)
 		{
@@ -262,6 +295,31 @@ class Rlist extends CI_Controller {
 			***********************************/
 			// 제목 설정
 			$rst_title = $this->lang->line('admin_itemcglist_add');
+
+			// 등록된 기본 ENV 목록 로드
+			$this->db->select('dds_env_list.twocate, dds_env_list.setdata, dds_env_list.desc');
+			$this->db->where('dds_env_list.onecate', 'item-category');
+			$q = $this->db->get('dds_env_list');
+			$qc = $q->result_array();
+			$qcount = $q->num_rows();
+
+			// 불러온 값 적용
+			if ($qcount > 0)
+			{
+				foreach ($qc as $e_name => $e_value) {
+					array_push($rst_env, array('name' => $e_name, 'value' => $e_value));
+				}
+			}
+		}
+		else if (strcmp($detail, 'add-env') == 0)
+		{
+			/***********************************
+			 *
+			 * ENV 추가
+			 *
+			***********************************/
+			// 제목 설정
+			$rst_title = $this->lang->line('admin_envlist_add');
 		}
 		else if (strcmp($detail, 'modify-item') == 0)
 		{
@@ -284,10 +342,10 @@ class Rlist extends CI_Controller {
 			if ($qcount > 0)
 			{
 				$rst_idx = $qc[0]['icidx'];
-				$rst_name = $this->list_m->GetTotalFormatValue($qc[0]['gloname']);
+				$rst_name = GetTotalFormatValue($qc[0]['gloname']);
 				$rst_money = $qc[0]['money'];
 				$rst_havtime = $qc[0]['havtime'];
-				$rst_env = $this->list_m->GetTotalFormatValue($qc[0]['env']);
+				$rst_env = GetTotalFormatValue($qc[0]['env']);
 				$rst_status = intval($qc[0]['status']);
 			}
 		}
@@ -311,10 +369,37 @@ class Rlist extends CI_Controller {
 			// 불러온 값 적용
 			if ($qcount > 0)
 			{
-				$rst_name = $this->list_m->GetTotalFormatValue($qc[0]['gloname']);
+				$rst_name = GetTotalFormatValue($qc[0]['gloname']);
 				$rst_orderidx = $qc[0]['orderidx'];
-				$rst_env = $this->list_m->GetTotalFormatValue($qc[0]['env']);
+				$rst_env = GetTotalFormatValue($qc[0]['env']);
 				$rst_status = intval($qc[0]['status']);
+			}
+		}
+		else if (strcmp($detail, 'modify-env') == 0)
+		{
+			/***********************************
+			 *
+			 * 아이템 수정
+			 *
+			***********************************/
+			// 데이터베이스 로드
+			$this->db->select('dds_env_list.idx, dds_env_list.onecate, dds_env_list.twocate, dds_env_list.setdata, dds_env_list.desc');
+			$this->db->where('dds_env_list.idx', $dat);
+			$q = $this->db->get('dds_env_list');
+			$qc = $q->result_array();
+			$qcount = $q->num_rows();
+
+			// 제목 설정
+			$rst_title = $this->lang->line('admin_envlist_modify');
+
+			// 불러온 값 적용
+			if ($qcount > 0)
+			{
+				$rst_idx = $qc[0]['idx'];
+				$rst_onecate = $qc[0]['onecate'];
+				$rst_twocate = $qc[0]['twocate'];
+				$rst_setdata = $qc[0]['setdata'];
+				$rst_desc = $qc[0]['desc'];
 			}
 		}
 
@@ -566,6 +651,79 @@ class Rlist extends CI_Controller {
 			}
 			else {
 				$rval .= '<button id="btn_additemcg" class=".col-2-rev">' . $this->lang->line('btn_create') . '</button>';
+			}
+
+			$rval .= '</div>';
+		}
+		else if (strcmp($type, 'envlist') == 0)
+		{
+			/***********************************
+			 *
+			 * ENV 관리
+			 *
+			***********************************/
+			/** 제목 **/
+			$rval .= '<div class="box-title"><h1>' . $rst_title . '</h1></div>';
+
+
+			/** 비율형 섹션 생성 **/
+			$rval .= '<div class="form-col">';
+
+
+			/** ENV 종류 **/
+			$rval .= '<div class="form-section">';
+
+			// 라벨
+			$rval .= '<label class="label col-2">' . $this->lang->line('tb_cate_category') . '</label>';
+			$rval .= '<div class="col-10">';
+
+			// 값
+			$rval .= '<input name="envadd-onecate" class="input-line x-short" type="text" maxlength="20" value="' . $rst_onecate . '"/>';
+			$rval .= '</div></div>';
+
+
+			/** ENV 이름 **/
+			$rval .= '<div class="form-section">';
+
+			// 라벨
+			$rval .= '<label class="label col-2">' . $this->lang->line('tb_cate_name') . '</label>';
+			$rval .= '<div class="col-10">';
+
+			// 값
+			$rval .= '<input name="envadd-twocate" class="input-line x-short" type="text" maxlength="64" value="' . $rst_twocate . '"/>';
+			$rval .= '</div></div>';
+
+
+			/** ENV 이름 **/
+			$rval .= '<div class="form-section">';
+
+			// 라벨
+			$rval .= '<label class="label col-2">' . $this->lang->line('tb_cate_value') . '</label>';
+			$rval .= '<div class="col-10">';
+
+			// 값
+			$rval .= '<input name="envadd-setdata" class="input-line x-short" type="text" maxlength="128" value="' . $rst_setdata . '"/>';
+			$rval .= '</div></div>';
+
+
+			/** ENV 설명 **/
+			$rval .= '<div class="form-section">';
+
+			// 라벨
+			$rval .= '<label class="label col-2">' . $this->lang->line('tb_cate_desc') . '</label>';
+			$rval .= '<div class="col-10">';
+
+			// 값
+			$rval .= '<input name="envadd-desc" class="input-line x-short" type="text" maxlength="256" value="' . $rst_desc . '"/>';
+			$rval .= '</div></div>';
+
+			/** 버튼 삽입! **/
+			if (strcmp($detail, 'modify-env') == 0) {
+				$rval .= '<input type="hidden" name="envadd-hidden" value="' . $dat . '" />';
+				$rval .= '<button id="btn_modifyenv" class=".col-2-rev">' . $this->lang->line('btn_modify') . '</button>';
+			}
+			else {
+				$rval .= '<button id="btn_addenv" class=".col-2-rev">' . $this->lang->line('btn_create') . '</button>';
 			}
 
 			$rval .= '</div>';

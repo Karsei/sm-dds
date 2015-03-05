@@ -22,7 +22,7 @@
 #include <dds>
 
 #define DDS_ADD_NAME			"Dynamic Dollar Shop :: [Module] Tag"
-#define DDS_ITEMCG_TAG_ID		
+#define DDS_ITEMCG_TAG_ID		6
 
 /*******************************************************
  * V A R I A B L E S

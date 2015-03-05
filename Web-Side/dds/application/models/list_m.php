@@ -7,25 +7,6 @@ class List_m extends CI_Model {
 		parent::__construct();
 	}
 
-	function GetTotalFormatValue($val)
-	{
-		// '||'를 기준으로 라인 커팅
-		$valList = explode('||', $val);
-
-		// 맨 마지막이 비어있는 경우는 제거
-		if (empty($valList[count($valList) - 1]))
-			array_pop($valList);
-
-		// ':'를 기준으로 값 커팅
-		$setList = array();
-		for ($i = 0; $i < count($valList); $i++) {
-			$tp_set = explode(':', $valList[$i]);
-			array_push($setList, array('name' => $tp_set[0], 'value' => $tp_set[1]));
-		}
-
-		return $setList;
-	}
-
 	function GetList($type, $limitc, $limitidx, $authid, $numcheck = false)
 	{
 		if (strcmp($type, 'inven') == 0)
@@ -140,6 +121,28 @@ class List_m extends CI_Model {
 			// Limit 거꾸로임 ㄱ-
 			if (!$numcheck)	$this->db->limit($limitidx, $limitc);
 			$q = $this->db->get('dds_item_category');
+
+			// 갯수 파악 또는 결과
+			if ($numcheck)
+				return $q->num_rows();
+			else
+				return $q->result_array();
+		}
+		else if (strcmp($type, 'envlist') == 0)
+		{
+			/*********************************************
+			 * [ENV 관리 - 목록]
+			 * 후에 총 5개 필드
+			**********************************************/
+			/*
+			SELECT * 
+			FROM `dds_env_list` 
+			ORDER BY `idx` DESC;
+			*/
+			$this->db->order_by('idx', 'DESC');
+			// Limit 거꾸로임 ㄱ-
+			if (!$numcheck)	$this->db->limit($limitidx, $limitc);
+			$q = $this->db->get('dds_env_list');
 
 			// 갯수 파악 또는 결과
 			if ($numcheck)
@@ -355,6 +358,46 @@ class List_m extends CI_Model {
 			$this->db->set($setdata);
 			$this->db->where('dds_item_category.icidx', $ic_hidden);
 			$this->db->update('dds_item_category');
+		}
+		else if (strcmp($type, 'modifyenv') == 0)
+		{
+			$env_onecate = $data[0];
+			$env_twocate = $data[1];
+			$env_setdata = $data[2];
+			$env_desc = $data[3];
+			$env_hidden = $data[4];
+
+			// 이름 겹치는지 확인
+			$setwhere = array(
+				'dds_env_list.twocate' => $env_twocate
+			);
+			$this->db->where($setwhere);
+			$chk = $this->db->get('dds_env_list');
+			$chkC = $chk->num_rows();
+			$chkQ = $chk->result_array();
+
+			if (strlen($env_onecate) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv_category'));
+			}
+			if (strlen($env_twocate) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv_name'));
+			}
+			if (($chkC >= 1 ) && (strcmp($chkQ[0]['twocate'], $env_twocate) != 0)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv_name_dup'));
+			}
+			if (strlen($env_setdata) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv_value'));
+			}
+
+			$setdata = array(
+				'dds_env_list.onecate' => $env_onecate,
+				'dds_env_list.twocate' => $env_twocate,
+				'dds_env_list.setdata' => $env_setdata,
+				'dds_env_list.desc' => $env_desc
+			);
+			$this->db->set($setdata);
+			$this->db->where('dds_env_list.idx', $env_hidden);
+			$this->db->update('dds_env_list');
 		}
 
 		return json_encode(array('result' => true, 'title' => 'msg_title_notice', 'msg' => 'msg_results_success'));

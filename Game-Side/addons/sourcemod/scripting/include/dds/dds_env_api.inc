@@ -33,6 +33,8 @@ enum DataProcess
 	DataProc_MONEYUP,				// 금액 증가
 	DataProc_MONEYDOWN,				// 금액 감소
 	DataProc_MONEYGIFT,				// 금액 선물
+	DataProc_MONEYGIVE,				// 금액 주기
+	DataProc_MONEYTAKEAWAY,			// 금액 뺏기
 	DataProc_ITEMGIFT,				// 아이템 선물
 	DataProc_ITEMGIVE,				// 아이템 주기
 	DataProc_ITEMTAKEAWAY,			// 아이템 뺏기

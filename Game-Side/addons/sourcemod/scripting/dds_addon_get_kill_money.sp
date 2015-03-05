@@ -138,6 +138,10 @@ public Action Event_OnPlayerDeath(Event event, const char[] name, bool dontBroad
 	else if (GetClientTeam(victim) == 3)
 		iRanMoney = GetRandomInt(dds_hCV_MoneyKillBlueMin.IntValue, dds_hCV_MoneyKillBlueMax.IntValue);
 
+	// 금액 설정
+	DDS_SetClientMoney(attacker, DataProc_MONEYUP, iRanMoney);
+
+	// 채팅창 출력
 	DDS_PrintToChat(attacker, "%t", "system get money kill msg", sVicName, iRanMoney, "global money");
 
 	return Plugin_Continue;

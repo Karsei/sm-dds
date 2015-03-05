@@ -267,6 +267,11 @@ public void OnClientDisconnect(int client)
 	char sUsrAuthId[20];
 	GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
 
+	// 클라이언트 이름 추출 후 필터링
+	char sUsrName[32];
+	GetClientName(client, sUsrName, sizeof(sUsrName));
+	SetPreventSQLInject(sUsrName, sUsrName, sizeof(sUsrName));
+
 	// 오류 검출 생성
 	ArrayList hMakeErr = CreateArray(8);
 	hMakeErr.Push(client);
@@ -275,7 +280,7 @@ public void OnClientDisconnect(int client)
 	// 유저 정보 갱신
 	char sSendQuery[256];
 
-	Format(sSendQuery, sizeof(sSendQuery), "UPDATE `dds_user_profile` SET `ingame` = '0' WHERE `authid` = '%s'", sUsrAuthId);
+	Format(sSendQuery, sizeof(sSendQuery), "UPDATE `dds_user_profile` SET `nickname` = '%s', `ingame` = '0' WHERE `authid` = '%s'", sUsrName, sUsrAuthId);
 	dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
 
 	// 유저 데이터 초기화
@@ -504,6 +509,8 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 	 * 'money-up' - 금액 증가
 	 * 'money-down' - 금액 감소
 	 * 'money-gift' - 금액 선물
+	 * 'money-give' - 금액 주기
+	 * 'money-takeaway' - 금액 뺏기
 	 *
 	 * 'item-gift' - 아이템 선물('inven-gift'와 함께 사용)
 	 * 'item-give' - 아이템 주기
@@ -539,7 +546,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		/** 환경 변수 확인(아이템 종류단) **/
 		/* 접근 관련 */
-		SelectedStuffToString(dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][ENV], "ENV_DDS_ACCESS_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		SelectedStuffToString(dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][ENV], "ENV_DDS_LIMIT_BUY_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
 		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
 		{
 			DDS_PrintToChat(client, "%t", "error access");
@@ -547,6 +554,9 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		}
 		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
 		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
 			// 허용 등급 추출
 			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
 			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
@@ -574,10 +584,45 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 			}
 		}
 
-		/* 금액 사용 관련 */
-		SelectedStuffToString(dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][ENV], "ENV_DDS_USE_MONEY", "||", ":", sGetEnv, sizeof(sGetEnv));
-		if (!StringToInt(sGetEnv))
-			iItemMny = 0;
+		/** 환경 변수 확인(아이템 단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemList[Find_GetItemIndex(iItemIdx)][ENV], "ENV_DDS_LIMIT_BUY_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int count;
+
+			// 검증
+			for (int i = 0; i <= UCM_GetClassCount(); i++)
+			{
+				// 0은 생략
+				if (i == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[i]) != UCM_GetClientClass(client))	continue;
+
+				count++;
+			}
+			
+			// 없으면 차단
+			if (count == 0)
+			{
+				DDS_PrintToChat(client, "%t", "error access");
+				return;
+			}
+		}
 
 		/** 환경 변수 확인(유저단) **/
 		// 금액 사용 관련
@@ -657,6 +702,92 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		int iDBIdx = StringToInt(sTempStr[0]);
 		int iItemIdx = StringToInt(sTempStr[1]);
+
+		/*************************
+		 * 조건 및 환경 변수 확인
+		**************************/
+		/*** 환경 변수 준비 ***/
+		char sGetEnv[128];
+
+		/** 환경 변수 확인(아이템 종류단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][ENV], "ENV_DDS_LIMIT_USE_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int count;
+
+			// 검증
+			for (int i = 0; i <= UCM_GetClassCount(); i++)
+			{
+				// 0은 생략
+				if (i == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[i]) != UCM_GetClientClass(client))	continue;
+
+				count++;
+			}
+			
+			// 없으면 차단
+			if (count == 0)
+			{
+				DDS_PrintToChat(client, "%t", "error access");
+				return;
+			}
+		}
+
+		/** 환경 변수 확인(아이템 단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemList[Find_GetItemListIndex(iItemIdx)][ENV], "ENV_DDS_LIMIT_USE_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int count;
+
+			// 검증
+			for (int i = 0; i <= UCM_GetClassCount(); i++)
+			{
+				// 0은 생략
+				if (i == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[i]) != UCM_GetClientClass(client))	continue;
+
+				count++;
+			}
+			
+			// 없으면 차단
+			if (count == 0)
+			{
+				DDS_PrintToChat(client, "%t", "error access");
+				return;
+			}
+		}
 
 		/*************************
 		 * 기존 아이템 정보 갱신
@@ -772,6 +903,16 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 조건 및 환경 변수 확인
 		**************************/
 		/** 환경 변수 확인(유저단) **/
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+
+		// 되판매 가능한지
+		SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_ITEM_RESELL", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (!StringToInt(sGetEnv))
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
 
 		/** 조건 확인 **/
 		// int 변수 하나에 2147483647 을 넘길 수 없음
@@ -846,6 +987,21 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		int iDBIdx = StringToInt(sTempStr[0]);
 		int iItemIdx = StringToInt(sTempStr[1]);
 		int iTargetUid = StringToInt(sTempStr[2]);
+
+		/*************************
+		 * 조건 및 환경 변수 확인
+		**************************/
+		/** 환경 변수 확인(유저단) **/
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+
+		// 선물 가능한지
+		SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_ITEM_GIFT", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (!StringToInt(sGetEnv))
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
 
 		/*************************
 		 * 기능 사용 여부
@@ -1204,7 +1360,16 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 조건 및 환경 변수 확인
 		**************************/
 		/** 환경 변수 확인(유저단) **/
-		// 
+		/* 접근 관련 */
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+
+		SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_MONEY_GIFT", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (!StringToInt(sGetEnv))
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
 
 		/** 조건 확인 **/
 		// 본인 돈 부족
@@ -1266,6 +1431,178 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sTmpName, sTargetAuthId, dds_iUserMoney[client]);
 		Log_Data(client, "money-gift", sMakeLogParam);
 	}
+	else if (StrEqual(process, "money-give", false))
+	{
+		/*************************************************
+		 *
+		 * [금액 주기]
+		 *
+		**************************************************/
+		iSimpleProc = DataProc_MONEYGIVE;
+
+		/*************************
+		 * 전달 파라메터 구분
+		 *
+		 * [0] - 금액 량
+		 * [1] - 대상 클라이언트 유저ID
+		**************************/
+		char sTempStr[2][30];
+		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+		int iMoneyAmount = StringToInt(sTempStr[0]);
+		int iTargetUid = StringToInt(sTempStr[1]);
+
+		/*************************
+		 * 조건 및 환경 변수 확인
+		**************************/
+		/** 환경 변수 확인(유저단) **/
+		/* 접근 관련 */
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+		
+		SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_MONEY_GIVE", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (!StringToInt(sGetEnv))
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
+
+		/*************************
+		 * 대상 클라이언트 검증
+		**************************/
+		int iTarget = GetClientOfUserId(iTargetUid);
+		if (!IsClientInGame(iTarget))
+		{
+			Format(sBuffer, sizeof(sBuffer), "%t", "system user money give tarerr");
+			DDS_PrintToChat(client, sBuffer);
+			return;
+		}
+
+		/*************************
+		 * 대상 아이템 정보 등록
+		**************************/
+		// 대상 클라이언트 고유번호 추출
+		char sTargetAuthId[20];
+		GetClientAuthId(iTarget, AuthId_SteamID64, sTargetAuthId, sizeof(sTargetAuthId));
+
+		// 오류 검출 생성
+		ArrayList hMakeErrIt = CreateArray(8);
+		hMakeErrIt.Push(iTarget);
+		hMakeErrIt.Push(2029);
+
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"UPDATE `dds_user_profile` SET `money` = `money` + '%d' WHERE `authid` = '%s'", 
+			iMoneyAmount, sTargetAuthId);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIt);
+
+		/*************************
+		 * 화면 출력
+		**************************/
+		// 클라이언트와 대상 클라이언트 이름 추출
+		char sUsrName[2][32];
+		GetClientName(client, sUsrName[0], 32);
+		GetClientName(iTarget, sUsrName[1], 32);
+
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user money give send", sUsrName[1], iMoneyAmount, "global money");
+		DDS_PrintToChat(client, sBuffer);
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user money give take", sUsrName[0], iMoneyAmount, "global money");
+		DDS_PrintToChat(iTarget, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		// 클라이언트 이름 추출 후 인젝션 필터
+		char sTmpName[32];
+		GetClientName(iTarget, sTmpName, sizeof(sTmpName));
+		SetPreventSQLInject(sTmpName, sTmpName, sizeof(sTmpName));
+
+		// 로그 출력
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sTmpName, sTargetAuthId, iMoneyAmount);
+		Log_Data(client, "money-give", sMakeLogParam);
+	}
+	else if (StrEqual(process, "money-takeaway", false))
+	{
+		/*************************************************
+		 *
+		 * [금액 뺏기]
+		 *
+		**************************************************/
+		iSimpleProc = DataProc_MONEYTAKEAWAY;
+
+		/*************************
+		 * 전달 파라메터 구분
+		 *
+		 * [0] - 금액 량
+		 * [1] - 대상 클라이언트 유저ID
+		**************************/
+		char sTempStr[2][30];
+		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
+
+		int iMoneyAmount = StringToInt(sTempStr[0]);
+		int iTargetUid = StringToInt(sTempStr[1]);
+
+		/*************************
+		 * 조건 및 환경 변수 확인
+		**************************/
+		/** 환경 변수 확인(유저단) **/
+		/* 접근 관련 */
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+		
+		SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_MONEY_TAKEAWAY", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (!StringToInt(sGetEnv))
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
+
+		/*************************
+		 * 대상 클라이언트 검증
+		**************************/
+		int iTarget = GetClientOfUserId(iTargetUid);
+		if (!IsClientInGame(iTarget))
+		{
+			Format(sBuffer, sizeof(sBuffer), "%t", "system user money takeaway tarerr");
+			DDS_PrintToChat(client, sBuffer);
+			return;
+		}
+
+		/*************************
+		 * 대상 아이템 정보 등록
+		**************************/
+		// 대상 클라이언트 고유번호 추출
+		char sTargetAuthId[20];
+		GetClientAuthId(iTarget, AuthId_SteamID64, sTargetAuthId, sizeof(sTargetAuthId));
+
+		// 오류 검출 생성
+		ArrayList hMakeErrIt = CreateArray(8);
+		hMakeErrIt.Push(iTarget);
+		hMakeErrIt.Push(2030);
+
+		// 쿼리 전송
+		Format(sSendQuery, sizeof(sSendQuery), 
+			"UPDATE `dds_user_profile` SET `money` = `money` - '%d' WHERE `authid` = '%s'", 
+			iMoneyAmount, sTargetAuthId);
+		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrIt);
+
+		/*************************
+		 * 화면 출력
+		**************************/
+		// 클라이언트 이름 추출 후 인젝션 필터
+		char sTmpName[32];
+		GetClientName(iTarget, sTmpName, sizeof(sTmpName));
+		SetPreventSQLInject(sTmpName, sTmpName, sizeof(sTmpName));
+
+		Format(sBuffer, sizeof(sBuffer), "%t", "system user money takeaway action", sTmpName, iMoneyAmount, "global money");
+		DDS_PrintToChat(client, sBuffer);
+
+		/*************************
+		 * 로그 작성
+		**************************/
+		Format(sMakeLogParam, sizeof(sMakeLogParam), "%s||%s||%d", sTmpName, sTargetAuthId, iMoneyAmount);
+		Log_Data(client, "money-takeaway", sMakeLogParam);
+	}
 	else if (StrEqual(process, "item-give", false))
 	{
 		/*************************************************
@@ -1286,6 +1623,21 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		int iItemIdx = StringToInt(sTempStr[0]);
 		int iTargetUid = StringToInt(sTempStr[1]);
+
+		/*************************
+		 * 조건 및 환경 변수 확인
+		**************************/
+		/** 환경 변수 확인(유저단) **/
+		/* 접근 관련 */
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+		
+		SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_ITEM_GIVE", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (!StringToInt(sGetEnv))
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
 
 		/*************************
 		 * 대상 클라이언트 검증
@@ -1369,6 +1721,21 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		int iDBIdx = StringToInt(sTempStr[0]);
 		int iItemIdx = StringToInt(sTempStr[1]);
 		int iTargetUid = StringToInt(sTempStr[2]);
+
+		/*************************
+		 * 조건 및 환경 변수 확인
+		**************************/
+		/** 환경 변수 확인(유저단) **/
+		/* 접근 관련 */
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+		
+		SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_ITEM_TAKEAWAY", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (!StringToInt(sGetEnv))
+		{
+			DDS_PrintToChat(client, "%t", "error access");
+			return;
+		}
 
 		/*************************
 		 * 대상 클라이언트 검증
@@ -1744,6 +2111,18 @@ public void Log_CodeError(int client, int errcode, const char[] errordec)
 			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql user refdata");
 			Format(sDetOutput, sizeof(sDetOutput), "%s Update User Profile is Failure. (AuthID: %s)", sDetOutput, usrauth);
 		}
+		case 2029:
+		{
+			// [아이템 처리 시스템] 대상 클라이언트애개 일정 금액을 줄 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql user money give");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Update User Profile is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
+		case 2030:
+		{
+			// [아이템 처리 시스템] 대상 클라이언트애개 일정 금액을 뺏을 때
+			Format(sOutput, sizeof(sOutput), "%s %t", sOutput, "error sql user money takeaway");
+			Format(sDetOutput, sizeof(sDetOutput), "%s Update User Profile is Failure. (AuthID: %s)", sDetOutput, usrauth);
+		}
 	}
 
 	// 클라이언트와 서버 구분하여 로그 출력
@@ -1843,8 +2222,10 @@ public void Log_Data(int client, const char[] action, const char[] data)
 	 * 'money-up' - 금액이 증가될 때
 	 * 'money-down' - 금액이 내려갈 때
 	 * 'money-gift' - 금액을 선물할 때
-	 * 'item-give' - 관리자가 아이템을 줄 때
-	 * 'item-takeaway' - 관리자가 아이템을 빼앗을 때
+	 * 'money-give' - 금액을 줄때
+	 * 'money-takeaway' - 금액을 빼앗을 때
+	 * 'item-give' - 아이템을 줄 때
+	 * 'item-takeaway' - 아이템을 빼앗을 때
 	 * 'user-refdata' - 클라이언트가 기타 참고 데이터를 설정할 때
 	 *
 	*******************************************************************************/
@@ -1969,7 +2350,29 @@ public void Log_Data(int client, const char[] action, const char[] data)
 		**************************************************/
 		Format(sSendParam, sizeof(sSendParam), data);
 	}
-	else if (StrEqual(action, "item-gift", false))
+	else if (StrEqual(action, "money-give", false))
+	{
+		/*************************************************
+		 *
+		 * [금액을 줄 때]
+		 *
+		 * (0) - 대상 이름, (1) - 대상 고유 번호, (2) - 변동 금액
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "money-takeaway", false))
+	{
+		/*************************************************
+		 *
+		 * [금액을 빼앗을 때]
+		 *
+		 * (0) - 대상 이름, (1) - 대상 고유 번호, (2) - 변동 금액
+		 *
+		**************************************************/
+		Format(sSendParam, sizeof(sSendParam), data);
+	}
+	else if (StrEqual(action, "item-give", false))
 	{
 		/*************************************************
 		 *
@@ -2164,6 +2567,47 @@ public void Menu_CurItem(int client)
 		// '전체' 통과
 		if (i == 0)	continue;
 
+		/*** 환경 변수 준비 ***/
+		char sGetEnv[128];
+
+		/** 환경 변수 확인(아이템 종류단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemCategoryList[i][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			continue;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int chkcount;
+
+			// 검증
+			for (int j = 0; j <= UCM_GetClassCount(); j++)
+			{
+				// 0은 생략
+				if (j == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[j]) != UCM_GetClientClass(client))	continue;
+
+				chkcount++;
+			}
+			
+			// 없으면 차단
+			if (chkcount == 0)
+			{
+				continue;
+			}
+		}
+
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
 		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
@@ -2308,6 +2752,47 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
 			}
 		}
 
+		/*** 환경 변수 준비 ***/
+		char sGetEnv[128];
+
+		/** 환경 변수 확인(아이템 단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			continue;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int chkcount;
+
+			// 검증
+			for (int i = 0; i <= UCM_GetClassCount(); i++)
+			{
+				// 0은 생략
+				if (i == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[i]) != UCM_GetClientClass(client))	continue;
+
+				chkcount++;
+			}
+			
+			// 없으면 차단
+			if (chkcount == 0)
+			{
+				continue;
+			}
+		}
+
 		// 번호를 문자열로 치환
 		char sTempIdx[16];
 		Format(sTempIdx, sizeof(sTempIdx), "%d||%d||%d", iTmpDbIdx, iTmpItIdx, 1);
@@ -2393,6 +2878,52 @@ public Action:Menu_Inven(int client, int args)
 	// 정보 작성
 	for (int i = 0; i <= dds_iItemCategoryCount; i++)
 	{
+		/** 환경 변수 확인(아이템 종류단) **/
+		/* 접근 관련 */
+		if (i > 0)
+		{
+			/*** 환경 변수 준비 ***/
+			char sGetEnv[128];
+
+			/** 환경 변수 확인(아이템 종류단) **/
+			/* 접근 관련 */
+			SelectedStuffToString(dds_eItemCategoryList[i][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+			if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+			{
+				continue;
+			}
+			else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+			{
+				// 빈칸 모두 제거
+				ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+				// 허용 등급 추출
+				char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+				ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+				// 갯수 파악
+				int chkcount;
+
+				// 검증
+				for (int j = 0; j <= UCM_GetClassCount(); j++)
+				{
+					// 0은 생략
+					if (j == 0)	continue;
+
+					// 맞는 것이 없으면 패스
+					if (StringToInt(sTempClStr[j]) != UCM_GetClientClass(client))	continue;
+
+					chkcount++;
+				}
+				
+				// 없으면 차단
+				if (chkcount == 0)
+				{
+					continue;
+				}
+			}
+		}
+
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
 		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
@@ -2513,6 +3044,47 @@ public void Menu_Inven_CateIn(Database db, DBResultSet results, const char[] err
 			}
 		}
 		if (!bInCate)	continue;
+
+		/*** 환경 변수 준비 ***/
+		char sGetEnv[128];
+
+		/** 환경 변수 확인(아이템 단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			continue;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int chkcount;
+
+			// 검증
+			for (int i = 0; i <= UCM_GetClassCount(); i++)
+			{
+				// 0은 생략
+				if (i == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[i]) != UCM_GetClientClass(client))	continue;
+
+				chkcount++;
+			}
+			
+			// 없으면 차단
+			if (chkcount == 0)
+			{
+				continue;
+			}
+		}
 
 		// 번호를 문자열로 치환
 		char sTempIdx[16];
@@ -2635,6 +3207,50 @@ public void Menu_BuyItem(int client)
 	// 정보 작성
 	for (int i = 0; i <= dds_iItemCategoryCount; i++)
 	{
+		if (i > 0)
+		{
+			/*** 환경 변수 준비 ***/
+			char sGetEnv[128];
+
+			/** 환경 변수 확인(아이템 종류단) **/
+			/* 접근 관련 */
+			SelectedStuffToString(dds_eItemCategoryList[i][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+			if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+			{
+				continue;
+			}
+			else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+			{
+				// 빈칸 모두 제거
+				ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+				// 허용 등급 추출
+				char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+				ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+				// 갯수 파악
+				int chkcount;
+
+				// 검증
+				for (int j = 0; j <= UCM_GetClassCount(); j++)
+				{
+					// 0은 생략
+					if (j == 0)	continue;
+
+					// 맞는 것이 없으면 패스
+					if (StringToInt(sTempClStr[j]) != UCM_GetClientClass(client))	continue;
+
+					chkcount++;
+				}
+					
+				// 없으면 차단
+				if (chkcount == 0)
+				{
+					continue;
+				}
+			}
+		}
+
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
 		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
@@ -2724,6 +3340,47 @@ public void Menu_BuyItem_CateIn(int client, int catecode)
 			}
 		}
 		if (!bInCate)	continue;
+
+		/*** 환경 변수 준비 ***/
+		char sGetEnv[128];
+
+		/** 환경 변수 확인(아이템 단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemList[i][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			continue;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int chkcount;
+
+			// 검증
+			for (int j = 0; j <= UCM_GetClassCount(); j++)
+			{
+				// 0은 생략
+				if (j == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[j]) != UCM_GetClientClass(client))	continue;
+
+				chkcount++;
+			}
+			
+			// 없으면 차단
+			if (chkcount == 0)
+			{
+				continue;
+			}
+		}
 
 		// 번호를 문자열로 치환
 		char sTempIdx[8];
@@ -2885,6 +3542,47 @@ public void Menu_Setting_Item(int client)
 	{
 		// '전체' 통과
 		if (i == 0)	continue;
+
+		/*** 환경 변수 준비 ***/
+		char sGetEnv[128];
+
+		/** 환경 변수 확인(아이템 종류단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemCategoryList[i][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			continue;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int chkcount;
+
+			// 검증
+			for (int j = 0; j <= UCM_GetClassCount(); j++)
+			{
+				// 0은 생략
+				if (j == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[j]) != UCM_GetClientClass(client))	continue;
+
+				chkcount++;
+			}
+				
+			// 없으면 차단
+			if (chkcount == 0)
+			{
+				continue;
+			}
+		}
 		
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
@@ -3195,6 +3893,50 @@ public void Menu_ItemGive(int client)
 	// 정보 작성
 	for (int i = 0; i <= dds_iItemCategoryCount; i++)
 	{
+		if (i > 0)
+		{
+			/*** 환경 변수 준비 ***/
+			char sGetEnv[128];
+
+			/** 환경 변수 확인(아이템 종류단) **/
+			/* 접근 관련 */
+			SelectedStuffToString(dds_eItemCategoryList[i][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+			if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+			{
+				continue;
+			}
+			else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+			{
+				// 빈칸 모두 제거
+				ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+				// 허용 등급 추출
+				char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+				ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+				// 갯수 파악
+				int chkcount;
+
+				// 검증
+				for (int j = 0; j <= UCM_GetClassCount(); j++)
+				{
+					// 0은 생략
+					if (j == 0)	continue;
+
+					// 맞는 것이 없으면 패스
+					if (StringToInt(sTempClStr[j]) != UCM_GetClientClass(client))	continue;
+
+					chkcount++;
+				}
+					
+				// 없으면 차단
+				if (chkcount == 0)
+				{
+					continue;
+				}
+			}
+		}
+
 		// 번호를 문자열로 치환
 		char sTempIdx[4];
 		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
@@ -3284,6 +4026,47 @@ public void Menu_ItemGive_CateIn(int client, int catecode)
 			}
 		}
 		if (!bInCate)	continue;
+
+		/*** 환경 변수 준비 ***/
+		char sGetEnv[128];
+
+		/** 환경 변수 확인(아이템 단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemList[i][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			continue;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int chkcount;
+
+			// 검증
+			for (int j = 0; j <= UCM_GetClassCount(); j++)
+			{
+				// 0은 생략
+				if (j == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[j]) != UCM_GetClientClass(client))	continue;
+
+				chkcount++;
+			}
+			
+			// 없으면 차단
+			if (chkcount == 0)
+			{
+				continue;
+			}
+		}
 
 		// 번호를 문자열로 치환
 		char sTempIdx[8];
@@ -3529,6 +4312,47 @@ public void Menu_ItemTakeAWay_CateIn(Database db, DBResultSet results, const cha
 		}
 		if (!bInCate)	continue;
 
+		/*** 환경 변수 준비 ***/
+		char sGetEnv[128];
+
+		/** 환경 변수 확인(아이템 단) **/
+		/* 접근 관련 */
+		SelectedStuffToString(dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][ENV], "ENV_DDS_LIMIT_SHOW_LIST_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
+		{
+			continue;
+		}
+		else if (!StrEqual(sGetEnv, "all", false)) // 코드로 구분되어 졌을 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char[][] sTempClStr = new char[UCM_GetClassCount() + 1][8];
+			ExplodeString(sGetEnv, ",", sTempClStr, UCM_GetClassCount() + 1, 8);
+
+			// 갯수 파악
+			int chkcount;
+
+			// 검증
+			for (int i = 0; i <= UCM_GetClassCount(); i++)
+			{
+				// 0은 생략
+				if (i == 0)	continue;
+
+				// 맞는 것이 없으면 패스
+				if (StringToInt(sTempClStr[i]) != UCM_GetClientClass(client))	continue;
+
+				chkcount++;
+			}
+			
+			// 없으면 차단
+			if (chkcount == 0)
+			{
+				continue;
+			}
+		}
+
 		// 번호를 문자열로 치환
 		char sTempIdx[32];
 		Format(sTempIdx, sizeof(sTempIdx), "%d||%d||%d||%d", iTmpDbIdx, iTmpItIdx, iTmpItAp, tarusrid);
@@ -3737,6 +4561,32 @@ public Action:Command_Say(int client, int args)
 		Command_Gift(client, hSendParam);
 	}
 
+	// 금액 주기
+	Format(sCmhTrans, sizeof(sCmhTrans), "%t", "command moneygive");
+	if (bChkCmd && StrEqual(sMainCmd, sCmhTrans, false))
+	{
+		ArrayList hSendParam = CreateArray(64);
+		hSendParam.PushString(sParamStr[0]);
+		hSendParam.PushString(sParamStr[1]);
+		hSendParam.PushString(sParamStr[2]);
+		hSendParam.PushString(sParamStr[3]);
+
+		Command_MoneyGive(client, hSendParam);
+	}
+
+	// 금액 뺏기
+	Format(sCmhTrans, sizeof(sCmhTrans), "%t", "command moneytakeaway");
+	if (bChkCmd && StrEqual(sMainCmd, sCmhTrans, false))
+	{
+		ArrayList hSendParam = CreateArray(64);
+		hSendParam.PushString(sParamStr[0]);
+		hSendParam.PushString(sParamStr[1]);
+		hSendParam.PushString(sParamStr[2]);
+		hSendParam.PushString(sParamStr[3]);
+
+		Command_MoneyTakeAWay(client, hSendParam);
+	}
+
 	// 아이템 주기
 	Format(sCmhTrans, sizeof(sCmhTrans), "%t", "command itemgive");
 	if (bChkCmd && StrEqual(sMainCmd, sCmhTrans, false))
@@ -3836,7 +4686,7 @@ public void Command_Profile(int client, const char[] name)
 }
 
 /**
- * 커맨드 :: 선물
+ * 커맨드 :: 금액 선물
  *
  * @param client				클라이언트 인덱스
  * @param data					추가 값
@@ -3931,6 +4781,184 @@ public void Command_Gift(int client, ArrayList data)
 }
 
 /**
+ * 커맨드 :: 금액 주기
+ *
+ * @param client				클라이언트 인덱스
+ * @param data					추가 값
+ */
+public void Command_MoneyGive(int client, ArrayList data)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	// 파라메터 값 수령
+	char sGetParam[4][64];
+
+	data.GetString(0, sGetParam[0], 64);
+	data.GetString(1, sGetParam[1], 64);
+	data.GetString(2, sGetParam[2], 64);
+	data.GetString(3, sGetParam[3], 64);
+
+	delete data;
+
+	// ENV 확인
+	char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+	UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+	SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_MONEY_GIVE", "||", ":", sGetEnv, sizeof(sGetEnv));
+	if (!StringToInt(sGetEnv))
+	{
+		DDS_PrintToChat(client, "%t", "error access");
+		return;
+	}
+
+	/***********************************
+	 * ~사용법~
+	 *
+	 * !<"command moneygive"> <대상 이름> <값>
+	************************************/
+	// 대상이 빈칸일 경우
+	if (strlen(sGetParam[0]) <= 0)
+	{
+		DDS_PrintToChat(client, "%t", "error command moneygive usage", "command moneygive");
+		return;
+	}
+
+	// 쌍따옴표로 구성이 안되어 있을 경우
+	if (!CheckDQM(sGetParam[0]))
+	{
+		DDS_PrintToChat(client, "%t", "error command notarget nodqm");
+		return;
+	}
+
+	// 대상을 찾는데 없을 경우
+	if (SearchTargetByName(sGetParam[0]) == 0)
+	{
+		DDS_PrintToChat(client, "%t", "error command notarget ingame");
+		return;
+	}
+
+	// 대상을 찾는데 2명 이상일 경우
+	if (SearchTargetByName(sGetParam[0]) == -1)
+	{
+		DDS_PrintToChat(client, "%t", "error command notarget more");
+		return;
+	}
+
+	// 금액 값이 빈칸일 경우
+	if (strlen(sGetParam[1]) <= 0)
+	{
+		DDS_PrintToChat(client, "%t", "error command nomoney");
+		return;
+	}
+
+	// 금액 값이 쌍따옴표로 구성이 안되어 있을 경우
+	if (!CheckDQM(sGetParam[1]))
+	{
+		DDS_PrintToChat(client, "%t", "error command nomoney nodqm");
+		return;
+	}
+
+	// 금액 값 쌍따옴표 제거
+	StripQuotes(sGetParam[1]);
+
+	// 파라메터 준비
+	char sSendParam[32];
+	Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sGetParam[1]), SearchTargetByName(sGetParam[0]));
+
+	// 금액 주기
+	System_DataProcess(client, "money-give", sSendParam);
+}
+
+/**
+ * 커맨드 :: 금액 뺏기
+ *
+ * @param client				클라이언트 인덱스
+ * @param data					추가 값
+ */
+public void Command_MoneyTakeAWay(int client, ArrayList data)
+{
+	// 플러그인이 켜져 있을 때에는 작동 안함
+	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+
+	// 파라메터 값 수령
+	char sGetParam[4][64];
+
+	data.GetString(0, sGetParam[0], 64);
+	data.GetString(1, sGetParam[1], 64);
+	data.GetString(2, sGetParam[2], 64);
+	data.GetString(3, sGetParam[3], 64);
+
+	delete data;
+
+	// ENV 확인
+	char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+	UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
+	SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_MONEY_TAKEAWAY", "||", ":", sGetEnv, sizeof(sGetEnv));
+	if (!StringToInt(sGetEnv))
+	{
+		DDS_PrintToChat(client, "%t", "error access");
+		return;
+	}
+
+	/***********************************
+	 * ~사용법~
+	 *
+	 * !<"command moneytakeaway"> <대상 이름> <값>
+	************************************/
+	// 대상이 빈칸일 경우
+	if (strlen(sGetParam[0]) <= 0)
+	{
+		DDS_PrintToChat(client, "%t", "error command moneytakeaway usage", "command moneytakeaway");
+		return;
+	}
+
+	// 쌍따옴표로 구성이 안되어 있을 경우
+	if (!CheckDQM(sGetParam[0]))
+	{
+		DDS_PrintToChat(client, "%t", "error command notarget nodqm");
+		return;
+	}
+
+	// 대상을 찾는데 없을 경우
+	if (SearchTargetByName(sGetParam[0]) == 0)
+	{
+		DDS_PrintToChat(client, "%t", "error command notarget ingame");
+		return;
+	}
+
+	// 대상을 찾는데 2명 이상일 경우
+	if (SearchTargetByName(sGetParam[0]) == -1)
+	{
+		DDS_PrintToChat(client, "%t", "error command notarget more");
+		return;
+	}
+
+	// 금액 값이 빈칸일 경우
+	if (strlen(sGetParam[1]) <= 0)
+	{
+		DDS_PrintToChat(client, "%t", "error command nomoney");
+		return;
+	}
+
+	// 금액 값이 쌍따옴표로 구성이 안되어 있을 경우
+	if (!CheckDQM(sGetParam[1]))
+	{
+		DDS_PrintToChat(client, "%t", "error command nomoney nodqm");
+		return;
+	}
+
+	// 금액 값 쌍따옴표 제거
+	StripQuotes(sGetParam[1]);
+
+	// 파라메터 준비
+	char sSendParam[32];
+	Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sGetParam[1]), SearchTargetByName(sGetParam[0]));
+
+	// 금액 뺏기
+	System_DataProcess(client, "money-takeaway", sSendParam);
+}
+
+/**
  * 커맨드 :: 아이템 주기
  *
  * @param client				클라이언트 인덱스
@@ -3954,7 +4982,7 @@ public void Command_ItemGive(int client, ArrayList data)
 	// ENV 확인
 	char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
 	UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
-	SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_GIVE", "||", ":", sGetEnv, sizeof(sGetEnv));
+	SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_ITEM_GIVE", "||", ":", sGetEnv, sizeof(sGetEnv));
 	if (!StringToInt(sGetEnv))
 	{
 		DDS_PrintToChat(client, "%t", "error access");
@@ -3974,54 +5002,47 @@ public void Command_ItemGive(int client, ArrayList data)
 		return;
 	}
 
-	// 대상이 빈칸일 경우
-	if (strlen(sGetParam[1]) <= 0)
-	{
-		DDS_PrintToChat(client, "%t", "error command notarget");
-		return;
-	}
-
 	// 쌍따옴표로 구성이 안되어 있을 경우
-	if (!CheckDQM(sGetParam[1]))
+	if (!CheckDQM(sGetParam[0]))
 	{
 		DDS_PrintToChat(client, "%t", "error command notarget nodqm");
 		return;
 	}
 
 	// 대상을 찾는데 없을 경우
-	if (SearchTargetByName(sGetParam[1]) == 0)
+	if (SearchTargetByName(sGetParam[0]) == 0)
 	{
 		DDS_PrintToChat(client, "%t", "error command notarget ingame");
 		return;
 	}
 
 	// 대상을 찾는데 2명 이상일 경우
-	if (SearchTargetByName(sGetParam[1]) == -1)
+	if (SearchTargetByName(sGetParam[0]) == -1)
 	{
 		DDS_PrintToChat(client, "%t", "error command notarget more");
 		return;
 	}
 
 	// 아이템 번호가 빈칸일 경우
-	if (strlen(sGetParam[2]) <= 0)
+	if (strlen(sGetParam[1]) <= 0)
 	{
-		DDS_PrintToChat(client, "%t", "error command nomoney");
+		DDS_PrintToChat(client, "%t", "error command noitem");
 		return;
 	}
 
 	// 아이템 번호가 쌍따옴표로 구성이 안되어 있을 경우
-	if (!CheckDQM(sGetParam[2]))
+	if (!CheckDQM(sGetParam[1]))
 	{
-		DDS_PrintToChat(client, "%t", "error command nomoney nodqm");
+		DDS_PrintToChat(client, "%t", "error command noitem nodqm");
 		return;
 	}
 
 	// 아이템 번호 쌍따옴표 제거
-	StripQuotes(sGetParam[2]);
+	StripQuotes(sGetParam[1]);
 
 	// 파라메터 준비
 	char sSendParam[32];
-	Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sGetParam[2]), SearchTargetByName(sGetParam[1]));
+	Format(sSendParam, sizeof(sSendParam), "%d||%d", StringToInt(sGetParam[1]), SearchTargetByName(sGetParam[0]));
 
 	// 아이템 주기
 	System_DataProcess(client, "item-give", sSendParam);
@@ -4040,7 +5061,7 @@ public void Command_ItemTakeAWay(int client)
 	// ENV 확인
 	char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
 	UCM_GetClassInfo(UCM_GetClientClass(client), ClassInfo_Env, sGetEnv);
-	SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_TAKEAWAY", "||", ":", sGetEnv, sizeof(sGetEnv));
+	SelectedStuffToString(sGetEnv, "ENV_DDS_ACCESS_ITEM_TAKEAWAY", "||", ":", sGetEnv, sizeof(sGetEnv));
 	if (!StringToInt(sGetEnv))
 	{
 		DDS_PrintToChat(client, "%t", "error access");
@@ -4164,10 +5185,54 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 		// 제시할 행이 없다면 통과
 		if (!results.FetchRow())	continue;
 
+		// 데이터 임시 로드
+		int iTmpCode;
+		char sTmpName[DDS_ENV_VAR_GLONAME_SIZE];
+		char sTmpEnv[DDS_ENV_VAR_ENV_SIZE];
+
+		iTmpCode = results.FetchInt(0);
+		results.FetchString(1, sTmpName, sizeof(sTmpName));
+		results.FetchString(3, sTmpEnv, sizeof(sTmpEnv));
+
+		/** 환경 변수 확인(아이템 종류단) **/
+		char sGetEnv[128];
+
+		/* 시스템 관련 */
+		// 현재 사용하고 있는 게임 이름 추출
+		char sGetGame[32];
+		GetGameFolderName(sGetGame, sizeof(sGetGame));
+
+		// 갯수 파악
+		int count;
+
+		// 지원 게임 확인
+		SelectedStuffToString(sTmpEnv, "ENV_DDS_SYS_GAME", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (!StrEqual(sGetEnv, "all", false) && !StrEqual(sGetEnv, sGetGame, false)) // '전체' 또는 현재 사용하고 있는 게임이 아닐 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char sTmpGNStr[DDS_ENV_VAR_SUPPORT_GAME_NUM];
+			ExplodeString(sGetEnv, ",", sTmpGNStr, sizeof(sTmpGNStr), sizeof(sTmpGNStr[]));
+
+			// 검증
+			for (int i = 0; i < DDS_ENV_VAR_SUPPORT_GAME_NUM; i++)
+			{
+				// 맞는 것이 없으면 패스
+				if (!StrEqual(sGetGame, sTmpGNStr[i], false))	continue;
+
+				count++;
+			}
+		}
+
+		// 없다면 통과
+		if (count == 0)	continue;
+
 		// 데이터 추가
-		dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE] = results.FetchInt(0);
-		results.FetchString(1, dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], DDS_ENV_VAR_GLONAME_SIZE);
-		results.FetchString(3, dds_eItemCategoryList[dds_iItemCategoryCount + 1][ENV], DDS_ENV_VAR_ENV_SIZE);
+		dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE] = iTmpCode;
+		Format(sTmpName, sizeof(sTmpName), dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME]);
+		Format(sTmpEnv, sizeof(sTmpEnv), dds_eItemCategoryList[dds_iItemCategoryCount + 1][ENV]);
 
 		#if defined _DEBUG_
 		DDS_PrintToServer(":: DEBUG :: Category Loaded (ID: %d, GloName: %s, TotalCount: %d)", dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE], dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], dds_iItemCategoryCount + 1);
@@ -4204,13 +5269,63 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 		// 제시할 행이 없다면 통과
 		if (!results.FetchRow())	continue;
 
+		// 데이터 임시 로드
+		int iTmpIdx;
+		char sTmpName[DDS_ENV_VAR_GLONAME_SIZE];
+		int iTmpCode;
+		int iTmpMoney;
+		int iTmpHavTime;
+		char sTmpEnv[DDS_ENV_VAR_ENV_SIZE];
+
+		iTmpIdx = results.FetchInt(0);
+		results.FetchString(1, sTmpName, sizeof(sTmpName));
+		iTmpCode = results.FetchInt(2);
+		iTmpMoney = RoundFloat(results.FetchInt(3) * dds_hCV_ItemMoneyMultiply.FloatValue);
+		iTmpHavTime = results.FetchInt(4);
+		results.FetchString(5, sTmpEnv, sizeof(sTmpEnv));
+
+		/** 환경 변수 확인(아이템 단) **/
+		char sGetEnv[128];
+
+		/* 시스템 관련 */
+		// 현재 사용하고 있는 게임 이름 추출
+		char sGetGame[32];
+		GetGameFolderName(sGetGame, sizeof(sGetGame));
+
+		// 갯수 파악
+		int count;
+
+		// 지원 게임 확인
+		SelectedStuffToString(sTmpEnv, "ENV_DDS_SYS_GAME", "||", ":", sGetEnv, sizeof(sGetEnv));
+		if (!StrEqual(sGetEnv, "all", false) && !StrEqual(sGetEnv, sGetGame, false)) // '전체' 또는 현재 사용하고 있는 게임이 아닐 경우
+		{
+			// 빈칸 모두 제거
+			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
+
+			// 허용 등급 추출
+			char sTmpGNStr[DDS_ENV_VAR_SUPPORT_GAME_NUM];
+			ExplodeString(sGetEnv, ",", sTmpGNStr, sizeof(sTmpGNStr), sizeof(sTmpGNStr[]));
+
+			// 검증
+			for (int i = 0; i < DDS_ENV_VAR_SUPPORT_GAME_NUM; i++)
+			{
+				// 맞는 것이 없으면 패스
+				if (!StrEqual(sGetGame, sTmpGNStr[i], false))	continue;
+
+				count++;
+			}
+		}
+
+		// 없다면 통과
+		if (count == 0)	continue;
+
 		// 데이터 추가
-		dds_eItemList[dds_iItemCount + 1][INDEX] = results.FetchInt(0);
-		results.FetchString(1, dds_eItemList[dds_iItemCount + 1][NAME], DDS_ENV_VAR_GLONAME_SIZE);
-		dds_eItemList[dds_iItemCount + 1][CATECODE] = results.FetchInt(2);
-		dds_eItemList[dds_iItemCount + 1][MONEY] = RoundFloat(results.FetchInt(3) * dds_hCV_ItemMoneyMultiply.FloatValue);
-		dds_eItemList[dds_iItemCount + 1][HAVTIME] = results.FetchInt(4);
-		results.FetchString(5, dds_eItemList[dds_iItemCount + 1][ENV], DDS_ENV_VAR_ENV_SIZE);
+		dds_eItemList[dds_iItemCount + 1][INDEX] = iTmpIdx;
+		Format(sTmpName, sizeof(sTmpName), dds_eItemList[dds_iItemCount + 1][NAME]);
+		dds_eItemList[dds_iItemCount + 1][CATECODE] = iTmpCode;
+		dds_eItemList[dds_iItemCount + 1][MONEY] = iTmpMoney;
+		dds_eItemList[dds_iItemCount + 1][HAVTIME] = iTmpHavTime;
+		Format(sTmpEnv, sizeof(sTmpEnv), dds_eItemList[dds_iItemCount + 1][ENV]);
 
 		#if defined _DEBUG_
 		DDS_PrintToServer(":: DEBUG :: Item Loaded (ID: %d, GloName: %s, CateCode: %d, Money: %d, Time: %d, TotalCount: %d)", dds_eItemList[dds_iItemCount + 1][INDEX], dds_eItemList[dds_iItemCount + 1][NAME], dds_eItemList[dds_iItemCount + 1][CATECODE], dds_eItemList[dds_iItemCount + 1][MONEY], dds_eItemList[dds_iItemCount + 1][HAVTIME], dds_iItemCount + 1);
@@ -4304,6 +5419,11 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 	char sUsrAuthId[20];
 	GetClientAuthId(client, AuthId_SteamID64, sUsrAuthId, sizeof(sUsrAuthId));
 
+	// 클라이언트 이름 추출 후 필터링
+	char sUsrName[32];
+	GetClientName(client, sUsrName, sizeof(sUsrName));
+	SetPreventSQLInject(sUsrName, sUsrName, sizeof(sUsrName));
+
 	if (count == 0)
 	{
 		/** 등록된 것이 없다면 정보 생성 **/
@@ -4314,8 +5434,8 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 
 		// 쿼리 전송
 		Format(sSendQuery, sizeof(sSendQuery), 
-			"INSERT INTO `dds_user_profile` (`idx`, `authid`, `money`, `ingame`, `refdata`) VALUES (NULL, '%s', '0', '1', '')", 
-			sUsrAuthId);
+			"INSERT INTO `dds_user_profile` (`idx`, `authid`, `nickname`, `money`, `ingame`, `refdata`) VALUES (NULL, '%s', '%s', '0', '1', '')", 
+			sUsrAuthId, sUsrName);
 		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
 
 		#if defined _DEBUG_
@@ -4337,7 +5457,7 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 		Format(dds_sUserRefData[client], 256, sTempRefData);
 
 		// 인게임 처리
-		Format(sSendQuery, sizeof(sSendQuery), "UPDATE `dds_user_profile` SET `ingame` = '1' WHERE `authid` = '%s'", sUsrAuthId);
+		Format(sSendQuery, sizeof(sSendQuery), "UPDATE `dds_user_profile` SET `nickname` = '%s', `ingame` = '1' WHERE `authid` = '%s'", sUsrName, sUsrAuthId);
 		dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErr);
 
 		#if defined _DEBUG_
@@ -6277,6 +7397,16 @@ public int Native_DDS_UseDataProcess(Handle:plugin, numParams)
 		{
 			// 금액 선물
 			Format(sSelectStr, sizeof(sSelectStr), "money-gift");
+		}
+		case DataProc_MONEYGIVE:
+		{
+			// 금액 주기
+			Format(sSelectStr, sizeof(sSelectStr), "money-give");
+		}
+		case DataProc_MONEYTAKEAWAY:
+		{
+			// 금액 뺏기
+			Format(sSelectStr, sizeof(sSelectStr), "money-takeaway");
 		}
 		case DataProc_ITEMGIFT:
 		{

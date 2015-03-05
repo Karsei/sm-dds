@@ -9,6 +9,7 @@
                         <li><a href="#"><span data-t="usrlist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_usrlist'); ?></span></a></li>
                         <li><a href="#"><span data-t="itemlist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_itemlist'); ?></span></a></li>
                         <li><a href="#"><span data-t="itemcglist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_itemcglist'); ?></span></a></li>
+                        <li><a href="#"><span data-t="envlist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_envlist'); ?></span></a></li>
                         <li><a href="#"><span data-t="dataloglist" data-url="<? echo base_url(); ?>"><? echo $langData->line('admin_dataloglist'); ?></span></a></li>
                     </ul>
                     <div id="admin-list">

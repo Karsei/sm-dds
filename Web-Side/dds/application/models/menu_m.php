@@ -28,12 +28,31 @@ class Menu_m extends CI_Model {
 		return $menuList;
 	}
 
-	function CreateMenu($focus)
+	function CreateMenu($focus, $authid)
 	{
 		$rval = '';
+
+		// UCM을 통해 관리 권한이 있는지 확인
+		$this->db->select('ucm_user_profile.idx, ucm_class_list.authid, ucm_class_list.env');
+		$this->db->join('ucm_class_list', 'ucm_user_profile.clidx = ucm_class_list.clidx', 'left');
+		$this->db->where('ucm_user_profile.authid', $authid);
+		$q = $this->db->get('ucm_user_profile');
+		$qc = $q->result_array();
+
+		// 관리자 ENV 찾기
+		$qEnv = GetTotalFormatValue($qc[0]['env']);
+		$qwVal = 0;
+		foreach ($qEnv as $wName => $wVal)
+		{
+			if (strcmp($wName, 'ENV_DDS_ACCESS_WEB_MANAGE') == 0) {
+				$qwVal = intval($wVal);
+				break;
+			}
+		}
+
 		for ($i = 0; $i < count($this->GetMenu()); $i++) {
-			// 관리자용은 일단 패스
-			//if ($this->GetMenu()[$i][2] == 1)	continue;
+			// 관리자용 처리
+			if (($this->GetMenu()[$i][2] > $qwVal) && ($this->GetMenu()[$i][2] == 1))	continue;
 
 			// 클래스 처리
 			$classSet = '';

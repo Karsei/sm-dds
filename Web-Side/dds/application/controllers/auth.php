@@ -39,8 +39,14 @@ class Auth extends CI_Controller {
 			if ($oid->validate())
 			{
 				preg_match("/^http:\/\/steamcommunity\.com\/openid\/id\/(7[0-9]{15,25}+)$/", $oid->identity, $stid);
+
+				// 서버에 등록된 유저인지 확인
+				$isInProfile = $this->auth_m->VerifyServerPlayer($stid[1]);
+
+				// 세션 등록
 				$this->session->set_userdata('auth_id', $stid[1]);
 				$this->session->set_userdata('lang', $defLang);
+				$this->session->set_userdata('inauth', $isInProfile);
 				redirect('/auth/login/');
 			}
 		}
@@ -57,6 +63,10 @@ class Auth extends CI_Controller {
 	{
 		// 기본적으로 기본 화면으로 리다이렉트
 		if ($this->session->userdata('auth_id')) {
+			// 서버에 등록된 유저가 아니면 다시 세션풀고 back처리
+			if (!$this->session->userdata('inauth'))	redirect('/auth/logout/');
+
+			// 정상이면 출입 가능
 			redirect('/home/');
 		} else {
 			redirect('/auth/login/');
@@ -66,7 +76,7 @@ class Auth extends CI_Controller {
 	public function login()
 	{
 		// 로그인되어 있으면 기본 화면으로 리다이렉트
-		if ($this->session->userdata('auth_id')) {
+		if ($this->session->userdata('auth_id') && $this->session->userdata('inauth')) {
 			redirect('/home/');
 		}
 

@@ -106,6 +106,16 @@
 		"ko"				"선물"
 	}
 
+	"command moneygive"
+	{
+		"ko"				"금액주기"
+	}
+
+	"command moneytakeaway"
+	{
+		"ko"				"금액뺏기"
+	}
+
 	"command itemgive"
 	{
 		"ko"				"아이템주기"
@@ -407,6 +417,31 @@
 		"ko"				"데이터 초기화가 완료되었습니다."
 	}
 
+	"system user money give tarerr"
+	{
+		"ko"				"대상 클라이언트가 게임 내에 없습니다."
+	}
+
+	"system user money give send"
+	{
+		"ko"				"'{1}'님에게 {1} {2}을(를) 주었습니다."
+	}
+
+	"system user money give take"
+	{
+		"ko"				"'{1}'님으로부터 {1} {2}을(를) 받았습니다."
+	}
+
+	"system user money takeaway tarerr"
+	{
+		"ko"				"대상 클라이언트가 게임 내에 없습니다."
+	}
+
+	"system user money takeaway action"
+	{
+		"ko"				"'{1}'님으로부터 {2} {3}을(를) 빼앗았습니다."
+	}
+
 	"system user item give tarerr"
 	{
 		"ko"				"대상 클라이언트가 게임 내에 없습니다."
@@ -414,12 +449,12 @@
 
 	"system user item give send"
 	{
-		"ko"				"'{3}'님에게 {1} {2}을(를) 주었습니다."
+		"ko"				"'{3}'님에게 '[{1}] {2}'을(를) 주었습니다."
 	}
 
 	"system user item give take"
 	{
-		"ko"				"'{3}'님으로부터 {1} {2}을(를) 받았습니다."
+		"ko"				"'{3}'님으로부터 '[{1}] {2}'을(를) 받았습니다."
 	}
 
 	"system user item takeaway tarerr"
@@ -427,9 +462,24 @@
 		"ko"				"대상 클라이언트가 게임 내에 없습니다."
 	}
 
+	"system user item takeaway action"
+	{
+		"ko"				"'{3}'님으로부터 '[{1}] {2}' {4}을(를) 빼앗았습니다."
+	}
+
 	"system get money kill msg"
 	{
 		"ko"				"'{1}'님을 죽여 {2} {3}을(를) 얻었습니다."
+	}
+
+	"system get money win msg"
+	{
+		"ko"				"라운드에서 승리하여 {1} {2}을(를) 얻었습니다."
+	}
+
+	"system get money timestack msg"
+	{
+		"ko"				"서버에 계속 머물러 있어 {2} {3}을(를) 얻었습니다(시간간격: {1})."
 	}
 
 	"system user refdata"
@@ -512,6 +562,16 @@
 		"ko"				"금액을 쌍따옴표로 묶어서 입력해주세요."
 	}
 
+	"error command noitem"
+	{
+		"ko"				"아이템 번호를 입력해주세요."
+	}
+
+	"error command noitem nodqm"
+	{
+		"ko"				"아이템 번호를 쌍따옴표로 묶어서 입력해주세요."
+	}
+
 	"error command profile usage"
 	{
 		"ko"				"사용법: !{1} <대상>"
@@ -520,6 +580,16 @@
 	"error command gift usage"
 	{
 		"ko"				"사용법: !{1} \"{2}\" <대상> <값>"
+	}
+
+	"error command moneygive usage"
+	{
+		"ko"				"사용법: !{1} <대상> <값>"
+	}
+
+	"error command moneytakeaway usage"
+	{
+		"ko"				"사용법: !{1} <대상> <값>"
 	}
 
 	/** 오류 종류 **/
@@ -676,5 +746,15 @@
 	"error sql user refdata"
 	{
 		"ko"				"유저 참고 데이터를 갱신하는 도중 오류가 발생하였습니다."
+	}
+
+	"error sql user money give"
+	{
+		"ko"				"유저의 금액을 대상에게 주는 도중 오류가 발생했습니다."
+	}
+
+	"error sql user money takeaway"
+	{
+		"ko"				"유저의 금액을 대상으로부터 빼앗는 도중 오류가 발생했습니다."
 	}
 }

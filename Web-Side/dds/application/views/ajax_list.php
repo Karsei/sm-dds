@@ -119,6 +119,7 @@ for ($i = 0; $i < $pageTotal; $i++)
                             <thead>
                                 <tr>
                                     <th><? echo $langData->line('tb_cate_usridx'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_name'); ?></th>
                                     <th><? echo $langData->line('tb_cate_authid'); ?></th>
                                     <th><? echo $langData->line('tb_cate_money'); ?></th>
                                     <th><? echo $langData->line('tb_cate_ingame'); ?></th>
@@ -130,6 +131,7 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? $count++; ?>
                                 <tr>
                                     <td><? echo $usrlist['idx']; ?></td>
+                                    <td><? echo $usrlist['nickname']; ?></td>
                                     <td><? echo $usrlist['authid']; ?></td>
                                     <td class="usrmoney" data-uidx="<? echo $usrlist['idx']; ?>"><? echo $usrlist['money']; ?></td>
                                     <td><? echo str_replace(array(0, 1), array($langData->line('admin_list_gameoff'), $langData->line('admin_list_gameon')), $usrlist['ingame']); ?></td>
@@ -138,7 +140,7 @@ for ($i = 0; $i < $pageTotal; $i++)
 <? endforeach; ?>
 <? if ($count == 0): ?>
                                 <tr>
-                                    <td colspan="5"><? echo $langData->line('msg_results_none'); ?></td>
+                                    <td colspan="6"><? echo $langData->line('msg_results_none'); ?></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -261,6 +263,55 @@ for ($i = 0; $i < $pageTotal; $i++)
 ?>
                         </ul>
 <? endif; ?>
+<? /** ADMIN-EnvList **/ ?>
+<? elseif (strcmp($type, 'envlist') == 0): ?>
+                        <div class="box-sub-title">
+                            <h1><? echo $langData->line('admin_envlist'); ?></h1>
+                        </div>
+                        <table id="admin-envlist" class="table">
+                            <thead>
+                                <tr>
+                                    <th><? echo $langData->line('tb_cate_idx'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_category'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_name'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_value'); ?></th>
+                                    <th><? echo $langData->line('tb_cate_select'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+<? foreach($list as $envlist): ?>
+<? $count++; ?>
+                                <tr>
+                                    <td><? echo $envlist['idx']; ?></td>
+                                    <td><? echo $envlist['onecate']; ?></td>
+                                    <td><? echo $envlist['twocate']; ?></td>
+                                    <td><? echo $envlist['setdata']; ?></td>
+                                    <td><span class="btn_envmodify" data-dt="admin-envmodify" data-t="<? echo $type; ?>" data-eidx="<? echo $envlist['idx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_modify'); ?></span><span class="btn_envdelete" data-dt="admin-envdelete" data-t="<? echo $type; ?>" data-eidx="<? echo $envlist['idx']; ?>" data-p="<? echo $pageIdx; ?>"><? echo $langData->line('btn_delete'); ?></span></td>
+                                </tr>
+<? endforeach; ?>
+<? if ($count == 0): ?>
+                                <tr>
+                                    <td colspan="5"><? echo $langData->line('msg_results_none'); ?></td>
+                                </tr>
+                            </tbody>
+                        </table>
+<? else: ?>
+                            </tbody>
+                        </table>
+                        <ul class="pagination">
+<? 
+for ($i = 0; $i < $pageTotal; $i++)
+{
+    if ((($pageIdx - $pageSideCount) <= ($i + 1)) && (($pageIdx + $pageSideCount) >= ($i + 1)))
+        if ($pageIdx == ($i + 1))
+            echo '<li class="active"><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) .'</a></li>';
+        else
+            echo '<li><a href="#" data-t="' . $type . '" data-tar="#admin-list">' . ($i + 1) . '</a></li>';
+}
+
+?>
+                        </ul>
+<? endif; ?>
 <? /** ADMIN-DataLogList **/ ?>
 <? elseif (strcmp($type, 'dataloglist') == 0): ?>
                         <div class="box-sub-title">
@@ -283,8 +334,80 @@ for ($i = 0; $i < $pageTotal; $i++)
                                 <tr>
                                     <td><? echo $dllist['idx']; ?></td>
                                     <td><? echo $dllist['authid']; ?></td>
-                                    <td><? echo $dllist['action']; ?></td>
-                                    <td><? echo $dllist['setdata']; ?></td>
+                                    <td><?
+                                    if (strcmp($dllist['action'], 'game-connect') == 0)
+                                        echo $langData->line('admin_datalog_gameconnect');
+                                    else if (strcmp($dllist['action'], 'game-disconnect') == 0)
+                                        echo $langData->line('admin_datalog_gamedisconnect');
+                                    else if (strcmp($dllist['action'], 'item-buy') == 0)
+                                        echo $langData->line('admin_datalog_itembuy');
+                                    else if (strcmp($dllist['action'], 'item-use') == 0)
+                                        echo $langData->line('admin_datalog_itemuse');
+                                    else if (strcmp($dllist['action'], 'item-cancel') == 0)
+                                        echo $langData->line('admin_datalog_itemcancel');
+                                    else if (strcmp($dllist['action'], 'item-resell') == 0)
+                                        echo $langData->line('admin_datalog_itemresell');
+                                    else if (strcmp($dllist['action'], 'item-gift') == 0)
+                                        echo $langData->line('admiactionn_datalog_itemgift');
+                                    else if (strcmp($dllist['action'], 'item-drop') == 0)
+                                        echo $langData->line('admin_datalog_itemdrop');
+                                    else if (strcmp($dllist['action'], 'money-up') == 0)
+                                        echo $langData->line('admin_datalog_moneyup');
+                                    else if (strcmp($dllist['action'], 'money-down') == 0)
+                                        echo $langData->line('admin_datalog_moneydown');
+                                    else if (strcmp($dllist['action'], 'money-gift') == 0)
+                                        echo $langData->line('admin_datalog_moneygift');
+                                    else if (strcmp($dllist['action'], 'money-give') == 0)
+                                        echo $langData->line('admin_datalog_moneygive');
+                                    else if (strcmp($dllist['action'], 'money-takeaway') == 0)
+                                        echo $langData->line('admin_datalog_moneytakeaway');
+                                    else if (strcmp($dllist['action'], 'item-give') == 0)
+                                        echo $langData->line('admin_datalog_itemgive');
+                                    else if (strcmp($dllist['action'], 'item-takeaway') == 0)
+                                        echo $langData->line('admin_datalog_itemtakeaway');
+                                    else if (strcmp($dllist['action'], 'user-refdata') == 0)
+                                        echo $langData->line('admin_datalog_userrefdata');
+                                    else
+                                        echo $dllist['action'];
+                                    ?></td>
+                                    <td><?
+                                    $getData = GetSeparateValue($dllist['setdata']);
+                                    
+                                    if (strcmp($dllist['action'], 'game-connect') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_curmoney') . ': ' . $getData[0] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'game-disconnect') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_curmoney') . ': ' . $getData[0] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'item-buy') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_itcgname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_itname') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_itidx') . ': ' . $getData[2] . '</li><li>' . $langData->line('admin_datalog_curmoney') . ': ' . $getData[3] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'item-use') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_itcgname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_itname') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_itidx') . ': ' . $getData[2] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'item-cancel') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_itcgname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_itname') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_itidx') . ': ' . $getData[2] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'item-resell') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_itcgname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_itname') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_itidx') . ': ' . $getData[2] . '</li><li>' . $langData->line('admin_datalog_ammoney') . ': ' . $getData[3] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'item-gift') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_tarusrname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_tarauthid') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_itcgname') . ': ' . $getData[2] . '</li><li>' . $langData->line('admin_datalog_itname') . ': ' . $getData[3] . '</li><li>' . $langData->line('admin_datalog_itidx') . ': ' . $getData[4] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'item-drop') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_itcgname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_itname') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_itidx') . ': ' . $getData[2] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'money-up') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_curmoney') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_ammoney') . ': ' . $getData[1] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'money-down') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_curmoney') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_ammoney') . ': ' . $getData[1] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'money-gift') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_tarusrname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_tarauthid') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_curmoney') . ': ' . $getData[2] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'money-give') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_tarusrname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_tarauthid') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_ammoney') . ': ' . $getData[2] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'money-takeaway') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_tarusrname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_tarauthid') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_ammoney') . ': ' . $getData[2] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'item-give') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_tarusrname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_tarauthid') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_itcgname') . ': ' . $getData[2] . '</li><li>' . $langData->line('admin_datalog_itname') . ': ' . $getData[3] . '</li><li>' . $langData->line('admin_datalog_itidx') . ': ' . $getData[4] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'item-takeaway') == 0)
+                                        echo '<ul><li>' . $langData->line('admin_datalog_tarusrname') . ': ' . $getData[0] . '</li><li>' . $langData->line('admin_datalog_tarauthid') . ': ' . $getData[1] . '</li><li>' . $langData->line('admin_datalog_itcgname') . ': ' . $getData[2] . '</li><li>' . $langData->line('admin_datalog_itname') . ': ' . $getData[3] . '</li><li>' . $langData->line('admin_datalog_itidx') . ': ' . $getData[4] . '</li></ul>';
+                                    else if (strcmp($dllist['action'], 'user-refdata') == 0)
+                                        echo '<ul></ul>';
+                                    else
+                                        echo $dllist['setdata'];
+                                    ?></td>
                                     <td><? echo date("Y-m-d H:i:s", $dllist['thisdate']); ?></td>
                                     <td><? echo $dllist['usrip']; ?></td>
                                 </tr>

@@ -244,15 +244,18 @@ td span:last-child {
     width: 75px;
 }
 #admin-userlist thead th:nth-child(2) {
-    width: 180px;
-}
-#admin-userlist thead th:nth-child(3) {
     width: 100px;
 }
+#admin-userlist thead th:nth-child(3) {
+    width: 180px;
+}
 #admin-userlist thead th:nth-child(4) {
-    width: 90px;
+    width: 100px;
 }
 #admin-userlist thead th:nth-child(5) {
+    width: 90px;
+}
+#admin-userlist thead th:nth-child(6) {
     width: 90px;
 }
 
@@ -291,6 +294,22 @@ td span:last-child {
     width: 100px;
 }
 #admin-itemcglist thead th:nth-child(5) {
+    width: 100px;
+}
+
+#admin-envlist thead th:nth-child(1) {
+    width: 75px;
+}
+#admin-envlist thead th:nth-child(2) {
+    width: 100px;
+}
+#admin-envlist thead th:nth-child(3) {
+    width: 120px;
+}
+#admin-envlist thead th:nth-child(4) {
+    width: 120px;
+}
+#admin-envlist thead th:nth-child(5) {
     width: 100px;
 }
 

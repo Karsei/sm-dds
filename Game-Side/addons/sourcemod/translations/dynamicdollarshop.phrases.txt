@@ -106,6 +106,16 @@
 		"en"				"dds_gift"
 	}
 
+	"command moneygive"
+	{
+		"en"				"dds_moneygive"
+	}
+
+	"command moneytakeaway"
+	{
+		"en"				"dds_moneytakeaway"
+	}
+
 	"command itemgive"
 	{
 		"en"				"dds_itemgive"
@@ -417,6 +427,34 @@
 		"en"				"Initializing databases is complete."
 	}
 
+	"system user money give tarerr"
+	{
+		"en"				"Target client is not in game."
+	}
+
+	"system user money give send"
+	{
+		"#format"			"{1:s},{2:d},{3:t}"
+		"en"				"You have given {2} {3} to '{1}'."
+	}
+
+	"system user money give take"
+	{
+		"#format"			"{1:s},{2:d},{3:t}"
+		"en"				"You have taken {2} {3} from '{1}'."
+	}
+
+	"system user money takeaway tarerr"
+	{
+		"en"				"Target client is not in game."
+	}
+
+	"system user money takeaway action"
+	{
+		"#format"			"{1:s},{2:d},{3:t}"
+		"en"				"You have seized {2} {3} to '{1}'."
+	}
+
 	"system user item give tarerr"
 	{
 		"en"				"Target client is not in game."
@@ -442,13 +480,25 @@
 	"system user item takeaway action"
 	{
 		"#format"			"{1:s},{2:s},{3:s},{4:t}"
-		"en"				"You have taken away '[{1}] {2}' {4} from '{3}'."
+		"en"				"You have seized '[{1}] {2}' {4} from '{3}'."
 	}
 
 	"system get money kill msg"
 	{
 		"#format"			"{1:s},{2:d},{3:t}"
 		"en"				"You have got {2} {3} by killing '{1}'."
+	}
+
+	"system get money win msg"
+	{
+		"#format"			"{1:d},{2:t}"
+		"en"				"You have got {1} {2} by winning this round."
+	}
+
+	"system get money timestack msg"
+	{
+		"#format"			"{1:d},{2:d},{3:t}"
+		"en"				"You have got {2} {3} due to staying this server(Time Interval: {1})."
 	}
 
 	"system user refdata"
@@ -533,6 +583,16 @@
 		"en"				"Please enter the amount enclosed in double quotes."
 	}
 
+	"error command noitem"
+	{
+		"en"				"Please enter the item index."
+	}
+
+	"error command noitem nodqm"
+	{
+		"en"				"Please enter the item index enclosed in double quotes."
+	}
+
 	"error command profile usage"
 	{
 		"#format"			"{1:t}"
@@ -543,6 +603,18 @@
 	{
 		"#format"			"{1:t},{2:t}"
 		"en"				"Usage: !{1} \"{2}\" <target> <amount>"
+	}
+
+	"error command moneygive usage"
+	{
+		"#format"			"{1:t}"
+		"en"				"Usage: !{1} <target> <amount>"
+	}
+
+	"error command moneytakeaway usage"
+	{
+		"#format"			"{1:t}"
+		"en"				"Usage: !{1} <target> <amount>"
 	}
 
 	/** 오류 종류 **/
@@ -699,5 +771,15 @@
 	"error sql user refdata"
 	{
 		"en"				"An error has occurred while updating user profile by setting ref data."
+	}
+
+	"error sql user money give"
+	{
+		"en"				"An error has occurred while updating user profile by giving user money."
+	}
+
+	"error sql user money takeaway"
+	{
+		"en"				"An error has occurred while updating user profile by sezing user money."
 	}
 }

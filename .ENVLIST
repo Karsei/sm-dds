@@ -9,23 +9,26 @@
 우선순위: 아이템 종류 > 아이템 > 등급(나중에 처리)
 
  * 등급 별 지정 ENV
- <시스템 관련>
- ENV_DDS_SYS_GAME; 적용할 게임 종류(all, cstrike, csgo, tf2, ...)
-
  <접근 관련>
- ENV_DDS_ACCESS_GIVE; 아이템을 생성하여 클라이언트에게 주기(0, 1)
- ENV_DDS_ACCESS_TAKEAWAY; 클라이언트의 아이템을 뺏기(0, 1)
+ ENV_DDS_ACCESS_MONEY_GIFT; 금액 선물 가능 여부(1, 0 - 데이터 처리의 '금액 선물')
+ ENV_DDS_ACCESS_MONEY_GIVE; 금액 주기 가능 여부(0, 0)
+ ENV_DDS_ACCESS_MONEY_TAKEAWAY; 금액 뺏기 가능 여부(0, 0)
+ ENV_DDS_ACCESS_ITEM_GIFT; 아이템 선물 가능 여부(1, 0 - 데이터 처리의 '아이템 선물')
+ ENV_DDS_ACCESS_ITEM_RESELL; 아이템 되팔기 가능 여부(1, 0 - 데이터 처리의 '되판매')
+ ENV_DDS_ACCESS_ITEM_GIVE; 아이템을 생성하여 클라이언트에게 주기 가능 여부(0, 1 - 명령, 데이터 처리의 '아이템 주기')
+ ENV_DDS_ACCESS_ITEM_TAKEAWAY; 클라이언트의 아이템을 뺏기 가능 여부(0, 1 - 명령, 데이터 처리의 '아이템 뺏기')
  ENV_DDS_ACCESS_INIT; 데이터초기화 명령어 가능 여부(0, 1)
+ ENV_DDS_ACCESS_WEB_MANAGE; 웹 패널 '관리'메뉴 가능 여부(0, 1)
 
  <이용 관련>
  ENV_DDS_USE_MONEY; 클라이언트의 현 금액을 사용함(1, 0)
 
-  ==== ENV_DDS_SYS_GAME:cstrike||ENV_DDS_ACCESS_GIVE:0||ENV_DDS_ACCESS_TAKEAWAY:0||ENV_DDS_ACCESS_INIT:0||ENV_DDS_USE_MONEY:1
+  ==== 기본: ENV_DDS_ACCESS_MONEY_GIFT:1||ENV_DDS_ACCESS_MONEY_GIVE:0||ENV_DDS_ACCESS_MONEY_TAKEAWAY:0||ENV_DDS_ACCESS_ITEM_GIFT:1||ENV_DDS_ACCESS_ITEM_RESELL:1||ENV_DDS_ACCESS_ITEM_GIVE:0||ENV_DDS_ACCESS_ITEM_TAKEAWAY:0||ENV_DDS_ACCESS_INIT:0||ENV_DDS_ACCESS_WEB_MANAGE:0||ENV_DDS_USE_MONEY:1
 
 
  * 아이템 별 지정 ENV
  <시스템 관련>
- ENV_DDS_SYS_GAME; 적용할 게임 종류(all, cstrike, csgo, tf2, ...)
+ ENV_DDS_SYS_GAME; 적용할 게임 종류(all, cstrike, csgo, tf2, ... - 로드 시 구분)
 
  <정보 관련>
  ENV_DDS_INFO_ADRS; 아이템 이용 주소(사용자 지정)
@@ -36,22 +39,22 @@
  ENV_DDS_INFO_FREETAG; 자유형 태그 여부(0, 1)
 
  <이용 관련>
- ENV_DDS_LIMIT_BUY_CLASS; 구매 시 접근 가능한 등급 지정(all, none, 등급 번호)
- ENV_DDS_LIMIT_USE_CLASS; 이용 시 접근 가능한 등급 지정(all, none, 등급 번호)
+ ENV_DDS_LIMIT_BUY_CLASS; 구매 시 접근 가능한 등급 지정(all, none, 등급 번호 - 데이터 처리의 '구매')
+ ENV_DDS_LIMIT_USE_CLASS; 이용 시 접근 가능한 등급 지정(all, none, 등급 번호 - 데이터 처리의 '이용'/'장착')
  ENV_DDS_LIMIT_SHOW_LIST_CLASS; 메뉴 목록에서 등급 별 출력 여부(all, none, 등급 번호)
  ENV_DDS_USE_TEAM; 이용 시 적용될 팀 지정((2,3), all, none, 팀 번호)
 
-  ==== ENV_DDS_SYS_GAME:all||ENV_DDS_INFO_POS:0 0 0||ENV_DDS_INFO_ANG:0 0 0||ENV_DDS_INFO_COLOR:0 0 0 0||ENV_DDS_INFO_TAGSTR:||ENV_DDS_INFO_FREETAG:0
+  ==== 기본: ENV_DDS_SYS_GAME:all||ENV_DDS_INFO_ADRS:||ENV_DDS_INFO_POS:0 0 0||ENV_DDS_INFO_ANG:0 0 0||ENV_DDS_INFO_COLOR:0 0 0 0||ENV_DDS_INFO_TAGSTR:||ENV_DDS_INFO_FREETAG:0||ENV_DDS_LIMIT_BUY_CLASS:all||ENV_DDS_LIMIT_USE_CLASS:all||ENV_DDS_LIMIT_SHOW_LIST_CLASS:all||ENV_DDS_USE_TEAM:2,3
 
 
  * 아이템 종류 별 지정 ENV
  <시스템 관련>
- ENV_DDS_SYS_GAME; 적용할 게임 종류(all, cstrike, csgo, tf2, ...)
+ ENV_DDS_SYS_GAME; 적용할 게임 종류(all, cstrike, csgo, tf2, ... - 로드 시 구분)
 
  <이용 관련>
- ENV_DDS_LIMIT_BUY_CLASS; 구매 시 접근 가능한 등급 지정(all, none, 등급 번호)
- ENV_DDS_LIMIT_USE_CLASS; 이용 시 접근 가능한 등급 지정(all, none, 등급 번호)
- ENV_DDS_LIMIT_SHOW_LIST_CLASS; 메뉴 목록에서 등급 별 출력 여부(all, none, 등급 번호)
+ ENV_DDS_LIMIT_BUY_CLASS; 구매 시 접근 가능한 등급 지정(all, none, 등급 번호 - 데이터 처리의 '구매')
+ ENV_DDS_LIMIT_USE_CLASS; 이용 시 접근 가능한 등급 지정(all, none, 등급 번호 - 데이터 처리의 '이용'/'장착')
+ ENV_DDS_LIMIT_SHOW_LIST_CLASS; 메뉴 목록에서 등급 별 출력 여부(all, none, 등급 번호 - 장착 종류 메뉴, 인벤 종류 메뉴, 구매 종류 메뉴, 설정 메뉴, 아이템 주기 메뉴)
  ENV_DDS_USE_TEAM; 이용 시 적용될 팀 지정((2,3), all , none, 팀 번호)
 
-  ==== ENV_DDS_SYS_GAME:cstrike||ENV_DDS_ACCESS_CLASS:all||ENV_DDS_USE_MONEY:1
+  ==== 기본: ENV_DDS_SYS_GAME:all||ENV_DDS_LIMIT_BUY_CLASS:all||ENV_DDS_LIMIT_USE_CLASS:all||ENV_DDS_LIMIT_SHOW_LIST_CLASS:all||ENV_DDS_USE_TEAM:2,3

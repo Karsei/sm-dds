@@ -493,6 +493,11 @@ function setDetInfo(stype, sdetail, starget, sdata)
 			$detTarget.css('display', 'block');
 			makeDetInfo('itemcglist', 'add-itemcg', '#admin-info');
 		}
+		else if ($tgType == 'envlist') {
+			// 'ENV 추가'
+			$detTarget.css('display', 'block');
+			makeDetInfo('envlist', 'add-env', '#admin-info');
+		}
 		else {
 			// 세부 페이지 초기화
 			$detTarget.css('display', 'none');
@@ -585,6 +590,28 @@ function setDetInfo(stype, sdetail, starget, sdata)
 
 		loadPromptMsg2('msg_title_notice', 'msg_contents_itemcgdelete', (function() {
 			doProcess(sType, sDetail, '#admin-list', icIdx, 0, sPage);
+		}));
+	});
+	/** 'ENV 관리'에서 ENV 정보를 수정할 때 **/
+	$(document).on('click', '#admin-envlist .btn_envmodify', function() {
+		var $mtable = $(this); // 선택 칼럼
+
+		// 목록 설정 관련
+		var sType = $(this).attr('data-t'); var sDetail = $(this).attr('data-dt');
+		var eIdx = $mtable.attr('data-eidx'); var sPage = $(this).attr('data-p');
+
+		makeDetInfo('envlist', 'modify-env', '#admin-info', eIdx);
+	});
+	/** 'ENV 관리'에서 ENV 정보를 삭제할 때 **/
+	$(document).on('click', '#admin-envlist .btn_envdelete', function() {
+		var $mtable = $(this); // 선택 칼럼
+
+		// 목록 설정 관련
+		var sType = $(this).attr('data-t'); var sDetail = $(this).attr('data-dt');
+		var eIdx = $mtable.attr('data-eidx'); var sPage = $(this).attr('data-p');
+
+		loadPromptMsg2('msg_title_notice', 'msg_contents_envdelete', (function() {
+			doProcess(sType, sDetail, '#admin-list', eIdx, 0, sPage);
 		}));
 	});
 	/**********************
@@ -901,5 +928,25 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var $ic_hidden = $ic.find('input[name="icadd-hidden"]').val();
 		var ic_send = new Array($ic_name, $ic_orderidx, $ic_env, $ic_status, $ic_hidden);
 		setDetInfo('itemcglist', 'modifyitemcg', '#admin-list', ic_send);
+	});
+	/** [ENV 수정] 정보 전송 **/
+	$(document).on('click', '#admin-info #btn_modifyenv', function() {
+		var $env = $(this).parent();
+		var $env_onecate = $(this).find('input[name="envadd-onecate"]').val();
+		var $env_twocate = $(this).find('input[name="envadd-twocate"]').val();
+		var $env_setdata = $(this).find('input[name="envadd-setdata"]').val();
+		var $env_desc = $(this).find('input[name="envadd-desc"]').val();
+
+		// '종류', '이름' 공백은 없애준다.
+		$env_onecate.replace(/\s/gi, '');
+		$env_twocate.replace(/\s/gi, '');
+
+		// '종류', '이름'이 비어있으면 패스
+		if ($env_onecate) {return true;}
+		if ($env_twocate) {return true;}
+
+		var $env_hidden = $env.find('input[name="envadd-hidden"]').val();
+		var env_send = new Array($env_onecate, $env_twocate, $env_setdata, $env_desc, $env_hidden);
+		setDetInfo('envlist', 'modifyenv', '#admin-list', env_send);
 	});
 });

@@ -1,5 +1,5 @@
 /************************************************************************
- * Dynamic Dollar Shop - [Module] Trail (Sourcemod)
+ * Dynamic Dollar Shop - [Module] Light (Sourcemod)
  * 
  * Copyright (C) 2012-2015 Karsei
  * 
@@ -21,8 +21,8 @@
 #include <sdktools>
 #include <dds>
 
-#define DDS_ADD_NAME			"Dynamic Dollar Shop :: [Module] Trail"
-#define DDS_ITEMCG_TRAIL_ID		1
+#define DDS_ADD_NAME			"Dynamic Dollar Shop :: [Module] Light"
+#define DDS_ITEMCG_LIGHT_ID		8
 
 /*******************************************************
  * V A R I A B L E S
@@ -32,8 +32,8 @@ char dds_sGameIdentity[32];
 bool dds_bGameCheck;
 bool dds_bFirstTimeHook;
 
-// 유저 별 트레일 엔티티 번호
-int dds_iUserTrailEntIdx[MAXPLAYERS + 1];
+// 유저 별 조명 엔티티 번호
+int dds_iUserLightEntIdx[MAXPLAYERS + 1];
 
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
@@ -42,7 +42,7 @@ public Plugin:myinfo =
 {
 	name = DDS_ADD_NAME,
 	author = DDS_ENV_CORE_AUTHOR,
-	description = "This can allow clients to use trail function.",
+	description = "This can allow clients to use Light function.",
 	version = DDS_ENV_CORE_VERSION,
 	url = DDS_ENV_CORE_HOMEPAGE
 };
@@ -88,8 +88,8 @@ public void OnLibraryAdded(const char[] name)
 {
 	if (StrEqual(name, "dds_core", false))
 	{
-		// '트레일' 아이템 종류 생성
-		DDS_CreateItemCategory(DDS_ITEMCG_TRAIL_ID);
+		// '조명' 아이템 종류 생성
+		DDS_CreateItemCategory(DDS_ITEMCG_LIGHT_ID);
 	}
 }
 
@@ -108,7 +108,7 @@ public void OnClientAuthorized(int client, const char[] auth)
 	if (IsFakeClient(client))	return;
 
 	// 엔티티 초기화
-	dds_iUserTrailEntIdx[client] = -1;
+	dds_iUserLightEntIdx[client] = -1;
 }
 
 /**
@@ -125,7 +125,7 @@ public void OnClientDisconnect(int client)
 	if (IsFakeClient(client))	return;
 
 	// 엔티티 초기화
-	dds_iUserTrailEntIdx[client] = -1;
+	dds_iUserLightEntIdx[client] = -1;
 }
 
 
@@ -146,14 +146,14 @@ public void Init_UserEntData(int client, int mode)
 		{
 			for (int i = 0; i <= MAXPLAYERS; i++)
 			{
-				// 트레일 엔티티 초기화
-				dds_iUserTrailEntIdx[i] = -1;
+				// 조명 엔티티 초기화
+				dds_iUserLightEntIdx[i] = -1;
 			}
 		}
 		case 2:
 		{
-			// 트레일 엔티티 초기화
-			dds_iUserTrailEntIdx[client] = -1;
+			// 조명 엔티티 초기화
+			dds_iUserLightEntIdx[client] = -1;
 		}
 	}
 }
@@ -216,70 +216,53 @@ public void System_SetHookEvent(const char[] gamename)
 
 
 /**
- * Entity :: 트레일 생성
+ * Entity :: 조명 생성
  *
  * @param client				클라이언트 인덱스
- *
- * @ref 'env_spritetrail' - https://developer.valvesoftware.com/wiki/Env_spritetrail
- * @ref 'SpriteTrail.cpp' - https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/shared/SpriteTrail.cpp
  */
-public void Entity_CreateTrail(int client)
+public void Entity_CreateLight(int client)
 {
 	/**************************************
 	 * 준비
 	***************************************/
 	// 해당 아이템 환경변수 로드
 	char sItemEnv[256];
-	DDS_GetItemInfo(DDS_GetClientAppliedItem(client, DDS_ITEMCG_TRAIL_ID), ItemInfo_ENV, sItemEnv);
+	DDS_GetItemInfo(DDS_GetClientAppliedItem(client, DDS_ITEMCG_LIGHT_ID), ItemInfo_ENV, sItemEnv);
 
 	// 현재 클라이언트의 위치 파악
 	float fClient_Pos[3];
 	GetClientAbsOrigin(client, fClient_Pos);
 
 	// z값 수정
-	fClient_Pos[2] += 10.0;
-
-	// 위치값을 문자열 파라메터로 변환
-	char sClient_PosSet[128];
-	Format(sClient_PosSet, sizeof(sClient_PosSet), "%f %f %f", fClient_Pos[0], fClient_Pos[1], fClient_Pos[2]);
+	fClient_Pos[2] += 30.0;
 
 	// 모델 정보 로드
-	char sTrail_ModelSet[128];
-	SelectedStuffToString(sItemEnv, "ENV_DDS_INFO_ADRS", "||", ":", sTrail_ModelSet, sizeof(sTrail_ModelSet));
-
-	// 색상 정보 로드
-	char sTrail_ColorSet[32];
-	SelectedStuffToString(sItemEnv, "ENV_DDS_INFO_COLOR", "||", ":", sTrail_ColorSet, sizeof(sTrail_ColorSet));
-
-	// 로드했을 때 값이 유효하지 않을 경우 직접 치환
-	if (strlen(sTrail_ColorSet) <= 0)	Format(sTrail_ColorSet, sizeof(sTrail_ColorSet), "0 0 0 0");
+	char sLight_ModelSet[128];
+	SelectedStuffToString(sItemEnv, "ENV_DDS_INFO_ADRS", "||", ":", sLight_ModelSet, sizeof(sLight_ModelSet));
 
 	/**************************************
 	 * 엔티티 생성
 	***************************************/
 	// 엔티티 부여
-	dds_iUserTrailEntIdx[client] = CreateEntityByName("env_spritetrail");
+	dds_iUserLightEntIdx[client] = CreateEntityByName("env_sprite");
 
 	// 엔티티 기본 정보 설정
-	DispatchKeyValue(dds_iUserTrailEntIdx[client], "Origin", sClient_PosSet);
-	DispatchKeyValue(dds_iUserTrailEntIdx[client], "lifetime", "2.5");
-	DispatchKeyValue(dds_iUserTrailEntIdx[client], "startwidth", "16.0");
-	DispatchKeyValue(dds_iUserTrailEntIdx[client], "endwidth", "8.0");
-	DispatchKeyValue(dds_iUserTrailEntIdx[client], "spritename", sTrail_ModelSet);
-	DispatchKeyValue(dds_iUserTrailEntIdx[client], "renderamt", "255");
-	DispatchKeyValue(dds_iUserTrailEntIdx[client], "rendercolor", sTrail_ColorSet);
-	DispatchKeyValue(dds_iUserTrailEntIdx[client], "rendermode", "5");
+	DispatchKeyValue(dds_iUserLightEntIdx[client], "model", sLight_ModelSet);
+	DispatchKeyValue(dds_iUserLightEntIdx[client], "rendermode", "5");
+	DispatchKeyValue(dds_iUserLightEntIdx[client], "current", "15");
+	DispatchKeyValue(dds_iUserLightEntIdx[client], "scale", "1.0");
 
 	// 엔티티 생성
-	DispatchSpawn(dds_iUserTrailEntIdx[client]);
+	DispatchSpawn(dds_iUserLightEntIdx[client]);
+	//AcceptEntityInput(dds_iUserLightEntIdx[client], "ShowSprite");
 
-	// 엔티티 속성 설정
-	SetEntPropFloat(dds_iUserTrailEntIdx[client], Prop_Send, "m_flTextureRes", 0.05);
-	SetEntPropFloat(dds_iUserTrailEntIdx[client], Prop_Data, "m_flSkyboxScale", 1.0); // 클라이언트쪽에서 지정해도 상관없음
+	// 위치 이동
+	TeleportEntity(dds_iUserLightEntIdx[client], fClient_Pos, NULL_VECTOR, NULL_VECTOR);
 
 	// 클라이언트에게 부착
 	SetVariantString("!activator"); // https://developer.valvesoftware.com/wiki/Targetname
-	AcceptEntityInput(dds_iUserTrailEntIdx[client], "SetParent", client);
+	AcceptEntityInput(dds_iUserLightEntIdx[client], "SetParent", client);
+	//AcceptEntityInput(dds_iUserLightEntIdx[client], "TurnOn", client);
 }
 
 /**
@@ -287,13 +270,13 @@ public void Entity_CreateTrail(int client)
  *
  * @param client				클라이언트 인덱스
  */
-public void Entity_RemoveTrail(int client)
+public void Entity_RemoveLight(int client)
 {
-	if (IsValidEntity(dds_iUserTrailEntIdx[client]) && (dds_iUserTrailEntIdx[client] != -1))
+	if (IsValidEntity(dds_iUserLightEntIdx[client]) && (dds_iUserLightEntIdx[client] != -1))
 	{
-		AcceptEntityInput(dds_iUserTrailEntIdx[client], "Kill");
+		AcceptEntityInput(dds_iUserLightEntIdx[client], "Kill");
 	}
-	dds_iUserTrailEntIdx[client] = -1;
+	dds_iUserLightEntIdx[client] = -1;
 }
 
 
@@ -333,9 +316,9 @@ public Action Event_OnRoundStart(Event event, const char[] name, bool dontBroadc
 	// 클라이언트가 봇이라면 통과
 	if (IsFakeClient(client))	return Plugin_Continue;
 
-	// 트레일 생성
-	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_TRAIL_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_TRAIL_ID) > 0))
-		Entity_CreateTrail(client);
+	// 조명 생성
+	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_LIGHT_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_LIGHT_ID) > 0))
+		Entity_CreateLight(client);
 
 	return Plugin_Continue;
 }
@@ -370,9 +353,9 @@ public Action Event_OnPlayerSpawn(Event event, const char[] name, bool dontBroad
 	// 클라이언트가 봇이라면 통과
 	if (IsFakeClient(client))	return Plugin_Continue;
 
-	// 트레일 생성
-	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_TRAIL_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_TRAIL_ID) > 0))
-		Entity_CreateTrail(client);
+	// 조명 생성
+	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_LIGHT_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_LIGHT_ID) > 0))
+		Entity_CreateLight(client);
 
 	return Plugin_Continue;
 }
@@ -395,8 +378,8 @@ public Action Event_OnPlayerDeath(Event event, const char[] name, bool dontBroad
 	// 이벤트 핸들을 통해 클라이언트 식별
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 
-	// 트레일 제거
-	Entity_RemoveTrail(client);
+	// 조명 제거
+	Entity_RemoveLight(client);
 
 	return Plugin_Continue;
 }
@@ -420,8 +403,8 @@ public Action Event_OnPlayerTeam(Event event, const char[] name, bool dontBroadc
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	//int afterteam = GetClientOfUserId(GetEventInt(event, "team"));
 
-	// 트레일 제거
-	Entity_RemoveTrail(client);
+	// 조명 제거
+	Entity_RemoveLight(client);
 
 	return Plugin_Continue;
 }

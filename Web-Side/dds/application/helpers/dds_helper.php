@@ -69,4 +69,35 @@ function SplitStrByGeoName($geo, $gloname)
 	return $val[1];
 }
 
+function GetTotalFormatValue($val)
+{
+	// '||'를 기준으로 라인 커팅
+	$valList = explode('||', $val);
+
+	// 맨 마지막이 비어있는 경우는 제거
+	if (empty($valList[count($valList) - 1]))
+		array_pop($valList);
+
+	// ':'를 기준으로 값 커팅
+	$setList = array();
+	for ($i = 0; $i < count($valList); $i++) {
+		$tp_set = explode(':', $valList[$i]);
+		array_push($setList, array('name' => $tp_set[0], 'value' => $tp_set[1]));
+	}
+
+	return $setList;
+}
+
+function GetSeparateValue($val)
+{
+	// '||'를 기준으로 라인 커팅
+	$valList = explode('||', $val);
+
+	// 맨 마지막이 비어있는 경우는 제거
+	if (empty($valList[count($valList) - 1]))
+		array_pop($valList);
+
+	return $valList;
+}
+
 ?>

@@ -18,7 +18,7 @@ class Msg extends CI_Controller {
 		$cSess = $this->session;
 		
 		// 로그인 여부
-		if (!$cSess->userdata('auth_id')) {
+		if (!$cSess->userdata('auth_id') || !$cSess->userdata('inauth')) {
 			redirect('/auth/login');
 		}
 

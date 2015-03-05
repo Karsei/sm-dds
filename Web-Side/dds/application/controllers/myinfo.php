@@ -17,7 +17,7 @@ class Myinfo extends CI_Controller {
 		$this->load->library('session');
 		$cSess = $this->session;
 		
-		if (!$cSess->userdata('auth_id')) {
+		if (!$cSess->userdata('auth_id') || !$cSess->userdata('inauth')) {
 			redirect('/auth/login');
 		}
 
@@ -45,7 +45,7 @@ class Myinfo extends CI_Controller {
 
 		// 상단
 		$tdata['title'] = $this->lang->line('menu_myinfo');
-		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title']);
+		$tdata['menuset'] = $this->menu_m->CreateMenu($tdata['title'], $User_AuthId);
 		$tdata['usr_authid'] = $User_AuthId;
 
 		// 내용
