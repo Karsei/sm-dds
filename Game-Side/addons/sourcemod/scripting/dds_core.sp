@@ -586,7 +586,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 
 		/** 환경 변수 확인(아이템 단) **/
 		/* 접근 관련 */
-		SelectedStuffToString(dds_eItemList[Find_GetItemIndex(iItemIdx)][ENV], "ENV_DDS_LIMIT_BUY_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
+		SelectedStuffToString(dds_eItemList[Find_GetItemListIndex(iItemIdx)][ENV], "ENV_DDS_LIMIT_BUY_CLASS", "||", ":", sGetEnv, sizeof(sGetEnv));
 		if (StrEqual(sGetEnv, "none", false)) // 허용된 것이 아무것도 없음
 		{
 			DDS_PrintToChat(client, "%t", "error access");
@@ -5213,7 +5213,7 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
 
 			// 허용 등급 추출
-			char sTmpGNStr[DDS_ENV_VAR_SUPPORT_GAME_NUM];
+			char sTmpGNStr[DDS_ENV_VAR_SUPPORT_GAME_NUM][64];
 			ExplodeString(sGetEnv, ",", sTmpGNStr, sizeof(sTmpGNStr), sizeof(sTmpGNStr[]));
 
 			// 검증
@@ -5303,7 +5303,7 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 			ReplaceString(sGetEnv, sizeof(sGetEnv), " ", "", false);
 
 			// 허용 등급 추출
-			char sTmpGNStr[DDS_ENV_VAR_SUPPORT_GAME_NUM];
+			char sTmpGNStr[DDS_ENV_VAR_SUPPORT_GAME_NUM][64];
 			ExplodeString(sGetEnv, ",", sTmpGNStr, sizeof(sTmpGNStr), sizeof(sTmpGNStr[]));
 
 			// 검증

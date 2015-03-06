@@ -69,7 +69,7 @@ stock SayText2One(int client, int target, const char[] message)
 
 	if (hMsg != null)
 	{
-		if (GetUserMessageType() == "UM_Protobuf")
+		if (GetUserMessageType() == UM_Protobuf)
 		{
 			PbSetInt(hMsg, "ent_idx", client);
 			PbSetBool(hMsg, "chat", false);

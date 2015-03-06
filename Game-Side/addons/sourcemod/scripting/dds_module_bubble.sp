@@ -25,6 +25,16 @@
 #define DDS_ADD_NAME			"Dynamic Dollar Shop :: [Module] Bubble"
 #define DDS_ITEMCG_BB_ID		7
 
+
+/*******************************************************
+ * E N U M S
+*******************************************************/
+enum Model
+{
+	IDX,
+	VALUE
+};
+
 /*******************************************************
  * V A R I A B L E S
 *******************************************************/
@@ -35,6 +45,9 @@ ConVar dds_hCV_BUBBLE_SPEED;
 // 게임 식별
 char dds_sGameIdentity[32];
 bool dds_bGameCheck;
+
+// 모델 프리캐시
+int dds_iModelPrecache[DDS_ENV_ITEM_MAX + 1][Model];
 
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
@@ -69,6 +82,9 @@ public void OnConfigsExecuted()
 	// 플러그인이 꺼져 있을 때는 동작 안함
 	if (!DDS_IsPluginOn())	return;
 
+	// 초기화
+	Init_NidData();
+
 	// 게임 식별
 	GetGameFolderName(dds_sGameIdentity, sizeof(dds_sGameIdentity));
 
@@ -87,6 +103,37 @@ public void OnLibraryAdded(const char[] name)
 	{
 		// '버블' 아이템 종류 생성
 		DDS_CreateItemCategory(DDS_ITEMCG_BB_ID);
+
+		// 등록된 모델 프리캐시
+		for (int i = 0; i < DDS_ENV_ITEM_MAX; i++)
+		{
+			// '전체'는 통과
+			if (i == 0)	continue;
+
+			// 아이템 종류 번호 획득
+			char sItem_Code[8];
+			DDS_GetItemInfo(i, ItemInfo_CATECODE, sItem_Code);
+
+			// 현재의 아이템 종류 코드와 맞지 않으면 통과
+			if (StringToInt(sItem_Code) != DDS_ITEMCG_BB_ID)	continue;
+
+			// 아이템 정보 인덱스 획득
+			char sItem_Idx[8];
+			DDS_GetItemInfo(i, ItemInfo_INDEX, sItem_Idx);
+			dds_iModelPrecache[i][IDX] = StringToInt(sItem_Idx);
+
+			// 아이템 정보 모델 획득
+			char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+			DDS_GetItemInfo(i, ItemInfo_ENV, sGetEnv);
+
+			// 환경변수에서 모델 정보 로드
+			char sModelStr[128];
+			SelectedStuffToString(sGetEnv, "ENV_DDS_INFO_ADRS", "||", ":", sModelStr, sizeof(sModelStr));
+
+			// 등록된 모델이 있을 경우 프리캐시
+			if (strlen(sModelStr) > 0)
+				dds_iModelPrecache[i][VALUE] = PrecacheModel(sModelStr, true);
+		}
 	}
 }
 
@@ -129,6 +176,19 @@ public void OnClientDisconnect(int client)
 /*******************************************************
  * G E N E R A L   F U N C T I O N S
 *******************************************************/
+/**
+ * 초기화 :: 서버 필요 데이터
+ */
+public void Init_NidData()
+{
+	for (int i = 0; i < DDS_ENV_ITEM_MAX; i++)
+	{
+		dds_iModelPrecache[i][IDX] = 0;
+		dds_iModelPrecache[i][VALUE] = 0;
+	}
+}
+
+
 /**
  * System :: 게임 별 이벤트 연결
  *
@@ -179,7 +239,7 @@ public void Entiry_CreateBubble(int client)
 	TE_Start("Bubbles");
 	TE_WriteVector("m_vecMins", fClient_Pos);
 	TE_WriteVector("m_vecMaxs", fClient_Pos);
-	TE_WriteNum("m_nModelIndex", 모델);
+	TE_WriteNum("m_nModelIndex", dds_iModelPrecache[DDS_GetClientAppliedItem(client, DDS_ITEMCG_BB_ID)][VALUE]);
 	TE_WriteFloat("m_fHeight", 250.0);
 	TE_WriteNum("m_nCount", dds_hCV_BUBBLE_COUNT.IntValue);
 	TE_WriteFloat("m_fSpeed", dds_hCV_BUBBLE_SPEED.FloatValue);

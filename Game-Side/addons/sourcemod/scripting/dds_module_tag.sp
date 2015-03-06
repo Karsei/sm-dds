@@ -29,7 +29,6 @@
 *******************************************************/
 // 게임 식별
 char dds_sGameIdentity[32];
-bool dds_bGameCheck;
 
 // 팀 채팅
 bool dds_bTeamChat[MAXPLAYERS + 1];
@@ -71,7 +70,7 @@ public void OnConfigsExecuted()
 	if (!DDS_IsPluginOn())	return;
 
 	// 유저 태그 설정 초기화
-	Init_UserTagSetData(client, 1);
+	Init_UserTagSetData(0, 1);
 
 	// 게임 식별
 	GetGameFolderName(dds_sGameIdentity, sizeof(dds_sGameIdentity));
@@ -89,7 +88,7 @@ public void OnConfigsExecuted()
 public void OnClientAuthorized(int client, const char[] auth)
 {
 	// 플러그인이 꺼져 있을 때는 동작 안함
-	if (!dds_hCV_PluginSwitch.BoolValue)	return;
+	if (!DDS_IsPluginOn())	return;
 
 	// 봇은 제외
 	if (IsFakeClient(client))	return;
@@ -151,7 +150,7 @@ public void DDS_OnDataProcess(int client, const DataProcess process, const char[
 	SelectedStuffToString(sGetEnv, "ENV_DDS_PROPERTY_FREETAG", "||", ":", sEnvFree, sizeof(sEnvFree));
 
 	// 자유형 태그 속성을 가지고 있으면 설정 시작
-	if (StringToInt(sEnvVal))
+	if (StringToInt(sEnvFree))
 	{
 		// 우선 블록킹 처리
 		dds_bUserTagSetting[client] = true;
@@ -189,14 +188,14 @@ public void Init_UserTagSetData(int client, int mode)
 		{
 			for (int i = 0; i <= MAXPLAYERS; i++)
 			{
-				// 트레일 엔티티 초기화
-				dds_bUserTagSetting[i] = -1;
+				// 태그 설정 초기화
+				dds_bUserTagSetting[i] = false;
 			}
 		}
 		case 2:
 		{
-			// 트레일 엔티티 초기화
-			dds_bUserTagSetting[client] = -1;
+			// 태그 설정 초기화
+			dds_bUserTagSetting[client] = false;
 		}
 	}
 }
@@ -213,24 +212,18 @@ public void System_Identify(const char[] gamename)
 		/********************************************
 		 * '카운터 스트라이크: 소스'
 		*********************************************/
-		// 게임 식별 완료
-		dds_bGameCheck = true;
 	}
 	else if (StrEqual(gamename, "csgo", false))
 	{
 		/********************************************
 		 * '카운터 스트라이크: 글로벌 오펜시브'
 		*********************************************/
-		// 게임 식별 완료
-		dds_bGameCheck = true;
 	}
 	else if (StrEqual(gamename, "tf", false))
 	{
 		/********************************************
 		 * '팀 포트리스'
 		*********************************************/
-		// 게임 식별 완료
-		dds_bGameCheck = true;
 	}
 }
 
@@ -306,7 +299,7 @@ public Action:Command_Say(int client, int args)
 	GetClientName(client, sUserName, sizeof(sUserName));
 
 	// 명령어 번역 준비
-	char sCmhTrans[32];
+	//char sCmhTrans[32];
 
 	// 채팅 출력 준비
 	char sDisplay[256];

@@ -121,7 +121,7 @@ public Action Event_OnPlayerDisconnect(Event event, const char[] name, bool dont
  * @param timer				타이머 핸들
  * @param client			클라이언트 인덱스
  */
-public Action Timer_UserTimeBonus(Timer timer, any client)
+public Action Timer_UserTimeBonus(Handle timer, any client)
 {
 	// 클라이언트가 게임 내에 없다면 통과
 	if (!IsClientInGame(client))	return Plugin_Continue;
