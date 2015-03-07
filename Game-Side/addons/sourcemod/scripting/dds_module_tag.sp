@@ -141,13 +141,18 @@ public void DDS_OnDataProcess(int client, const DataProcess process, const char[
 	char sTempStr[2][16];
 	ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
 
+	// 아이템 번호를 통해 종류 파악
+	char sGetCode[8];
+	DDS_GetItemInfo(StringToInt(sTempStr[1]), ItemInfo_CATECODE, sGetCode);
+	if (StringToInt(sGetCode) != DDS_ITEMCG_TAG_ID)	return;
+
 	// 아이템 번호를 통해 ENV 파악
 	char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
 	DDS_GetItemInfo(StringToInt(sTempStr[1]), ItemInfo_ENV, sGetEnv);
 
 	// 자유형 태그를 위한 ENV 확인
 	char sEnvFree[4];
-	SelectedStuffToString(sGetEnv, "ENV_DDS_PROPERTY_FREETAG", "||", ":", sEnvFree, sizeof(sEnvFree));
+	SelectedStuffToString(sGetEnv, "ENV_DDS_INFO_FREETAG", "||", ":", sEnvFree, sizeof(sEnvFree));
 
 	// 자유형 태그 속성을 가지고 있으면 설정 시작
 	if (StringToInt(sEnvFree))
@@ -162,11 +167,11 @@ public void DDS_OnDataProcess(int client, const DataProcess process, const char[
 	}
 
 	// 태그 문자열을 위한 ENV 확인
-	char sEnvTagStr[32];
-	SelectedStuffToString(sGetEnv, "ENV_DDS_PROPERTY_TAGSTR", "||", ":", sEnvTagStr, sizeof(sEnvTagStr));
+	char sEnvTagStr[64];
+	SelectedStuffToString(sGetEnv, "ENV_DDS_INFO_TAGSTR", "||", ":", sEnvTagStr, sizeof(sEnvTagStr));
 
 	// 태그 설정
-	char sSendData[64];
+	char sSendData[128];
 	Format(sSendData, sizeof(sSendData), "%s||%s", "USETAG", sEnvTagStr);
 	DDS_UseDataProcess(client, DataProc_USERREFDATA, sSendData);
 }

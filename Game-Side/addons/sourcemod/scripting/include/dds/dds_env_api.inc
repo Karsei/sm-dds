@@ -96,7 +96,7 @@ native bool DDS_GetClientSQLStatus(client);
  * @brief	DDS 플러그인에 아이템 종류 플러그인을 연결합니다.
  *			연결하여 사용하면 데이터베이스에 등록되어 있는 모든 아이템 종류 코드와 비교하여
  *			등록되어 있으면 활성화되며 쓸 수 있게 됩니다.
- *			참고로, 이 함수는 'OnLibraryAdded("dds_core")' 포워드 함수를 이용하여 쓰는 것이 좋습니다.
+ *			참고로, 이 함수는 'OnLibraryAdded()' 포워드 함수를 이용하여 쓰는 것이 좋습니다.
  *
  * @param catecode				아이템 종류 코드
  */
@@ -118,9 +118,10 @@ native bool DDS_GetItemCategoryStatus(int catecode);
  * @param itemidx				아이템 번호
  * @param proctype				처리 타입
  * @param buffer				정보를 담을 문자열
+ * @param raw					itemidx를 처리할 때 목록 번호로 치환하는지 여부
  * @return	정상적으로 등록되었다면 true, 그렇지 않다면 false
  */
-native bool DDS_GetItemInfo(int itemidx, ItemInfo proctype, char[] buffer);
+native bool DDS_GetItemInfo(int itemidx, ItemInfo proctype, char[] buffer, bool raw = false);
 
 /**
  * @brief	DDS 플러그인에 등록된 아이템들의 총 갯수를 반환합니다.
@@ -137,9 +138,10 @@ native int DDS_GetItemCount();
  * @param catecode				아이템 종류 코드
  * @param proctype				처리 타입
  * @param buffer				정보를 담을 문자열
+ * @param raw					catecode 처리할 때 목록 번호로 치환하는지 여부
  * @return	정상적으로 등록되었다면 true, 그렇지 않다면 false
  */
-native bool DDS_GetItemCategoryInfo(int catecode, ItemCategoryInfo proctype, char[] buffer);
+native bool DDS_GetItemCategoryInfo(int catecode, ItemCategoryInfo proctype, char[] buffer, bool raw = false);
 
 /**
  * @brief	DDS 플러그인에 등록된 아이템 종류들의 총 갯수를 반환합니다.
@@ -225,6 +227,12 @@ native int DDS_GetSecureUserMin();
  *			코어에서 데이터베이스로부터 아이템 종류를 등록한 뒤에 무언가를 해야할 때 쓰시면 좋습니다.
  */
 forward void DDS_OnLoadSQLItemCategory();
+
+/**
+ * @brief	DDS 플러그인에서 SQL 데이터베이스로부터 모든 아이템을 불러오고 난 후에 발생합니다.
+ *			코어에서 데이터베이스로부터 아이템을 등록한 뒤에 무언가를 해야할 때 쓰시면 좋습니다.
+ */
+forward void DDS_OnLoadSQLItem();
 
 /**
  * @brief	DDS 플러그인에서 클라이언트가 데이터를 전달할 무언가를 할 때 발생합니다.

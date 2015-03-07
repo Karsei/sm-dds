@@ -30,7 +30,6 @@
 // 게임 식별
 char dds_sGameIdentity[32];
 bool dds_bGameCheck;
-bool dds_bFirstTimeHook;
 
 // 유저 별 트레일 엔티티 번호
 int dds_iUserTrailEntIdx[MAXPLAYERS + 1];
@@ -94,6 +93,37 @@ public void OnLibraryAdded(const char[] name)
 }
 
 /**
+ * 코어에서 아이템을 모두 로드한 후에 발생
+ */
+public void DDS_OnLoadSQLItem()
+{
+	// 등록된 모델 프리캐시
+	for (int i = 0; i < DDS_ENV_ITEM_MAX; i++)
+	{
+		// '전체'는 통과
+		if (i == 0)	continue;
+
+		// 아이템 종류 번호 획득
+		char sItem_Code[8];
+		DDS_GetItemInfo(i, ItemInfo_CATECODE, sItem_Code, true);
+
+		// 현재의 아이템 종류 코드와 맞지 않으면 통과
+		if (StringToInt(sItem_Code) != DDS_ITEMCG_TRAIL_ID)	continue;
+
+		// 아이템 정보 모델 획득
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		DDS_GetItemInfo(i, ItemInfo_ENV, sGetEnv);
+
+		// 환경변수에서 모델 정보 로드
+		char sModelStr[128];
+		SelectedStuffToString(sGetEnv, "ENV_DDS_INFO_ADRS", "||", ":", sModelStr, sizeof(sModelStr));
+
+		// 프리캐시
+		PrecacheModel(sModelStr, true);
+	}
+}
+
+/**
  * 클라이언트가 접속하면서 스팀 고유번호를 받았을 때
  *
  * @param client			클라이언트 인덱스
@@ -106,6 +136,9 @@ public void OnClientAuthorized(int client, const char[] auth)
 
 	// 봇은 제외
 	if (IsFakeClient(client))	return;
+
+	// 서버는 제외
+	if (client == 0)	return;
 
 	// 엔티티 초기화
 	dds_iUserTrailEntIdx[client] = -1;
@@ -172,11 +205,7 @@ public void System_SetHookEvent(const char[] gamename)
 		 * '카운터 스트라이크: 소스'
 		*********************************************/
 		// 프리징 엔드에 연결
-		if (!dds_bFirstTimeHook)
-		{
-			HookEvent("round_freeze_end", Event_OnRoundStart);
-			dds_bFirstTimeHook = true;
-		}
+		HookEvent("round_freeze_end", Event_OnRoundStart);
 
 		// 게임 식별 완료
 		dds_bGameCheck = true;
@@ -187,11 +216,7 @@ public void System_SetHookEvent(const char[] gamename)
 		 * '카운터 스트라이크: 글로벌 오펜시브'
 		*********************************************/
 		// 프리징 엔드에 연결
-		if (!dds_bFirstTimeHook)
-		{
-			HookEvent("round_freeze_end", Event_OnRoundStart);
-			dds_bFirstTimeHook = true;
-		}
+		HookEvent("round_freeze_end", Event_OnRoundStart);
 
 		// 게임 식별 완료
 		dds_bGameCheck = true;
@@ -202,12 +227,8 @@ public void System_SetHookEvent(const char[] gamename)
 		 * 팀 포트리스
 		*********************************************/
 		// 아레나, 팀플래이 라운드 시작에 연결
-		if (!dds_bFirstTimeHook)
-		{
-			HookEvent("arena_round_start", Event_OnRoundStart);
-			HookEvent("teamplay_round_start", Event_OnRoundStart);
-			dds_bFirstTimeHook = true;
-		}
+		HookEvent("arena_round_start", Event_OnRoundStart);
+		HookEvent("teamplay_round_start", Event_OnRoundStart);
 
 		// 게임 식별 완료
 		dds_bGameCheck = true;
@@ -229,7 +250,7 @@ public void Entity_CreateTrail(int client)
 	 * 준비
 	***************************************/
 	// 해당 아이템 환경변수 로드
-	char sItemEnv[256];
+	char sItemEnv[DDS_ENV_VAR_ENV_SIZE];
 	DDS_GetItemInfo(DDS_GetClientAppliedItem(client, DDS_ITEMCG_TRAIL_ID), ItemInfo_ENV, sItemEnv);
 
 	// 현재 클라이언트의 위치 파악
@@ -252,7 +273,7 @@ public void Entity_CreateTrail(int client)
 	SelectedStuffToString(sItemEnv, "ENV_DDS_INFO_COLOR", "||", ":", sTrail_ColorSet, sizeof(sTrail_ColorSet));
 
 	// 로드했을 때 값이 유효하지 않을 경우 직접 치환
-	if (strlen(sTrail_ColorSet) <= 0)	Format(sTrail_ColorSet, sizeof(sTrail_ColorSet), "0 0 0 0");
+	if (strlen(sTrail_ColorSet) <= 0)	Format(sTrail_ColorSet, sizeof(sTrail_ColorSet), "255 255 255 255");
 
 	/**************************************
 	 * 엔티티 생성
@@ -315,27 +336,28 @@ public Action Event_OnRoundStart(Event event, const char[] name, bool dontBroadc
 	// 게임이 식별되지 않은 경우에는 동작 안함
 	if (!dds_bGameCheck)	return Plugin_Continue;
 
-	// 이벤트 핸들을 통해 클라이언트 식별
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	for (int i = 0; i < MaxClients; i++)
+	{
+		// 서버는 통과
+		if (i == 0)	continue;
 
-	// 서버는 통과
-	if (client == 0)	return Plugin_Continue;
+		// 클라이언트가 게임 내에 없다면 통과
+		if (!IsClientInGame(i))	return Plugin_Continue;
 
-	// 클라이언트가 게임 내에 없다면 통과
-	if (!IsClientInGame(client))	return Plugin_Continue;
+		// 클라이언트가 인증을 받지 못했다면 통과
+		if (!IsClientAuthorized(i))	return Plugin_Continue;
 
-	// 클라이언트가 인증을 받지 못했다면 통과
-	if (!IsClientAuthorized(client))	return Plugin_Continue;
+		// 클라이언트가 살아있지 않다면 통과
+		if (!IsPlayerAlive(i))	return Plugin_Continue;
 
-	// 클라이언트가 살아있지 않다면 통과
-	if (!IsPlayerAlive(client))	return Plugin_Continue;
+		// 클라이언트가 봇이라면 통과
+		if (IsFakeClient(i))	return Plugin_Continue;
 
-	// 클라이언트가 봇이라면 통과
-	if (IsFakeClient(client))	return Plugin_Continue;
-
-	// 트레일 생성
-	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_TRAIL_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_TRAIL_ID) > 0))
-		Entity_CreateTrail(client);
+		// 트레일 생성
+		if (DDS_GetClientItemCategorySetting(i, DDS_ITEMCG_TRAIL_ID) && (DDS_GetClientAppliedItem(i, DDS_ITEMCG_TRAIL_ID) > 0)) {
+			Entity_CreateTrail(i);
+		}
+	}
 
 	return Plugin_Continue;
 }
@@ -370,9 +392,13 @@ public Action Event_OnPlayerSpawn(Event event, const char[] name, bool dontBroad
 	// 클라이언트가 봇이라면 통과
 	if (IsFakeClient(client))	return Plugin_Continue;
 
+	// 클라이언트가 서버라면 통과
+	if (client == 0)	return Plugin_Continue;
+
 	// 트레일 생성
-	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_TRAIL_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_TRAIL_ID) > 0))
+	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_TRAIL_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_TRAIL_ID) > 0)) {
 		Entity_CreateTrail(client);
+	}
 
 	return Plugin_Continue;
 }

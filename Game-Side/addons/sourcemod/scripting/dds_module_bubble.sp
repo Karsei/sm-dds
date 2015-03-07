@@ -103,53 +103,64 @@ public void OnLibraryAdded(const char[] name)
 	{
 		// '버블' 아이템 종류 생성
 		DDS_CreateItemCategory(DDS_ITEMCG_BB_ID);
-
-		// 등록된 모델 프리캐시
-		for (int i = 0; i < DDS_ENV_ITEM_MAX; i++)
-		{
-			// '전체'는 통과
-			if (i == 0)	continue;
-
-			// 아이템 종류 번호 획득
-			char sItem_Code[8];
-			DDS_GetItemInfo(i, ItemInfo_CATECODE, sItem_Code);
-
-			// 현재의 아이템 종류 코드와 맞지 않으면 통과
-			if (StringToInt(sItem_Code) != DDS_ITEMCG_BB_ID)	continue;
-
-			// 아이템 정보 인덱스 획득
-			char sItem_Idx[8];
-			DDS_GetItemInfo(i, ItemInfo_INDEX, sItem_Idx);
-			dds_iModelPrecache[i][IDX] = StringToInt(sItem_Idx);
-
-			// 아이템 정보 모델 획득
-			char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
-			DDS_GetItemInfo(i, ItemInfo_ENV, sGetEnv);
-
-			// 환경변수에서 모델 정보 로드
-			char sModelStr[128];
-			SelectedStuffToString(sGetEnv, "ENV_DDS_INFO_ADRS", "||", ":", sModelStr, sizeof(sModelStr));
-
-			// 등록된 모델이 있을 경우 프리캐시
-			if (strlen(sModelStr) > 0)
-				dds_iModelPrecache[i][VALUE] = PrecacheModel(sModelStr, true);
-		}
 	}
 }
 
 /**
- * 클라이언트가 접속하면서 스팀 고유번호를 받았을 때
+ * 코어에서 아이템을 모두 로드한 후에 발생
+ */
+public void DDS_OnLoadSQLItem()
+{
+	// 등록된 모델 프리캐시
+	for (int i = 0; i < DDS_ENV_ITEM_MAX; i++)
+	{
+		// '전체'는 통과
+		if (i == 0)	continue;
+
+		// 아이템 종류 번호 획득
+		char sItem_Code[8];
+		DDS_GetItemInfo(i, ItemInfo_CATECODE, sItem_Code, true);
+
+		// 현재의 아이템 종류 코드와 맞지 않으면 통과
+		if (StringToInt(sItem_Code) != DDS_ITEMCG_BB_ID)	continue;
+
+		// 아이템 정보 인덱스 획득
+		char sItem_Idx[8];
+		DDS_GetItemInfo(i, ItemInfo_INDEX, sItem_Idx);
+		dds_iModelPrecache[i][IDX] = StringToInt(sItem_Idx);
+
+		// 아이템 정보 모델 획득
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		DDS_GetItemInfo(i, ItemInfo_ENV, sGetEnv);
+
+		// 환경변수에서 모델 정보 로드
+		char sModelStr[128];
+		SelectedStuffToString(sGetEnv, "ENV_DDS_INFO_ADRS", "||", ":", sModelStr, sizeof(sModelStr));
+
+		// 등록된 모델이 있을 경우 프리캐시
+		if (strlen(sModelStr) > 0)
+			dds_iModelPrecache[i][VALUE] = PrecacheModel(sModelStr, true);
+	}
+}
+
+/**
+ * 클라이언트가 게임 내에 들어왔을 때
  *
  * @param client			클라이언트 인덱스
- * @param auth				클라이언트 고유 번호(타입 2)
  */
-public void OnClientAuthorized(int client, const char[] auth)
+public void OnClientPutInServer(int client)
 {
 	// 플러그인이 꺼져 있을 때는 동작 안함
 	if (!DDS_IsPluginOn())	return;
 
+	// 게임에 없으면 통과
+	if (!IsClientInGame(client))	return;
+
 	// 봇은 제외
 	if (IsFakeClient(client))	return;
+
+	// 서버는 제외
+	if (client == 0)	return;
 
 	// SDKHooks 로드
 	SDKHook(client, SDKHook_PostThink, PostThinkHook);

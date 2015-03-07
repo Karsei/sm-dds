@@ -56,6 +56,13 @@ enum ItemCG
 	bool:STATUS
 }
 
+enum EnvList
+{
+	INDEX,
+	String:CATEGORY[20],
+	String:NAME[64],
+	String:VALUE[128]
+}
 
 /*******************************************************
  * V A R I A B L E S
@@ -87,6 +94,7 @@ ConVar dds_hCV_SecureUserMin;
 // 포워드
 Handle dds_hOnLoadSQLItemCategory;
 Handle dds_hOnDataProcess;
+Handle dds_hOnLoadSQLItem;
 
 // 팀 채팅
 bool dds_bTeamChat[MAXPLAYERS + 1];
@@ -98,6 +106,10 @@ int dds_eItemList[DDS_ENV_ITEM_MAX + 1][Item];
 // 아이템 종류
 int dds_iItemCategoryCount;
 int dds_eItemCategoryList[DDS_ENV_ITEMCG_MAX + 1][ItemCG];
+
+// ENV 목록
+int dds_iEnvCount;
+int dds_eEnvList[DDS_ENV_USEENV_MAX][EnvList];
 
 // 유저 소유
 int dds_iUserMoney[MAXPLAYERS + 1];
@@ -182,6 +194,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 
 	// 포워드 함수 등록
 	dds_hOnLoadSQLItemCategory = CreateGlobalForward("DDS_OnLoadSQLItemCategory", ET_Ignore);
+	dds_hOnLoadSQLItem = CreateGlobalForward("DDS_OnLoadSQLItem", ET_Ignore);
 	dds_hOnDataProcess = CreateGlobalForward("DDS_OnDataProcess", ET_Ignore, Param_Cell, Param_Cell, Param_String);
 
 	return APLRes_Success;
@@ -330,6 +343,18 @@ public void Init_ServerData()
 	// 아이템 종류 0번 '전체' 설정
 	Format(dds_eItemCategoryList[0][NAME], DDS_ENV_VAR_GLONAME_SIZE, "EN:Total||KO:전체");
 
+	/** ENV **/
+	// ENV 갯수
+	dds_iEnvCount = 0;
+	// ENV 목록
+	for (int i = 0; i < DDS_ENV_USEENV_MAX; i++)
+	{
+		dds_eEnvList[i][INDEX] = 0;
+		Format(dds_eEnvList[i][CATEGORY], 20, "");
+		Format(dds_eEnvList[i][NAME], 64, "");
+		Format(dds_eEnvList[i][VALUE], 128, "");
+	}
+
 	#if defined _DEBUG_
 	DDS_PrintToServer(":: DEBUG :: Server Data Initialization Complete");
 	#endif
@@ -427,6 +452,7 @@ public void System_ValidateItemCG(int catecode)
 		if (dds_eItemCategoryList[i][CODE] == catecode)
 		{
 			dds_eItemCategoryList[i][STATUS] = true;
+			DDS_PrintToServer("Item Category %d (IDX %d) is now registered.", catecode, i);
 			break;
 		}
 	}
@@ -542,7 +568,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 조건 및 환경 변수 확인
 		**************************/
 		/*** 환경 변수 준비 ***/
-		char sGetEnv[128];
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
 
 		/** 환경 변수 확인(아이템 종류단) **/
 		/* 접근 관련 */
@@ -647,7 +673,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		ArrayList hMakeErrI = CreateArray(8);
 		hMakeErrI.Push(client);
 		hMakeErrI.Push(2010);
-		
+
 		// 쿼리 전송
 		Format(sSendQuery, sizeof(sSendQuery), 
 			"INSERT INTO `dds_user_item` (`idx`, `authid`, `ilidx`, `aplied`, `buydate`) VALUES (NULL, '%s', '%d', '0', '%d')", 
@@ -665,7 +691,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 화면 출력
 		**************************/
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		char sItemName[32];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
@@ -707,7 +733,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 조건 및 환경 변수 확인
 		**************************/
 		/*** 환경 변수 준비 ***/
-		char sGetEnv[128];
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
 
 		/** 환경 변수 확인(아이템 종류단) **/
 		/* 접근 관련 */
@@ -835,7 +861,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 화면 출력
 		**************************/
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		char sItemName[32];
 
 		// 기존 아이템 출력
@@ -948,7 +974,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 화면 출력
 		**************************/
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		char sItemName[32];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
@@ -1060,7 +1086,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 화면 출력
 		**************************/
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		char sItemName[32];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
@@ -1126,7 +1152,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 화면 출력
 		**************************/
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		char sItemName[32];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
@@ -1179,7 +1205,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 화면 출력
 		**************************/
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		char sItemName[32];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iPrevItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iPrevItemIdx)][NAME], sItemName, sizeof(sItemName));
@@ -1672,7 +1698,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 화면 출력
 		**************************/
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		char sItemName[32];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
@@ -1770,7 +1796,7 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * 화면 출력
 		**************************/
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		char sItemName[32];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iItemIdx)][CATECODE])][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(iItemIdx)][NAME], sItemName, sizeof(sItemName));
@@ -1809,12 +1835,12 @@ public void System_DataProcess(int client, const char[] process, const char[] da
 		 * [0] - 구분 타입
 		 * [1] - 설정할 문자열
 		**************************/
-		char sTempStr[2][32];
+		char sTempStr[2][64];
 		ExplodeString(data, "||", sTempStr, sizeof(sTempStr), sizeof(sTempStr[]));
 
 		char sType[32];
 		Format(sType, sizeof(sType), sTempStr[0]);
-		char sValue[32];
+		char sValue[64];
 		Format(sValue, sizeof(sValue), sTempStr[1]);
 
 		/*************************
@@ -1924,6 +1950,11 @@ public void Log_CodeError(int client, int errcode, const char[] errordec)
 		{
 			// SQL 데이터베이스 초기화 시 아이템 목록 로드
 			Format(sDetOutput, sizeof(sDetOutput), "%s Retriving Item List DB is Failure!", sDetOutput);
+		}
+		case 1004:
+		{
+			// SQL 데이터베이스 초기화 시 ENV 목록 로드
+			Format(sDetOutput, sizeof(sDetOutput), "%s Retriving ENV List DB is Failure!", sDetOutput);
 		}
 		case 1010:
 		{
@@ -2442,6 +2473,9 @@ public void SQL_DDSDatabaseInit()
 	// 아이템 목록 로드
 	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_item_list` WHERE `status` = '1' ORDER BY `ilidx` ASC");
 	dds_hSQLDatabase.Query(SQL_LoadItemList, sSendQuery, 0, DBPrio_High);
+	// ENV 목록 로드
+	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_env_list`");
+	dds_hSQLDatabase.Query(SQL_LoadEnvList, sSendQuery, 0, DBPrio_High);
 }
 
 
@@ -2613,7 +2647,7 @@ public void Menu_CurItem(int client)
 		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템과 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		char sItemName[32];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 		SelectedGeoNameToString(client, dds_eItemList[Find_GetItemListIndex(dds_iUserAppliedItem[client][i][ITEMIDX])][NAME], sItemName, sizeof(sItemName));
@@ -2678,7 +2712,7 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
 	}
 
 	// 클라이언트 국가에 따른 아이템 종류 이름 추출
-	char sCGName[16];
+	char sCGName[40];
 	for (int i = 0; i <= dds_iItemCategoryCount; i++)
 	{
 		// '전체' 항목은 제외
@@ -2798,7 +2832,7 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
 		Format(sTempIdx, sizeof(sTempIdx), "%d||%d||%d", iTmpDbIdx, iTmpItIdx, 1);
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
-		char sItemCGName[16];
+		char sItemCGName[40];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
@@ -2929,7 +2963,7 @@ public Action:Menu_Inven(int client, int args)
 		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 
 		// 메뉴 아이템 등록
@@ -2991,7 +3025,7 @@ public void Menu_Inven_CateIn(Database db, DBResultSet results, const char[] err
 	}
 
 	// 클라이언트 국가에 따른 아이템 종류 이름 추출
-	char sCGName[16];
+	char sCGName[40];
 	for (int i = 0; i <= dds_iItemCategoryCount; i++)
 	{
 		if (catecode != dds_eItemCategoryList[i][CODE])	continue;
@@ -3091,7 +3125,7 @@ public void Menu_Inven_CateIn(Database db, DBResultSet results, const char[] err
 		Format(sTempIdx, sizeof(sTempIdx), "%d||%d", iTmpDbIdx, iTmpItIdx);
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
-		char sItemCGName[16];
+		char sItemCGName[40];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
@@ -3256,7 +3290,7 @@ public void Menu_BuyItem(int client)
 		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 
 		// 메뉴 아이템 등록
@@ -3298,7 +3332,7 @@ public void Menu_BuyItem_CateIn(int client, int catecode)
 	Menu mMain = new Menu(Main_hdlBuyItem_CateIn);
 
 	// 클라이언트 국가에 따른 아이템 종류 이름 추출
-	char sCGName[16];
+	char sCGName[40];
 	for (int i = 0; i <= dds_iItemCategoryCount; i++)
 	{
 		if (catecode != dds_eItemCategoryList[i][CODE])	continue;
@@ -3387,7 +3421,7 @@ public void Menu_BuyItem_CateIn(int client, int catecode)
 		IntToString(dds_eItemList[i][INDEX], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
-		char sItemCGName[16];
+		char sItemCGName[40];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[i][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
@@ -3589,7 +3623,7 @@ public void Menu_Setting_Item(int client)
 		IntToString(i, sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 
 		// 활성화 판단
@@ -3942,7 +3976,7 @@ public void Menu_ItemGive(int client)
 		IntToString(dds_eItemCategoryList[i][CODE], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출
-		char sCGName[16];
+		char sCGName[40];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[i][NAME], sCGName, sizeof(sCGName));
 
 		// 메뉴 아이템 등록
@@ -3984,7 +4018,7 @@ public void Menu_ItemGive_CateIn(int client, int catecode)
 	Menu mMain = new Menu(Main_hdlItemGive_CateIn);
 
 	// 클라이언트 국가에 따른 아이템 종류 이름 추출
-	char sCGName[16];
+	char sCGName[40];
 	for (int i = 0; i <= dds_iItemCategoryCount; i++)
 	{
 		if (catecode != dds_eItemCategoryList[i][CODE])	continue;
@@ -4073,7 +4107,7 @@ public void Menu_ItemGive_CateIn(int client, int catecode)
 		IntToString(dds_eItemList[i][INDEX], sTempIdx, sizeof(sTempIdx));
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
-		char sItemCGName[16];
+		char sItemCGName[40];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[i][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
@@ -4261,7 +4295,7 @@ public void Menu_ItemTakeAWay_CateIn(Database db, DBResultSet results, const cha
 	}
 
 	// '전체' 아이템 종류 이름 추출
-	char sCGName[16];
+	char sCGName[40];
 	SelectedGeoNameToString(client, dds_eItemCategoryList[0][NAME], sCGName, sizeof(sCGName));
 
 	// 메뉴 및 제목 설정
@@ -4358,7 +4392,7 @@ public void Menu_ItemTakeAWay_CateIn(Database db, DBResultSet results, const cha
 		Format(sTempIdx, sizeof(sTempIdx), "%d||%d||%d||%d", iTmpDbIdx, iTmpItIdx, iTmpItAp, tarusrid);
 
 		// 클라이언트 국가에 따른 아이템 종류 이름 추출(아이템 자체에서 판단)
-		char sItemCGName[16];
+		char sItemCGName[40];
 		SelectedGeoNameToString(client, dds_eItemCategoryList[Find_GetItemCGListIndex(dds_eItemList[Find_GetItemListIndex(iTmpItIdx)][CATECODE])][NAME], sItemCGName, sizeof(sItemCGName));
 
 		// 클라이언트 국가에 따른 아이템 이름 추출
@@ -5179,6 +5213,10 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 		return;
 	}
 
+	#if defined _DEBUG_
+	DDS_PrintToServer(":: DEBUG :: Let's Start Loading Item Categories!");
+	#endif
+
 	// 쿼리 결과
 	while (results.MoreRows)
 	{
@@ -5207,6 +5245,10 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 
 		// 지원 게임 확인
 		SelectedStuffToString(sTmpEnv, "ENV_DDS_SYS_GAME", "||", ":", sGetEnv, sizeof(sGetEnv));
+
+		#if defined _DEBUG_
+		DDS_PrintToServer(":: DEBUG :: ITEM CG ENV - CG IDX: %d, SYS_GAME: %s", iTmpCode, sGetEnv);
+		#endif
 		if (!StrEqual(sGetEnv, "all", false) && !StrEqual(sGetEnv, sGetGame, false)) // '전체' 또는 현재 사용하고 있는 게임이 아닐 경우
 		{
 			// 빈칸 모두 제거
@@ -5224,23 +5266,27 @@ public void SQL_LoadItemCategory(Database db, DBResultSet results, const char[] 
 
 				count++;
 			}
-		}
 
-		// 없다면 통과
-		if (count == 0)	continue;
+			// 없다면 통과
+			if (count == 0)	continue;
+		}
 
 		// 데이터 추가
 		dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE] = iTmpCode;
-		Format(sTmpName, sizeof(sTmpName), dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME]);
-		Format(sTmpEnv, sizeof(sTmpEnv), dds_eItemCategoryList[dds_iItemCategoryCount + 1][ENV]);
+		Format(dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], DDS_ENV_VAR_GLONAME_SIZE, sTmpName);
+		Format(dds_eItemCategoryList[dds_iItemCategoryCount + 1][ENV], DDS_ENV_VAR_ENV_SIZE, sTmpEnv);
 
 		#if defined _DEBUG_
-		DDS_PrintToServer(":: DEBUG :: Category Loaded (ID: %d, GloName: %s, TotalCount: %d)", dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE], dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], dds_iItemCategoryCount + 1);
+		DDS_PrintToServer(":: DEBUG :: Category Loaded (CG IDX: %d, GloName: %s, TotalCount: %d)", dds_eItemCategoryList[dds_iItemCategoryCount + 1][CODE], dds_eItemCategoryList[dds_iItemCategoryCount + 1][NAME], dds_iItemCategoryCount + 1);
 		#endif
 
 		// 아이템 종류 등록 갯수 증가
 		dds_iItemCategoryCount++;
 	}
+
+	#if defined _DEBUG_
+	DDS_PrintToServer(":: DEBUG :: End Loading Item Categories.");
+	#endif
 
 	// 포워드 실행
 	Forward_OnLoadSQLItemCategory();
@@ -5262,6 +5308,10 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 		Log_CodeError(0, 1003, error);
 		return;
 	}
+
+	#if defined _DEBUG_
+	DDS_PrintToServer(":: DEBUG :: Let's Start Loading Items!");
+	#endif
 
 	// 쿼리 결과
 	while (results.MoreRows)
@@ -5297,6 +5347,10 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 
 		// 지원 게임 확인
 		SelectedStuffToString(sTmpEnv, "ENV_DDS_SYS_GAME", "||", ":", sGetEnv, sizeof(sGetEnv));
+
+		#if defined _DEBUG_
+		DDS_PrintToServer(":: DEBUG :: ITEM ENV - Item IDX: %d, SYS_GAME: %s", iTmpIdx, sGetEnv);
+		#endif
 		if (!StrEqual(sGetEnv, "all", false) && !StrEqual(sGetEnv, sGetGame, false)) // '전체' 또는 현재 사용하고 있는 게임이 아닐 경우
 		{
 			// 빈칸 모두 제거
@@ -5314,29 +5368,137 @@ public void SQL_LoadItemList(Database db, DBResultSet results, const char[] erro
 
 				count++;
 			}
-		}
 
-		// 없다면 통과
-		if (count == 0)	continue;
+			// 없다면 통과
+			if (count == 0)	continue;
+		}
 
 		// 데이터 추가
 		dds_eItemList[dds_iItemCount + 1][INDEX] = iTmpIdx;
-		Format(sTmpName, sizeof(sTmpName), dds_eItemList[dds_iItemCount + 1][NAME]);
+		Format(dds_eItemList[dds_iItemCount + 1][NAME], DDS_ENV_VAR_GLONAME_SIZE, sTmpName);
 		dds_eItemList[dds_iItemCount + 1][CATECODE] = iTmpCode;
 		dds_eItemList[dds_iItemCount + 1][MONEY] = iTmpMoney;
 		dds_eItemList[dds_iItemCount + 1][HAVTIME] = iTmpHavTime;
-		Format(sTmpEnv, sizeof(sTmpEnv), dds_eItemList[dds_iItemCount + 1][ENV]);
+		Format(dds_eItemList[dds_iItemCount + 1][ENV], DDS_ENV_VAR_ENV_SIZE, sTmpEnv);
 
 		#if defined _DEBUG_
-		DDS_PrintToServer(":: DEBUG :: Item Loaded (ID: %d, GloName: %s, CateCode: %d, Money: %d, Time: %d, TotalCount: %d)", dds_eItemList[dds_iItemCount + 1][INDEX], dds_eItemList[dds_iItemCount + 1][NAME], dds_eItemList[dds_iItemCount + 1][CATECODE], dds_eItemList[dds_iItemCount + 1][MONEY], dds_eItemList[dds_iItemCount + 1][HAVTIME], dds_iItemCount + 1);
+		DDS_PrintToServer(":: DEBUG :: Item Loaded (IDX: %d, GloName: %s, CateCode: %d, Money: %d, Time: %d, TotalCount: %d)", dds_eItemList[dds_iItemCount + 1][INDEX], dds_eItemList[dds_iItemCount + 1][NAME], dds_eItemList[dds_iItemCount + 1][CATECODE], dds_eItemList[dds_iItemCount + 1][MONEY], dds_eItemList[dds_iItemCount + 1][HAVTIME], dds_iItemCount + 1);
 		#endif
 
 		// 아이템 등록 갯수 증가
 		dds_iItemCount++;
 	}
 
+	#if defined _DEBUG_
+	DDS_PrintToServer(":: DEBUG :: End Loading Items.");
+	#endif
+
 	// SQL 상태 활성화
 	dds_bSQLStatus = true;
+
+	// 포워드 실행
+	Forward_OnLoadSQLItem();
+}
+
+/**
+ * SQL 초기 데이터 :: ENV 목록
+ *
+ * @param db					데이터베이스 연결 핸들
+ * @param results				결과 쿼리
+ * @param error					오류 문자열
+ * @param data					기타
+ */
+public void SQL_LoadEnvList(Database db, DBResultSet results, const char[] error, any data)
+{
+	// 쿼리 오류 검출
+	if (db == null || error[0])
+	{
+		Log_CodeError(0, 1004, error);
+		return;
+	}
+
+	#if defined _DEBUG_
+	DDS_PrintToServer(":: DEBUG :: Let's Start Loading ENVs!");
+	#endif
+
+	// 쿼리 결과
+	while (results.MoreRows)
+	{
+		// 제시할 행이 없다면 통과
+		if (!results.FetchRow())	continue;
+
+		// 데이터 임시 로드
+		int iTmpIdx;
+		char sTmpCG[20];
+		char sTmpName[64];
+		char sTmpValue[128];
+
+		iTmpIdx = results.FetchInt(0);
+		results.FetchString(1, sTmpCG, sizeof(sTmpCG));
+		results.FetchString(2, sTmpName, sizeof(sTmpName));
+		results.FetchString(3, sTmpValue, sizeof(sTmpValue));
+
+		// 데이터 추가
+		dds_eEnvList[dds_iEnvCount][INDEX] = iTmpIdx;
+		Format(dds_eEnvList[dds_iEnvCount][CATEGORY], 20, sTmpCG);
+		Format(dds_eEnvList[dds_iEnvCount][NAME], 64, sTmpName);
+		Format(dds_eEnvList[dds_iEnvCount][VALUE], 128, sTmpValue);
+
+		#if defined _DEBUG_
+		DDS_PrintToServer(":: DEBUG :: ENV Loaded (IDX: %d, Category: %s, Name: %s, Value: %s)", dds_eEnvList[dds_iEnvCount][INDEX], dds_eEnvList[dds_iEnvCount][CATEGORY], dds_eEnvList[dds_iEnvCount][NAME], dds_eEnvList[dds_iEnvCount][VALUE]);
+		#endif
+
+		// ENV 등록 갯수 증가
+		dds_iEnvCount++;
+	}
+
+	#if defined _DEBUG_
+	DDS_PrintToServer(":: DEBUG :: End Loading ENVs.");
+	#endif
+
+	// ENV 추가 작업 시작(아이템)
+	for (int i = 0; i <= dds_iItemCount; i++)
+	{
+		// 0번은 통과
+		if (i == 0)	continue;
+
+		// 없는 ENV 추가
+		for (int j = 0; j < dds_iEnvCount; j++)
+		{
+			// 종류가 '아이템'이 아닌건 통과
+			if (!StrEqual(dds_eEnvList[j][CATEGORY], "item", false))	continue;
+
+			// 이미 있는건 통과
+			if (StrContains(dds_eItemList[i][ENV], dds_eEnvList[j][NAME], false) != -1)	continue;
+
+			Format(dds_eItemList[i][ENV], DDS_ENV_VAR_ENV_SIZE, 
+				"%s||%s:%s", 
+				dds_eItemList[i][ENV], dds_eEnvList[j][NAME], dds_eEnvList[j][VALUE]
+			);
+		}
+	}
+
+	// ENV 추가 작업 시작(아이템 종류)
+	for (int i = 0; i <= dds_iItemCategoryCount; i++)
+	{
+		// '전체'는 통과
+		if (i == 0)	continue;
+
+		// 없는 ENV 추가
+		for (int j = 0; j < dds_iEnvCount; j++)
+		{
+			// 종류가 '아이템'이 아닌건 통과
+			if (!StrEqual(dds_eEnvList[j][CATEGORY], "item-category", false))	continue;
+
+			// 이미 있는건 통과
+			if (StrContains(dds_eItemCategoryList[i][ENV], dds_eEnvList[j][NAME], false) != -1)	continue;
+
+			Format(dds_eItemCategoryList[i][ENV], DDS_ENV_VAR_ENV_SIZE, 
+				"%s||%s:%s", 
+				dds_eItemCategoryList[i][ENV], dds_eEnvList[j][NAME], dds_eEnvList[j][VALUE]
+			);
+		}
+	}
 }
 
 /**
@@ -5402,7 +5564,7 @@ public void SQL_UserLoad(Database db, DBResultSet results, const char[] error, a
 
 		// 데이터 추가
 		iTempMoney = results.FetchInt(2);
-		results.FetchString(4, sTempRefData, sizeof(sTempRefData));
+		results.FetchString(5, sTempRefData, sizeof(sTempRefData));
 
 		// 유저 파악 갯수 증가
 		count++;
@@ -6963,6 +7125,7 @@ public int Native_DDS_GetItemInfo(Handle:plugin, numParams)
 {
 	int itemidx = GetNativeCell(1);
 	ItemInfo proctype = GetNativeCell(2);
+	bool raw = view_as<bool>(GetNativeCell(4));
 
 	// 데이터베이스 연결 확인
 	if (dds_hSQLDatabase == null || !dds_bSQLStatus)
@@ -6978,14 +7141,19 @@ public int Native_DDS_GetItemInfo(Handle:plugin, numParams)
 		return false;
 	}
 
-	// 해당 코드가 있는지 검증
-	int selectidx = Find_GetItemListIndex(itemidx);
-
-	// 발견하지 못했다면 안함
-	if (selectidx == 0)
+	// 목록 번호로 치환이 안된 경우
+	int selectidx;
+	if (!raw)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "%s Item Index %d is not registered.", DDS_ENV_CORE_CHAT_GLOPREFIX, itemidx);
-		return false;
+		// 해당 코드가 있는지 검증
+		selectidx = Find_GetItemListIndex(itemidx);
+
+		// 발견하지 못했다면 안함
+		if (selectidx == 0)
+		{
+			ThrowNativeError(SP_ERROR_NATIVE, "%s Item Index %d is not registered.", DDS_ENV_CORE_CHAT_GLOPREFIX, itemidx);
+			return false;
+		}
 	}
 
 	char result[DDS_ENV_VAR_ENV_SIZE];
@@ -6995,27 +7163,27 @@ public int Native_DDS_GetItemInfo(Handle:plugin, numParams)
 	{
 		case ItemInfo_INDEX:
 		{
-			Format(result, sizeof(result), "%d", dds_eItemList[selectidx][INDEX]);
+			Format(result, sizeof(result), "%d", dds_eItemList[(raw ? itemidx : selectidx)][INDEX]);
 		}
 		case ItemInfo_NAME:
 		{
-			Format(result, sizeof(result), dds_eItemList[selectidx][NAME]);
+			Format(result, sizeof(result), dds_eItemList[(raw ? itemidx : selectidx)][NAME]);
 		}
 		case ItemInfo_CATECODE:
 		{
-			Format(result, sizeof(result), "%d", dds_eItemList[selectidx][CATECODE]);
+			Format(result, sizeof(result), "%d", dds_eItemList[(raw ? itemidx : selectidx)][CATECODE]);
 		}
 		case ItemInfo_MONEY:
 		{
-			Format(result, sizeof(result), "%d", dds_eItemList[selectidx][MONEY]);
+			Format(result, sizeof(result), "%d", dds_eItemList[(raw ? itemidx : selectidx)][MONEY]);
 		}
 		case ItemInfo_HAVTIME:
 		{
-			Format(result, sizeof(result), "%d", dds_eItemList[selectidx][HAVTIME]);
+			Format(result, sizeof(result), "%d", dds_eItemList[(raw ? itemidx : selectidx)][HAVTIME]);
 		}
 		case ItemInfo_ENV:
 		{
-			Format(result, sizeof(result), dds_eItemList[selectidx][ENV]);
+			Format(result, sizeof(result), dds_eItemList[(raw ? itemidx : selectidx)][ENV]);
 		}
 	}
 
@@ -7043,6 +7211,7 @@ public int Native_DDS_GetItemCategoryInfo(Handle:plugin, numParams)
 {
 	int catecode = GetNativeCell(1);
 	ItemCategoryInfo proctype = GetNativeCell(2);
+	bool raw = view_as<bool>(GetNativeCell(4));
 
 	// 데이터베이스 연결 확인
 	if (dds_hSQLDatabase == null || !dds_bSQLStatus)
@@ -7058,14 +7227,19 @@ public int Native_DDS_GetItemCategoryInfo(Handle:plugin, numParams)
 		return false;
 	}
 
-	// 해당 코드가 있는지 검증
-	int selectidx = Find_GetItemCGListIndex(catecode);
-
-	// 발견하지 못했다면 안함
-	if (selectidx == 0)
+	// 목록 번호로 치환이 안된 경우
+	int selectidx;
+	if (!raw)
 	{
-		ThrowNativeError(SP_ERROR_NATIVE, "%s Item Category Code %d is not registered.", DDS_ENV_CORE_CHAT_GLOPREFIX, catecode);
-		return false;
+		// 해당 코드가 있는지 검증
+		selectidx = Find_GetItemCGListIndex(catecode);
+
+		// 발견하지 못했다면 안함
+		if (selectidx == 0)
+		{
+			ThrowNativeError(SP_ERROR_NATIVE, "%s Item Category Code %d is not registered.", DDS_ENV_CORE_CHAT_GLOPREFIX, catecode);
+			return false;
+		}
 	}
 
 	char result[DDS_ENV_VAR_ENV_SIZE];
@@ -7075,19 +7249,19 @@ public int Native_DDS_GetItemCategoryInfo(Handle:plugin, numParams)
 	{
 		case ItemCGInfo_NAME:
 		{
-			Format(result, sizeof(result), dds_eItemCategoryList[selectidx][NAME]);
+			Format(result, sizeof(result), dds_eItemCategoryList[(raw ? catecode : selectidx)][NAME]);
 		}
 		case ItemCGInfo_CODE:
 		{
-			Format(result, sizeof(result), "%d", dds_eItemCategoryList[selectidx][CODE]);
+			Format(result, sizeof(result), "%d", dds_eItemCategoryList[(raw ? catecode : selectidx)][CODE]);
 		}
 		case ItemCGInfo_ENV:
 		{
-			Format(result, sizeof(result), dds_eItemCategoryList[selectidx][ENV]);
+			Format(result, sizeof(result), dds_eItemCategoryList[(raw ? catecode : selectidx)][ENV]);
 		}
 		case ItemCGInfo_STATUS:
 		{
-			Format(result, sizeof(result), "%d", dds_eItemCategoryList[selectidx][STATUS]);
+			Format(result, sizeof(result), "%d", dds_eItemCategoryList[(raw ? catecode : selectidx)][STATUS]);
 		}
 	}
 
@@ -7452,6 +7626,17 @@ public int Native_DDS_GetSecureUserMin(Handle:plugin, numParams)
 void Forward_OnLoadSQLItemCategory()
 {
 	Call_StartForward(dds_hOnLoadSQLItemCategory);
+	Call_Finish();
+}
+
+/**
+ * Forward :: DDS_OnLoadSQLItem
+ *
+ * @brief	DDS 플러그인에서 SQL 데이터베이스로부터 모든 아이템을 불러오고 난 후에 발생
+ */
+void Forward_OnLoadSQLItem()
+{
+	Call_StartForward(dds_hOnLoadSQLItem);
 	Call_Finish();
 }
 

@@ -75,7 +75,7 @@ function GetTotalFormatValue($val)
 	$valList = explode('||', $val);
 
 	// 맨 마지막이 비어있는 경우는 제거
-	if (empty($valList[count($valList) - 1]))
+	if (empty($valList[count($valList) - 1]) && (count($valList) > 1) && (strcmp($valList[count($valList) -1], '0') != 0))
 		array_pop($valList);
 
 	// ':'를 기준으로 값 커팅
@@ -94,7 +94,7 @@ function GetSeparateValue($val)
 	$valList = explode('||', $val);
 
 	// 맨 마지막이 비어있는 경우는 제거
-	if (empty($valList[count($valList) - 1]))
+	if (empty($valList[count($valList) - 1]) && (count($valList) > 1) && (strcmp($valList[count($valList) -1], '0') != 0))
 		array_pop($valList);
 
 	return $valList;

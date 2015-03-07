@@ -19,6 +19,7 @@
  ***********************************************************************/
 #define DDS_ENV_ITEM_MAX						300
 #define DDS_ENV_ITEMCG_MAX						20
+#define DDS_ENV_USEENV_MAX						50
 
 #define DDS_ENV_VAR_GLONAME_SIZE				300
 #define DDS_ENV_VAR_ENV_SIZE					512

@@ -32,9 +32,6 @@
 char dds_sGameIdentity[32];
 bool dds_bGameCheck;
 
-// 모델 프리캐시
-int dds_iEffectModel;
-
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
 *******************************************************/
@@ -86,6 +83,37 @@ public void OnLibraryAdded(const char[] name)
 		// '스킨' 아이템 종류 생성
 		DDS_CreateItemCategory(DDS_ITEMCG_PSKIN_R);
 		DDS_CreateItemCategory(DDS_ITEMCG_PSKIN_B);
+	}
+}
+
+/**
+ * 코어에서 아이템을 모두 로드한 후에 발생
+ */
+public void DDS_OnLoadSQLItem()
+{
+	// 등록된 모델 프리캐시
+	for (int i = 0; i < DDS_ENV_ITEM_MAX; i++)
+	{
+		// '전체'는 통과
+		if (i == 0)	continue;
+
+		// 아이템 종류 번호 획득
+		char sItem_Code[8];
+		DDS_GetItemInfo(i, ItemInfo_CATECODE, sItem_Code, true);
+
+		// 현재의 아이템 종류 코드와 맞지 않으면 통과
+		if ((StringToInt(sItem_Code) != DDS_ITEMCG_PSKIN_R) && (StringToInt(sItem_Code) != DDS_ITEMCG_PSKIN_B))	continue;
+
+		// 아이템 정보 모델 획득
+		char sGetEnv[DDS_ENV_VAR_ENV_SIZE];
+		DDS_GetItemInfo(i, ItemInfo_ENV, sGetEnv);
+
+		// 환경변수에서 모델 정보 로드
+		char sModelStr[128];
+		SelectedStuffToString(sGetEnv, "ENV_DDS_INFO_ADRS", "||", ":", sModelStr, sizeof(sModelStr));
+
+		// 프리캐시
+		PrecacheModel(sModelStr, true);
 	}
 }
 

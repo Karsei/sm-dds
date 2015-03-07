@@ -30,7 +30,6 @@
 // 게임 식별
 char dds_sGameIdentity[32];
 bool dds_bGameCheck;
-bool dds_bFirstTimeHook;
 
 // 유저 별 조명 엔티티 번호
 int dds_iUserLightEntIdx[MAXPLAYERS + 1];
@@ -107,6 +106,9 @@ public void OnClientAuthorized(int client, const char[] auth)
 	// 봇은 제외
 	if (IsFakeClient(client))	return;
 
+	// 서버는 제외
+	if (client == 0)	return;
+
 	// 엔티티 초기화
 	dds_iUserLightEntIdx[client] = -1;
 }
@@ -172,11 +174,7 @@ public void System_SetHookEvent(const char[] gamename)
 		 * '카운터 스트라이크: 소스'
 		*********************************************/
 		// 프리징 엔드에 연결
-		if (!dds_bFirstTimeHook)
-		{
-			HookEvent("round_freeze_end", Event_OnRoundStart);
-			dds_bFirstTimeHook = true;
-		}
+		HookEvent("round_freeze_end", Event_OnRoundStart);
 
 		// 게임 식별 완료
 		dds_bGameCheck = true;
@@ -187,11 +185,7 @@ public void System_SetHookEvent(const char[] gamename)
 		 * '카운터 스트라이크: 글로벌 오펜시브'
 		*********************************************/
 		// 프리징 엔드에 연결
-		if (!dds_bFirstTimeHook)
-		{
-			HookEvent("round_freeze_end", Event_OnRoundStart);
-			dds_bFirstTimeHook = true;
-		}
+		HookEvent("round_freeze_end", Event_OnRoundStart);
 
 		// 게임 식별 완료
 		dds_bGameCheck = true;
@@ -202,12 +196,8 @@ public void System_SetHookEvent(const char[] gamename)
 		 * 팀 포트리스
 		*********************************************/
 		// 아레나, 팀플래이 라운드 시작에 연결
-		if (!dds_bFirstTimeHook)
-		{
-			HookEvent("arena_round_start", Event_OnRoundStart);
-			HookEvent("teamplay_round_start", Event_OnRoundStart);
-			dds_bFirstTimeHook = true;
-		}
+		HookEvent("arena_round_start", Event_OnRoundStart);
+		HookEvent("teamplay_round_start", Event_OnRoundStart);
 
 		// 게임 식별 완료
 		dds_bGameCheck = true;
@@ -298,27 +288,27 @@ public Action Event_OnRoundStart(Event event, const char[] name, bool dontBroadc
 	// 게임이 식별되지 않은 경우에는 동작 안함
 	if (!dds_bGameCheck)	return Plugin_Continue;
 
-	// 이벤트 핸들을 통해 클라이언트 식별
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	for (int i = 0; i < MaxClients; i++)
+	{
+		// 서버는 통과
+		if (i == 0)	continue;
 
-	// 서버는 통과
-	if (client == 0)	return Plugin_Continue;
+		// 클라이언트가 게임 내에 없다면 통과
+		if (!IsClientInGame(i))	return Plugin_Continue;
 
-	// 클라이언트가 게임 내에 없다면 통과
-	if (!IsClientInGame(client))	return Plugin_Continue;
+		// 클라이언트가 인증을 받지 못했다면 통과
+		if (!IsClientAuthorized(i))	return Plugin_Continue;
 
-	// 클라이언트가 인증을 받지 못했다면 통과
-	if (!IsClientAuthorized(client))	return Plugin_Continue;
+		// 클라이언트가 살아있지 않다면 통과
+		if (!IsPlayerAlive(i))	return Plugin_Continue;
 
-	// 클라이언트가 살아있지 않다면 통과
-	if (!IsPlayerAlive(client))	return Plugin_Continue;
+		// 클라이언트가 봇이라면 통과
+		if (IsFakeClient(i))	return Plugin_Continue;
 
-	// 클라이언트가 봇이라면 통과
-	if (IsFakeClient(client))	return Plugin_Continue;
-
-	// 조명 생성
-	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_LIGHT_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_LIGHT_ID) > 0))
-		Entity_CreateLight(client);
+		// 조명 생성
+		if (DDS_GetClientItemCategorySetting(i, DDS_ITEMCG_LIGHT_ID) && (DDS_GetClientAppliedItem(i, DDS_ITEMCG_LIGHT_ID) > 0))
+			Entity_CreateLight(i);
+	}
 
 	return Plugin_Continue;
 }
