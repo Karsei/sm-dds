@@ -16,7 +16,7 @@ class Install_m extends CI_Model {
 			array(2, '퍼미션 및 환경 확인'),
 			array(3, '설치 준비'),
 			array(4, '설치'),
-			array(5, '필요 정보 입력'),
+			array(5, 'API Key 입력'),
 			array(6, '완료'),
 			array(7, '홈 이동')
 		);
@@ -143,11 +143,15 @@ class Install_m extends CI_Model {
 			{
 				$attr = array('step' => '4');
 				$rval .= form_open('install', '', $attr);
-				$rval .= '<p>현 단계에서는 설정된 데이터베이스에 앞으로 \'' . PRODUCT_NAME . '\'을 이용하기 위해 필요한 데이터 구조를 설치하게 됩니다.</p>';
-				$rval .= '<p>여기서 설치되는 데이터 구조는 앞으로 게임 서버 및 웹 패널에서 \'' . PRODUCT_NAME . '\'을 이용하는데 있어 반드시 필요한 구조입니다.</p>';
-				$rval .= '<p>계속 진행하시려면 진행 버튼을 누르십시오.</p>';
+				$rval .= '<p>현 단계에서는 설정된 데이터베이스에 앞으로 \'' . PRODUCT_NAME . '\'을 이용하기 위해 필요한 데이터 구조를 설치하고 초기 접근에 있어 관리자 정보를 추가하게 됩니다.</p>';
+				$rval .= '<p>여기서 설치되는 데이터 구조 및 관리자 정보는 앞으로 게임 서버 및 웹 패널에서 \'' . PRODUCT_NAME . '\'을 이용하는데 있어 반드시 필요한 절차입니다.</p>';
+				$rval .= '<p>아래에 있는 고유번호 입력 폼은 웹 패널을 관리할 초기의 최고 관리자로서 활동하게 될 스팀 아이디의 고유번호를 입력해주세요.</p>';
+				$rval .= '<p>\'' . PRODUCT_NAME . '\'는 UCM을 이용하여 관리자 정보를 등록하게 됩니다.</p>';
+				$rval .= '<p>등록할 고유번호를 모르겠다면 <a href="http://steamidconverter.com/" target="_blank">여기</a>를 클릭하고 고유번호를 찾으세요. \'' . PRODUCT_NAME . '\'에서는 고유번호를 steamID64를 사용합니다.</p>';
+				$rval .= '<p><img src="' . base_url() . 'images/install_auth.png" width="564px" height="329px" /></p>';
+				$rval .= '<label for="authidkey">고유번호 입력</label>' . form_input(array('id' => 'authidkey', 'name' => 'authidkey', 'maxlength' => '20', 'title' => '고유번호를 입력해주세요.'));
 				$rval .= '<div class="buttongrp">';
-				$rval .= form_button(array('name' => 'submit', 'type' => 'submit', 'content' => '<i class="fa fa-chevron-right"></i>'));
+				$rval .= form_button(array('id' => 'authsubmit', 'name' => 'nosubmit', 'type' => 'button', 'content' => '<i class="fa fa-chevron-right"></i>'));
 				$rval .= '</div>';
 				$rval .= form_close();
 				break;
@@ -183,6 +187,22 @@ class Install_m extends CI_Model {
 						$totalChk = TRUE;
 						$rval .= '<strong class="green">정상적으로 설치되었습니다.</strong></p>';
 					}
+				}
+
+				// 관리자 정보 추가
+				$rval .= '<p>관리자 정보 추가: ';
+
+				$qset = "INSERT INTO `dds_user_profile` (`idx`, `authid`) VALUES (NULL, '" . $this->input->post('authidkey', TRUE) . "');";
+				$qaR = $this->db->query($qset);
+				$qset = "INSERT INTO `ucm_user_profile` (`idx`, `authid`, `clidx`, `joindate`) VALUES (NULL, '" . $this->input->post('authidkey', TRUE) . "', '2', '" . time() . "');";
+				$qaR = $this->db->query($qset);
+
+				if (!$qaR) {
+					$totalChk = FALSE;
+					$rval .= '<strong class="red">설치 도중 오류가 발생했습니다.</strong></p>';
+				} else {
+					$totalChk = TRUE;
+					$rval .= '<strong class="green">정상적으로 설치되었습니다.</strong></p>';
 				}
 
 				if ($totalChk) {
@@ -232,8 +252,8 @@ class Install_m extends CI_Model {
 					$rval .= '<strong class="red">설정 파일을 제작하지 못했습니다.</strong></p>';
 				} else {
 					$rval .= '<strong class="green">정상적으로 작성되었습니다.</strong></p>';
+					redirect('/home/');
 				}
-				redirect('/home/');
 				break;
 			}
 		}

@@ -15,7 +15,7 @@ class Rlist extends CI_Controller {
 		
 		// 로그인 여부
 		if (!$cSess->userdata('auth_id') || !$cSess->userdata('inauth')) {
-			redirect('/auth/login');
+			header('Location: ' . base_url() . 'auth/login/');
 		}
 
 		// 언어 파일 로드

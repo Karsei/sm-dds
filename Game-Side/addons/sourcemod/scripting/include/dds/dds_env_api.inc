@@ -90,7 +90,7 @@ native bool DDS_GetServerSQLStatus();
  * @param client				클라이언트 인덱스
  * @return	클라이언트 SQL 데이터베이스가 활성화되었다면 true, 그렇지 않다면 false
  */
-native bool DDS_GetClientSQLStatus(client);
+native bool DDS_GetClientSQLStatus(int client);
 
 /**
  * @brief	DDS 플러그인에 아이템 종류 플러그인을 연결합니다.

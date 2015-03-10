@@ -10,7 +10,7 @@ class Myinfo extends CI_Controller {
 		$this->load->helper('url');
 		if (!file_exists(CONFIG_PATH . '/config.php'))
 		{
-			redirect('/install/');
+			header('Location: ' . base_url() . 'install/');
 		}
 
 		// 로그인 여부
@@ -18,7 +18,7 @@ class Myinfo extends CI_Controller {
 		$cSess = $this->session;
 		
 		if (!$cSess->userdata('auth_id') || !$cSess->userdata('inauth')) {
-			redirect('/auth/login');
+			header('Location: ' . base_url() . 'auth/login/');
 		}
 
 		// 언어 파일 로드

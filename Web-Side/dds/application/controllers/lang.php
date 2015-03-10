@@ -10,7 +10,7 @@ class Lang extends CI_Controller {
 		$this->load->helper('url');
 		if (!file_exists(CONFIG_PATH . '/config.php'))
 		{
-			redirect('/install/');
+			header('Location: ' . base_url() . 'install/');
 		}
 
 		// 에이전트 로드

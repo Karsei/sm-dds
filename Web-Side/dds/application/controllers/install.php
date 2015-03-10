@@ -12,12 +12,15 @@ class Install extends CI_Controller {
 		// 이미 설치가 되어 있다면 기본 페이지로 이동
 		if (file_exists(CONFIG_PATH . '/config.php'))
 		{
-			redirect('/home/');
+			header('Location: ' . base_url() . 'home/');
 		}
 	}
 
 	public function index()
 	{
+		/******************************
+		 * 부적절하지만 설치 관련은 모델에서 처리
+		*******************************/
 		$stepIdx = 1;
 
 		// 넘겨진 항목 설정

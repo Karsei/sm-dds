@@ -32,7 +32,7 @@ class Auth extends CI_Controller {
 		}
 		else if ($oid->mode == 'cancel')
 		{
-			redirect('/auth/login/');
+			header('Location: ' . base_url() . 'auth/login/');
 		}
 		else
 		{
@@ -47,7 +47,7 @@ class Auth extends CI_Controller {
 				$this->session->set_userdata('auth_id', $stid[1]);
 				$this->session->set_userdata('lang', $defLang);
 				$this->session->set_userdata('inauth', $isInProfile);
-				redirect('/auth/login/');
+				header('Location: ' . base_url() . 'auth/login/');
 			}
 		}
 
@@ -64,12 +64,12 @@ class Auth extends CI_Controller {
 		// 기본적으로 기본 화면으로 리다이렉트
 		if ($this->session->userdata('auth_id')) {
 			// 서버에 등록된 유저가 아니면 다시 세션풀고 back처리
-			if (!$this->session->userdata('inauth'))	redirect('/auth/logout/');
+			if (!$this->session->userdata('inauth'))	header('Location: ' . base_url() . 'auth/logout/');
 
 			// 정상이면 출입 가능
-			redirect('/home/');
+			header('Location: ' . base_url() . 'home/');
 		} else {
-			redirect('/auth/login/');
+			header('Location: ' . base_url() . 'auth/login/');
 		}
 	}
 
@@ -77,7 +77,7 @@ class Auth extends CI_Controller {
 	{
 		// 로그인되어 있으면 기본 화면으로 리다이렉트
 		if ($this->session->userdata('auth_id') && (strcmp($this->session->userdata('inauth'), 'yes') == 0)) {
-			redirect('/home/');
+			header('Location: ' . base_url() . 'home/');
 		}
 
 		// 등록이 안되어 있을 때

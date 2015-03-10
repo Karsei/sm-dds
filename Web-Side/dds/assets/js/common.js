@@ -383,6 +383,26 @@ function setDetInfo(stype, sdetail, starget, sdata)
 	// traditional 설정
 	//$.ajaxSettings.traditional = true;
 
+	// AUTHID 입력 시
+	$('#authidkey').on('keyup', function() {
+		var $key = $('#authidkey').val();
+
+		// 적어도 15글자는 입력해야 함
+		if ($key.length >= 15)
+		{
+			$('#authsubmit').attr({
+				'name': 'submit',
+				'type': 'submit'
+			});
+		}
+		else
+		{
+			$('#authsubmit').attr({
+				'name': 'nosubmit',
+				'type': 'button'
+			});
+		}
+	});
 	// API KEY 입력 시
 	$('#apikey').on('keyup', function() {
 		var $key = $('#apikey').val();
