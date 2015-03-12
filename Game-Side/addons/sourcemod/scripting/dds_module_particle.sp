@@ -1,5 +1,5 @@
 /************************************************************************
- * Dynamic Dollar Shop - [Module] Light (Sourcemod)
+ * Dynamic Dollar Shop - [Module] Particle (Sourcemod)
  * 
  * Copyright (C) 2012-2015 Karsei
  * 
@@ -21,8 +21,8 @@
 #include <sdktools>
 #include <dds>
 
-#define DDS_ADD_NAME			"Dynamic Dollar Shop :: [Module] Light"
-#define DDS_ITEMCG_LIGHT_ID		8
+#define DDS_ADD_NAME			"Dynamic Dollar Shop :: [Module] Particle"
+#define DDS_ITEMCG_PTCL_ID		11
 
 /*******************************************************
  * V A R I A B L E S
@@ -31,8 +31,8 @@
 char dds_sGameIdentity[32];
 bool dds_bGameCheck;
 
-// 유저 별 조명 엔티티 번호
-int dds_iUserLightEntIdx[MAXPLAYERS + 1];
+// 유저 별 파티클 엔티티 번호
+int dds_iUserPtclEntIdx[MAXPLAYERS + 1];
 
 /*******************************************************
  * P L U G I N  I N F O R M A T I O N
@@ -41,7 +41,7 @@ public Plugin:myinfo =
 {
 	name = DDS_ADD_NAME,
 	author = DDS_ENV_CORE_AUTHOR,
-	description = "This can allow clients to use Light function.",
+	description = "This can allow clients to use Particle function.",
 	version = DDS_ENV_CORE_VERSION,
 	url = DDS_ENV_CORE_HOMEPAGE
 };
@@ -87,8 +87,8 @@ public void OnLibraryAdded(const char[] name)
 {
 	if (StrEqual(name, "dds_core", false))
 	{
-		// '조명' 아이템 종류 생성
-		DDS_CreateItemCategory(DDS_ITEMCG_LIGHT_ID);
+		// '파티클' 아이템 종류 생성
+		DDS_CreateItemCategory(DDS_ITEMCG_PTCL_ID);
 	}
 }
 
@@ -110,7 +110,7 @@ public void OnClientAuthorized(int client, const char[] auth)
 	if (client == 0)	return;
 
 	// 엔티티 초기화
-	dds_iUserLightEntIdx[client] = -1;
+	dds_iUserPtclEntIdx[client] = -1;
 }
 
 /**
@@ -127,7 +127,7 @@ public void OnClientDisconnect(int client)
 	if (IsFakeClient(client))	return;
 
 	// 엔티티 초기화
-	dds_iUserLightEntIdx[client] = -1;
+	dds_iUserPtclEntIdx[client] = -1;
 }
 
 
@@ -148,14 +148,14 @@ public void Init_UserEntData(int client, int mode)
 		{
 			for (int i = 0; i <= MAXPLAYERS; i++)
 			{
-				// 조명 엔티티 초기화
-				dds_iUserLightEntIdx[i] = -1;
+				// 파티클 엔티티 초기화
+				dds_iUserPtclEntIdx[i] = -1;
 			}
 		}
 		case 2:
 		{
-			// 조명 엔티티 초기화
-			dds_iUserLightEntIdx[client] = -1;
+			// 파티클 엔티티 초기화
+			dds_iUserPtclEntIdx[client] = -1;
 		}
 	}
 }
@@ -206,67 +206,68 @@ public void System_SetHookEvent(const char[] gamename)
 
 
 /**
- * Entity :: 조명 생성
+ * Entity :: 파티클 생성
  *
  * @param client				클라이언트 인덱스
  */
-public void Entity_CreateLight(int client)
+public void Entity_CreateParticle(int client)
 {
 	/**************************************
 	 * 준비
 	***************************************/
 	// 해당 아이템 환경변수 로드
 	char sItemEnv[256];
-	DDS_GetItemInfo(DDS_GetClientAppliedItem(client, DDS_ITEMCG_LIGHT_ID), ItemInfo_ENV, sItemEnv);
+	DDS_GetItemInfo(DDS_GetClientAppliedItem(client, DDS_ITEMCG_PTCL_ID), ItemInfo_ENV, sItemEnv);
 
 	// 현재 클라이언트의 위치 파악
 	float fClient_Pos[3];
 	GetClientAbsOrigin(client, fClient_Pos);
 
-	// z값 수정
-	fClient_Pos[2] += 30.0;
-
-	// 모델 정보 로드
-	char sLight_ModelSet[128];
-	SelectedStuffToString(sItemEnv, "ENV_DDS_INFO_ADRS", "||", ":", sLight_ModelSet, sizeof(sLight_ModelSet));
+	// 색상 정보 로드
+	char sPtcl_Adrs[128];
+	SelectedStuffToString(sItemEnv, "ENV_DDS_INFO_ADRS", "||", ":", sPtcl_Adrs, sizeof(sPtcl_Adrs));
 
 	/**************************************
 	 * 엔티티 생성
 	***************************************/
 	// 엔티티 부여
-	dds_iUserLightEntIdx[client] = CreateEntityByName("env_sprite");
+	dds_iUserPtclEntIdx[client] = CreateEntityByName("info_particle_system");
+
+	// 전역 설정
+	char sTarget_Set[128];
+	Format(sTarget_Set, sizeof(sTarget_Set), "Entity%i", client);
 
 	// 엔티티 기본 정보 설정
-	DispatchKeyValue(dds_iUserLightEntIdx[client], "model", sLight_ModelSet);
-	DispatchKeyValue(dds_iUserLightEntIdx[client], "rendermode", "5");
-	DispatchKeyValue(dds_iUserLightEntIdx[client], "current", "15");
-	DispatchKeyValue(dds_iUserLightEntIdx[client], "scale", "1.0");
+	DispatchKeyValue(dds_iUserPtclEntIdx[client], "targetname", "ParticleSys");
+	DispatchKeyValue(dds_iUserPtclEntIdx[client], "parentname", sTarget_Set);
+	DispatchKeyValue(dds_iUserPtclEntIdx[client], "effect_name", sPtcl_Adrs);
 
 	// 엔티티 생성
-	DispatchSpawn(dds_iUserLightEntIdx[client]);
-	//AcceptEntityInput(dds_iUserLightEntIdx[client], "ShowSprite");
+	DispatchSpawn(dds_iUserPtclEntIdx[client]);
 
-	// 위치 이동
-	TeleportEntity(dds_iUserLightEntIdx[client], fClient_Pos, NULL_VECTOR, NULL_VECTOR);
+	// 클라이언트 쪽으로 이동
+	TeleportEntity(dds_iUserPtclEntIdx[client], fClient_Pos, NULL_VECTOR, NULL_VECTOR);
 
 	// 클라이언트에게 부착
-	SetVariantString("!activator"); // https://developer.valvesoftware.com/wiki/Targetname
-	AcceptEntityInput(dds_iUserLightEntIdx[client], "SetParent", client);
-	//AcceptEntityInput(dds_iUserLightEntIdx[client], "TurnOn", client);
+	SetVariantString(sTarget_Set); // activator로는 X
+	AcceptEntityInput(dds_iUserPtclEntIdx[client], "SetParent", client);
+	ActivateEntity(dds_iUserPtclEntIdx[client]);
+
+	AcceptEntityInput(dds_iUserPtclEntIdx[client], "start");
 }
 
 /**
- * Entity :: 조명 제거
+ * Entity :: 파티클 제거
  *
  * @param client				클라이언트 인덱스
  */
-public void Entity_RemoveLight(int client)
+public void Entity_RemoveParticle(int client)
 {
-	if (IsValidEntity(dds_iUserLightEntIdx[client]) && (dds_iUserLightEntIdx[client] != -1))
+	if (IsValidEntity(dds_iUserPtclEntIdx[client]) && (dds_iUserPtclEntIdx[client] != -1))
 	{
-		AcceptEntityInput(dds_iUserLightEntIdx[client], "Kill");
+		AcceptEntityInput(dds_iUserPtclEntIdx[client], "Kill");
 	}
-	dds_iUserLightEntIdx[client] = -1;
+	dds_iUserPtclEntIdx[client] = -1;
 }
 
 
@@ -305,9 +306,9 @@ public Action Event_OnRoundStart(Event event, const char[] name, bool dontBroadc
 		// 클라이언트가 봇이라면 통과
 		if (IsFakeClient(i))	return Plugin_Continue;
 
-		// 조명 생성
-		if (DDS_GetClientItemCategorySetting(i, DDS_ITEMCG_LIGHT_ID) && (DDS_GetClientAppliedItem(i, DDS_ITEMCG_LIGHT_ID) > 0))
-			Entity_CreateLight(i);
+		// 파티클 생성
+		if (DDS_GetClientItemCategorySetting(i, DDS_ITEMCG_PTCL_ID) && (DDS_GetClientAppliedItem(i, DDS_ITEMCG_PTCL_ID) > 0))
+			Entity_CreateParticle(i);
 	}
 
 	return Plugin_Continue;
@@ -343,9 +344,9 @@ public Action Event_OnPlayerSpawn(Event event, const char[] name, bool dontBroad
 	// 클라이언트가 봇이라면 통과
 	if (IsFakeClient(client))	return Plugin_Continue;
 
-	// 조명 생성
-	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_LIGHT_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_LIGHT_ID) > 0))
-		Entity_CreateLight(client);
+	// 파티클 생성
+	if (DDS_GetClientItemCategorySetting(client, DDS_ITEMCG_PTCL_ID) && (DDS_GetClientAppliedItem(client, DDS_ITEMCG_PTCL_ID) > 0))
+		Entity_CreateParticle(client);
 
 	return Plugin_Continue;
 }
@@ -368,8 +369,8 @@ public Action Event_OnPlayerDeath(Event event, const char[] name, bool dontBroad
 	// 이벤트 핸들을 통해 클라이언트 식별
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 
-	// 조명 제거
-	Entity_RemoveLight(client);
+	// 파티클 제거
+	Entity_RemoveParticle(client);
 
 	return Plugin_Continue;
 }
@@ -393,8 +394,8 @@ public Action Event_OnPlayerTeam(Event event, const char[] name, bool dontBroadc
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	//int afterteam = GetClientOfUserId(GetEventInt(event, "team"));
 
-	// 조명 제거
-	Entity_RemoveLight(client);
+	// 파티클 제거
+	Entity_RemoveParticle(client);
 
 	return Plugin_Continue;
 }
