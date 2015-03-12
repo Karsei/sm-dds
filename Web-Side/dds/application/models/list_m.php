@@ -265,6 +265,41 @@ class List_m extends CI_Model {
 			$this->db->set($setdata);
 			$this->db->insert('dds_item_category');
 		}
+		else if (strcmp($type, 'addenv') == 0)
+		{
+			$env_onecate = $data[0];
+			$env_twocate = $data[1];
+			$env_setdata = $data[2];
+			$env_desc = $data[3];
+
+			// 이름 겹치는지 확인
+			$setwhere = array(
+				'dds_env_list.twocate' => $env_twocate
+			);
+			$this->db->where($setwhere);
+			$chk = $this->db->get('dds_env_list');
+			$chkC = $chk->num_rows();
+			$chkQ = $chk->result_array();
+
+			if (strlen($env_onecate) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv_category'));
+			}
+			if (strlen($env_twocate) <= 0) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv_name'));
+			}
+			if (($chkC >= 1 ) && (strcmp($chkQ[0]['twocate'], $env_twocate) != 0)) {
+				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv_name_dup'));
+			}
+
+			$setdata = array(
+				'dds_env_list.onecate' => $env_onecate,
+				'dds_env_list.twocate' => $env_twocate,
+				'dds_env_list.setdata' => $env_setdata,
+				'dds_env_list.desc' => $env_desc
+			);
+			$this->db->set($setdata);
+			$this->db->insert('dds_env_list');
+		}
 		else if (strcmp($type, 'modifyitem') == 0)
 		{
 			$il_code = $data[0];
@@ -384,9 +419,6 @@ class List_m extends CI_Model {
 			}
 			if (($chkC >= 1 ) && (strcmp($chkQ[0]['twocate'], $env_twocate) != 0)) {
 				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv_name_dup'));
-			}
-			if (strlen($env_setdata) <= 0) {
-				return json_encode(array('result' => false, 'title' => 'msg_title_notice', 'msg' => 'msg_results_writeenv_value'));
 			}
 
 			$setdata = array(

@@ -124,7 +124,15 @@ article td:first-child {
 }
 
 .box-title {
+    font-weight: bold;
     margin-bottom: 20px;
+}
+
+.box-sub-title {
+    border-left: 7px solid #a0cfff;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    padding-left: 6px;
 }
 
 .border-logon {
@@ -148,6 +156,9 @@ article td:first-child {
     margin-top: 30px;
     padding: 30px;
     background-color: #ECBF41; /*#EDDEC1*/
+}
+#myinfo {
+    cursor: default;
 }
 #myinfo .profileimg {
     float: left;
@@ -189,6 +200,7 @@ article td:first-child {
     display: none;
 }
 #admin-info .input-line,
+#admin-info .textarea,
 #admin-info input[type="radio"],
 #admin-info button[id*="btn_lang"],
 #admin-info button[id*="btn_env"] {

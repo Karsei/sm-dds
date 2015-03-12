@@ -714,7 +714,7 @@ class Rlist extends CI_Controller {
 			$rval .= '<div class="col-10">';
 
 			// 값
-			$rval .= '<input name="envadd-desc" class="input-line medium" type="text" maxlength="256" value="' . $rst_desc . '"/>';
+			$rval .= '<textarea name="envadd-desc" class="textarea medium" rows="4">' . $rst_desc . '</textarea>';
 			$rval .= '</div></div>';
 
 			/** 버튼 삽입! **/

@@ -243,3 +243,25 @@ forward void DDS_OnLoadSQLItem();
  * @param data					추가 파라메터
  */
 forward void DDS_OnDataProcess(int client, const DataProcess process, const char[] data);
+
+/**
+ * @brief	DDS 플러그인에서 데이터 로그를 SQL 데이터베이스에 저장하기 전에 발생합니다.
+ *
+ * @param authid				주체의 고유번호
+ * @param action				주체의 행동
+ * @param setdata				주체의 값
+ * @param date					주체의 행동으로 인한 발생 시각
+ * @param usrip					주체의 아이피 주소
+ */
+forward Action DDS_OnLogProcessPre(const char[] authid, const char[] action, const char[] setdata, const int date, const char[] usrip);
+
+/**
+ * @brief	DDS 플러그인에서 데이터 로그를 SQL 데이터베이스에 저장한 후에 발생합니다.
+ *
+ * @param authid				주체의 고유번호
+ * @param action				주체의 행동
+ * @param setdata				주체의 값
+ * @param date					주체의 행동으로 인한 발생 시각
+ * @param usrip					주체의 아이피 주소
+ */
+forward void DDS_OnLogProcessPost(const char[] authid, const char[] action, const char[] setdata, const int date, const char[] usrip);

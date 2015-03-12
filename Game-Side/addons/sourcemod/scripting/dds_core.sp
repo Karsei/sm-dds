@@ -93,8 +93,10 @@ ConVar dds_hCV_SecureUserMin;
 
 // 포워드
 Handle dds_hOnLoadSQLItemCategory;
-Handle dds_hOnDataProcess;
 Handle dds_hOnLoadSQLItem;
+Handle dds_hOnDataProcess;
+Handle dds_hOnLogProcessPre;
+Handle dds_hOnLogProcessPost;
 
 // 팀 채팅
 bool dds_bTeamChat[MAXPLAYERS + 1];
@@ -196,6 +198,8 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 	dds_hOnLoadSQLItemCategory = CreateGlobalForward("DDS_OnLoadSQLItemCategory", ET_Ignore);
 	dds_hOnLoadSQLItem = CreateGlobalForward("DDS_OnLoadSQLItem", ET_Ignore);
 	dds_hOnDataProcess = CreateGlobalForward("DDS_OnDataProcess", ET_Ignore, Param_Cell, Param_Cell, Param_String);
+	dds_hOnLogProcessPre = CreateGlobalForward("DDS_OnLogProcessPre", ET_Hook, Param_String, Param_String, Param_String, Param_Cell, Param_String);
+	dds_hOnLogProcessPost = CreateGlobalForward("DDS_OnLogProcessPost", ET_Ignore, Param_String, Param_String, Param_String, Param_Cell, Param_String);
 
 	return APLRes_Success;
 }
@@ -2437,6 +2441,9 @@ public void Log_Data(int client, const char[] action, const char[] data)
 		Format(sSendParam, sizeof(sSendParam), data);
 	}
 
+	// 전 포워드 처리
+	Forward_OnLogProcessPre(sClient_AuthId, action, sSendParam, GetTime(), sClient_IP);
+
 	/*******************************
 	 * 로그 생성
 	********************************/
@@ -2450,6 +2457,9 @@ public void Log_Data(int client, const char[] action, const char[] data)
 		"INSERT INTO `dds_log_data` (`idx`, `authid`, `action`, `setdata`, `thisdate`, `usrip`) VALUES (NULL, '%s', '%s', '%s', '%d', '%s')", 
 		sClient_AuthId, action, sSendParam, GetTime(), sClient_IP);
 	dds_hSQLDatabase.Query(SQL_ErrorProcess, sSendQuery, hMakeErrI);
+
+	// 후 포워드 처리
+	Forward_OnLogProcessPost(sClient_AuthId, action, sSendParam, GetTime(), sClient_IP);
 }
 
 
@@ -2485,7 +2495,7 @@ public void SQL_DDSDatabaseInit()
  * @param client			클라이언트 인덱스
  * @param args				기타
  */
-public Action:Menu_Main(int client, int args)
+public Action Menu_Main(int client, int args)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
@@ -2879,7 +2889,7 @@ public void Menu_CurItem_CateIn(Database db, DBResultSet results, const char[] e
  * @param client			클라이언트 인덱스
  * @param args				기타
  */
-public Action:Menu_Inven(int client, int args)
+public Action Menu_Inven(int client, int args)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
@@ -4514,7 +4524,7 @@ public int Find_GetItemCGListIndex(const int catecode)
  * @param client				클라이언트 인덱스
  * @param args					기타
  */
-public Action:Command_Say(int client, int args)
+public Action Command_Say(int client, int args)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
@@ -4660,7 +4670,7 @@ public Action:Command_Say(int client, int args)
  * @param client				클라이언트 인덱스
  * @param args					기타
  */
-public Action:Command_TeamSay(int client, int args)
+public Action Command_TeamSay(int client, int args)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Continue;
@@ -5507,7 +5517,7 @@ public void SQL_LoadEnvList(Database db, DBResultSet results, const char[] error
  * @param timer					타이머 핸들
  * @param client				클라이언트 인덱스
  */
-public Action:SQL_Timer_UserLoad(Handle timer, any client)
+public Action SQL_Timer_UserLoad(Handle timer, any client)
 {
 	// 플러그인이 켜져 있을 때에는 작동 안함
 	if (!dds_hCV_PluginSwitch.BoolValue)	return Plugin_Stop;
@@ -7651,5 +7661,41 @@ void Forward_OnDataProcess(int client, const DataProcess process, const char[] d
 	Call_PushCell(client);
 	Call_PushCell(process);
 	Call_PushString(data);
+	Call_Finish();
+}
+
+/**
+ * Forward :: DDS_OnLogProcessPre
+ *
+ * @brief	DDS 플러그인에서 데이터 로그를 작성하기 전에 발생
+ */
+Action Forward_OnLogProcessPre(const char[] authid, const char[] action, const char[] setdata, const int date, const char[] usrip)
+{
+	Action result;
+
+	Call_StartForward(dds_hOnLogProcessPre);
+	Call_PushString(authid);
+	Call_PushString(action);
+	Call_PushString(setdata);
+	Call_PushCell(date);
+	Call_PushString(usrip);
+	Call_Finish(result);
+
+	return result;
+}
+
+/**
+ * Forward :: DDS_OnLogProcessPost
+ *
+ * @brief	DDS 플러그인에서 데이터 로그를 작성한 후에 발생
+ */
+void Forward_OnLogProcessPost(const char[] authid, const char[] action, const char[] setdata, const int date, const char[] usrip)
+{
+	Call_StartForward(dds_hOnLogProcessPost);
+	Call_PushString(authid);
+	Call_PushString(action);
+	Call_PushString(setdata);
+	Call_PushCell(date);
+	Call_PushString(usrip);
 	Call_Finish();
 }

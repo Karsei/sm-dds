@@ -346,6 +346,8 @@ function setDetInfo(stype, sdetail, starget, sdata)
 {
 	var controller = 'rlist';
 
+	//console.log(stype + ' / ' + sdetail + ' / ' + starget + ' / ' + sdata);
+
 	$.ajax({
 		url: base_Url + controller + '/setDetInfo',
 		type: 'POST',
@@ -949,21 +951,32 @@ function setDetInfo(stype, sdetail, starget, sdata)
 		var ic_send = new Array($ic_name, $ic_orderidx, $ic_env, $ic_status, $ic_hidden);
 		setDetInfo('itemcglist', 'modifyitemcg', '#admin-list', ic_send);
 	});
-	/** [ENV 수정] 정보 전송 **/
-	$(document).on('click', '#admin-info #btn_modifyenv', function() {
+	/** [ENV 추가] 정보 전송 **/
+	$(document).on('click', '#admin-info #btn_addenv', function() {
 		var $env = $(this).parent();
-		var $env_onecate = $(this).find('input[name="envadd-onecate"]').val();
-		var $env_twocate = $(this).find('input[name="envadd-twocate"]').val();
-		var $env_setdata = $(this).find('input[name="envadd-setdata"]').val();
-		var $env_desc = $(this).find('input[name="envadd-desc"]').val();
+		var $env_onecate = $env.find('input[name="envadd-onecate"]').val();
+		var $env_twocate = $env.find('input[name="envadd-twocate"]').val();
+		var $env_setdata = $env.find('input[name="envadd-setdata"]').val();
+		var $env_desc = $env.find('textarea').val();
 
 		// '종류', '이름' 공백은 없애준다.
 		$env_onecate.replace(/\s/gi, '');
 		$env_twocate.replace(/\s/gi, '');
 
-		// '종류', '이름'이 비어있으면 패스
-		if ($env_onecate) {return true;}
-		if ($env_twocate) {return true;}
+		var env_send = new Array($env_onecate, $env_twocate, $env_setdata, $env_desc);
+		setDetInfo('envlist', 'addenv', '#admin-list', env_send);
+	});
+	/** [ENV 수정] 정보 전송 **/
+	$(document).on('click', '#admin-info #btn_modifyenv', function() {
+		var $env = $(this).parent();
+		var $env_onecate = $env.find('input[name="envadd-onecate"]').val();
+		var $env_twocate = $env.find('input[name="envadd-twocate"]').val();
+		var $env_setdata = $env.find('input[name="envadd-setdata"]').val();
+		var $env_desc = $env.find('textarea').val();
+
+		// '종류', '이름' 공백은 없애준다.
+		$env_onecate.replace(/\s/gi, '');
+		$env_twocate.replace(/\s/gi, '');
 
 		var $env_hidden = $env.find('input[name="envadd-hidden"]').val();
 		var env_send = new Array($env_onecate, $env_twocate, $env_setdata, $env_desc, $env_hidden);
