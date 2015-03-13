@@ -18,6 +18,7 @@
  * 
  ***********************************************************************/
 #include <sourcemod>
+#include <cURL>
 #include <dds>
 
 // ** 등급을 위한 연동 플러그인 **
@@ -225,6 +226,9 @@ public void OnConfigsExecuted()
 	// F2키
 	if (dds_hCV_SwitchQuickCmdF2.IntValue == 1)	RegConsoleCmd("rebuy", Menu_Main);
 	else if (dds_hCV_SwitchQuickCmdF2.IntValue == 2)	RegConsoleCmd("rebuy", Menu_Inven);
+
+	/** 통계 조사 **/
+	Statis_Send("svon");
 }
 
 /**
@@ -241,6 +245,9 @@ public void OnMapEnd()
 
 	// SQL 상태 초기화
 	dds_bSQLStatus = false;
+
+	/** 통계 조사 **/
+	Statis_Send("svoff");
 }
 
 /**
@@ -2486,6 +2493,47 @@ public void SQL_DDSDatabaseInit()
 	// ENV 목록 로드
 	Format(sSendQuery, sizeof(sSendQuery), "SELECT * FROM `dds_env_list`");
 	dds_hSQLDatabase.Query(SQL_LoadEnvList, sSendQuery, 0, DBPrio_High);
+}
+
+
+/**
+ * 통계 :: 통계 시작
+ *
+ * @param type				종류
+ */
+public void Statis_Send(const char[] type)
+{
+	Handle cstis = curl_easy_init();
+	if (cstis != null)
+	{
+		// 게임 주소 추출
+		char sSVAdrs[64];
+		GetConVarString(FindConVar("ip"), sSVAdrs, sizeof(sSVAdrs));
+
+		// 값 설정
+		char sSendPost[150];
+		Format(sSendPost, sizeof(sSendPost), "c=%s&p=%s&a=%s&d=%s&t=%s&i=%s&v=%s", 
+			"plugin", DDS_ENV_CORE_NAME, type, GetTime(), sSVAdrs, "", DDS_ENV_CORE_VERSION);
+
+		// curl 설정
+		// https://code.google.com/p/sourcemod-curl-extension/source/browse/curl/curl.h
+		curl_easy_setopt_string(cstis, CURLOPT_URL, "http://analytics.karsei.pe.kr/sm/");
+		curl_easy_setopt_int(cstis, CURLOPT_POST, 1);
+		curl_easy_setopt_string(cstis, CURLOPT_POSTFIELDS, sSendPost);
+		curl_easy_perform_thread(cstis, Statis_OnSend);
+	}
+}
+
+/**
+ * 통계 :: 통계 수행 후
+ *
+ * @param hndl				curl 핸들
+ * @param code				curl 상태
+ */
+public Statis_OnSend(Handle hndl, CURLcode code)
+{
+	delete hndl;
+	hndl = null;
 }
 
 

@@ -122,11 +122,11 @@ class Rlist extends CI_Controller {
 			 *
 			***********************************************/
 			// 우선 해당 아이템과 같은 종류의 장착 아이템을 모두 장착 해제 시킨다.
-			$qready = "UPDATE `dds_user_item` LEFT JOIN `dds_item_list` ON `dds_user_item`.`ilidx` = `dds_item_list`.`ilidx` SET `dds_user_item`.`aplied` = '0' WHERE `dds_user_item`.`authid` = '" . $authid . "' AND `dds_item_list`.`icidx` = '" . $tdata . "' AND `dds_user_item`.`aplied` = '1'";
+			$qready = "UPDATE `dds_user_item` LEFT JOIN `dds_item_list` ON `dds_user_item`.`ilidx` = `dds_item_list`.`ilidx` SET `dds_user_item`.`aplied` = '0' WHERE `dds_user_item`.`authid` = '$authid' AND `dds_item_list`.`icidx` = '$tdata' AND `dds_user_item`.`aplied` = '1'";
 			$this->db->query($qready);
 
 			// 그리고 장착 처리
-			$qready = "UPDATE `dds_user_item` SET `dds_user_item`.`aplied` = '1' WHERE `dds_user_item`.`authid` = '" . $authid . "' AND `dds_user_item`.`idx` = '" . $odata . "'";
+			$qready = "UPDATE `dds_user_item` SET `dds_user_item`.`aplied` = '1' WHERE `dds_user_item`.`authid` = '$authid' AND `dds_user_item`.`idx` = '$odata'";
 			$this->db->query($qready);
 		}
 		else if (strcmp($type, 'item-applycancel') == 0)
@@ -136,7 +136,7 @@ class Rlist extends CI_Controller {
 			 * [아이템 장착 해제]
 			 *
 			***********************************************/
-			$qready = "UPDATE `dds_user_item` SET `dds_user_item`.`aplied` = '0' WHERE `dds_user_item`.`authid` = '" . $authid . "' AND `dds_user_item`.`idx` = '" . $odata . "'";
+			$qready = "UPDATE `dds_user_item` SET `dds_user_item`.`aplied` = '0' WHERE `dds_user_item`.`authid` = '$authid' AND `dds_user_item`.`idx` = '$odata'";
 			$this->db->query($qready);
 		}
 		else if (strcmp($type, 'item-drop') == 0)
@@ -172,7 +172,7 @@ class Rlist extends CI_Controller {
 			}
 
 			// 금액 감산 처리
-			$qready = "UPDATE `dds_user_profile` SET `dds_user_profile`.`money` = `dds_user_profile`.`money` - " . $sqc[0]['money'] . " WHERE `dds_user_profile`.`authid` = '" . $authid . "'";
+			$qready = "UPDATE `dds_user_profile` SET `dds_user_profile`.`money` = `dds_user_profile`.`money` - $sqc[0]['money'] WHERE `dds_user_profile`.`authid` = '$authid'";
 			$this->db->query($qready);
 
 			// 조건이 된다면 구매 처리
@@ -191,7 +191,7 @@ class Rlist extends CI_Controller {
 			 * [유저 관리 - 유저 정보 수정]
 			 *
 			***********************************************/
-			$qready = "UPDATE `dds_user_profile` SET `dds_user_profile`.`money` = '" . $tdata . "' WHERE `dds_user_profile`.`idx` = '" . $odata . "'";
+			$qready = "UPDATE `dds_user_profile` SET `dds_user_profile`.`money` = '$tdata' WHERE `dds_user_profile`.`idx` = '$odata'";
 			$this->db->query($qready);
 		}
 		else if (strcmp($type, 'admin-itemdelete') == 0)
