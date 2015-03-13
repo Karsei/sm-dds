@@ -12,7 +12,7 @@ class Install extends CI_Controller {
 		// 이미 설치가 되어 있다면 기본 페이지로 이동
 		if (file_exists(CONFIG_PATH . '/config.php'))
 		{
-			header('Location: ' . base_url() . 'home/');
+			redirect('/home/');
 		}
 	}
 
@@ -38,8 +38,8 @@ class Install extends CI_Controller {
 		);
 
 		// 정보 할당
-		$data['step'] = 'Step ' . $stepList[$stepIdx][0];
-		$data['stepdesc'] = $stepList[$stepIdx][1];
+		$data['step'] = 'Step ' . $stepList[$stepIdx - 1][0];
+		$data['stepdesc'] = $stepList[$stepIdx - 1][1];
 
 		// 설치 페이지 구성
 		$rval = '';
@@ -145,6 +145,11 @@ class Install extends CI_Controller {
 			}
 			case 3:
 			{
+				// UCM 테이블 존재 확인
+				$c_ucmq = "SELECT * FROM `information_schema`.`TABLES` WHERE `table_name` = 'ucm_user_profile'";
+				$c_ucmc = $this->db->query($c_ucmq);
+				$c_ucmr = $c_ucmc->num_rows();
+
 				$attr = array('step' => '4');
 				$rval .= form_open('install', '', $attr);
 				$rval .= '<p>현 단계에서는 설정된 데이터베이스에 앞으로 \'' . PRODUCT_NAME . '\'을 이용하기 위해 필요한 데이터 구조를 설치하고 초기 접근에 있어 관리자 정보를 추가하게 됩니다.</p>';
@@ -153,7 +158,11 @@ class Install extends CI_Controller {
 				$rval .= '<p>\'' . PRODUCT_NAME . '\'는 UCM을 이용하여 관리자 정보를 등록하게 됩니다.</p>';
 				$rval .= '<p>등록할 고유번호를 모르겠다면 <a href="http://steamidconverter.com/" target="_blank">여기</a>를 클릭하고 고유번호를 찾으세요. \'' . PRODUCT_NAME . '\'에서는 고유번호를 steamID64를 사용합니다.</p>';
 				$rval .= '<p><img src="' . base_url() . 'images/install_auth.png" width="564px" height="329px" /></p>';
-				$rval .= '<label for="authidkey">고유번호 입력</label>' . form_input(array('id' => 'authidkey', 'name' => 'authidkey', 'maxlength' => '20', 'title' => '고유번호를 입력해주세요.'));
+				$rval .= '<p><label for="authidkey">고유번호 입력</label>' . form_input(array('id' => 'authidkey', 'name' => 'authidkey', 'maxlength' => '20', 'title' => '고유번호를 입력해주세요.')) . '</p>';
+				if ($c_ucmr <= 0) {
+					$rval .= '<p>아래의 항목은 UCM이 설치되어 있지 않아 생긴 것입니다.<br>UCM 웹 패널을 이용 시 사용할 비밀번호 6자리 이상을 적어주세요.</p>';
+					$rval .= '<p><label for="passkey">비밀번호 입력</label>' . form_input(array('id' => 'passkey', 'name' => 'passkey', 'type' => 'password', 'maxlength' => '30', 'title' => '비밀번호를 입력해주세요.')) . '</p>';
+				}
 				$rval .= '<div class="buttongrp">';
 				$rval .= form_button(array('id' => 'authsubmit', 'name' => 'nosubmit', 'type' => 'button', 'content' => '<i class="fa fa-chevron-right"></i>'));
 				$rval .= '</div>';
@@ -168,28 +177,74 @@ class Install extends CI_Controller {
 				// 데이터베이스 설치
 				$rval .= '<p>데이터베이스 설치: ';
 
-				$totalChk = FALSE;
-				$sqlPath = read_file(CONFIG_PATH . '/install.sql');
-				if (!$sqlPath) {
+				// UCM 테이블 존재 확인
+				$c_ucmq = "SELECT * FROM `information_schema`.`TABLES` WHERE `table_name` = 'ucm_user_profile'";
+				$c_ucmc = $this->db->query($c_ucmq);
+				$c_ucmr = $c_ucmc->num_rows();
+
+				$c_ucm = FALSE;
+				if ($c_ucmr <= 0)	$c_ucm = TRUE;
+
+				$totalStr = '';
+				$inst_dds = FALSE;
+				$inst_ucm = FALSE;
+				$dds_sqlPath = read_file(CONFIG_PATH . '/install_dds.sql'); // DDS
+				$ucm_sqlPath = read_file(CONFIG_PATH . '/install_ucm.sql'); // UCM
+				if (!$dds_sqlPath || !$ucm_sqlPath) {
 					$rval .= '<strong class="red">SQL 파일이 없습니다.</strong></p>';
 				} else {
-					// 식별자 ';'' 기준으로 분리
-					$sqls = explode(';', $sqlPath);
-					// 쓸모없는 것은 제거
-					array_pop($sqls);
-					// 쿼리 한 줄마다 실행
-					$qRst;
-					foreach ($sqls as $q) {
-						$q = $q . ';';
-						$qRst = $this->db->query($q);
-					}
+					// DDS 먼저 처리
+					if ($dds_sqlPath) {
+						// 식별자 ';'' 기준으로 분리
+						$sqls = explode(';', $dds_sqlPath);
+						// 쓸모없는 것은 제거
+						array_pop($sqls);
+						// 쿼리 한 줄마다 실행
+						$qRst;
+						foreach ($sqls as $q) {
+							$q = $q . ';';
+							$qRst = $this->db->query($q);
+						}
 
-					if (!$qRst) {
-						$totalChk = FALSE;
-						$rval .= '<strong class="red">설치 도중 오류가 발생했습니다.</strong></p>';
-					} else {
+						if ($qRst) {
+							$inst_dds = TRUE;
+							$totalStr .= 'DDS 설치 완료';
+						} else {
+							$inst_dds = FALSE;
+							$totalStr .= 'DDS 설치 실패';
+						}
+					}
+					// UCM 조건 하 처리
+					if ($ucm_sqlPath) {
+						// 기존 테이블이 없는지 확인
+						if ($c_ucm)
+						{
+							// 식별자 ';'' 기준으로 분리
+							$sqls = explode(';', $ucm_sqlPath);
+							// 쓸모없는 것은 제거
+							array_pop($sqls);
+							// 쿼리 한 줄마다 실행
+							$qRst;
+							foreach ($sqls as $q) {
+								$q = $q . ';';
+								$qRst = $this->db->query($q);
+							}
+
+							if ($qRst) {
+								$inst_ucm = TRUE;
+								$totalStr .= ' / UCM 설치 완료';
+							} else {
+								$inst_ucm = FALSE;
+								$totalStr .= ' / UCM 설치 실패';
+							}
+						}
+					}
+					if ($inst_dds && $inst_ucm) {
 						$totalChk = TRUE;
-						$rval .= '<strong class="green">정상적으로 설치되었습니다.</strong></p>';
+						$rval .= '<strong class="green">' . $totalStr . '</strong></p>';
+					} else {
+						$totalChk = FALSE;
+						$rval .= '<strong class="red">' . $totalStr . '</strong></p>';
 					}
 				}
 
@@ -198,8 +253,10 @@ class Install extends CI_Controller {
 
 				$qset = "INSERT INTO `dds_user_profile` (`idx`, `authid`) VALUES (NULL, '" . $this->input->post('authidkey', TRUE) . "');";
 				$qaR = $this->db->query($qset);
-				$qset = "INSERT INTO `ucm_user_profile` (`idx`, `authid`, `clidx`, `joindate`) VALUES (NULL, '" . $this->input->post('authidkey', TRUE) . "', '2', '" . time() . "');";
-				$qaR = $this->db->query($qset);
+				if ($c_ucm) {
+					$qset = "INSERT INTO `ucm_user_profile` (`idx`, `authid`, `clidx`, `joindate`, `passkey`) VALUES (NULL, '" . $this->input->post('authidkey', TRUE) . "', '2', '" . time() . "', PASSWORD('" . $this->input->post('passkey', TRUE) . "'));";
+					$qaR = $this->db->query($qset);
+				}
 
 				if (!$qaR) {
 					$totalChk = FALSE;

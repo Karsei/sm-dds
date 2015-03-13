@@ -10,7 +10,7 @@ class Msg extends CI_Controller {
 		$this->load->helper('url');
 		if (!file_exists(CONFIG_PATH . '/config.php'))
 		{
-			header('Location: ' . base_url() . 'install/');
+			redirect('/install/');
 		}
 
 		// 세션 로드
@@ -19,7 +19,7 @@ class Msg extends CI_Controller {
 		
 		// 로그인 여부
 		if (!$cSess->userdata('auth_id') || !$cSess->userdata('inauth')) {
-			header('Location: ' . base_url() . 'auth/login/');
+			redirect('/auth/login/');
 		}
 
 		// 언어 파일 로드
