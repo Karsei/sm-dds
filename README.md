@@ -63,20 +63,20 @@ Dedicated 서버 내에 가상의 재화와 상점를 도입하여 이용자들�
 
 ## Showcase
 
-![introduce1](./imgs/introduce1.PNG)
+![introduce1](./imgs/introduce1.png)
 
-![introduce2](./imgs/introduce2.PNG)
+![introduce2](./imgs/introduce2.png)
 
-![introduce3](./imgs/introduce3.PNG)
+![introduce3](./imgs/introduce3.png)
 
-![introduce4](./imgs/introduce4.PNG)
+![introduce4](./imgs/introduce4.png)
 
-![introduce5](./imgs/introduce5.PNG)
+![introduce5](./imgs/introduce5.png)
 
-![introduce6](./imgs/introduce6.PNG)
+![introduce6](./imgs/introduce6.png)
 
-![introduce7](./imgs/introduce7.PNG)
+![introduce7](./imgs/introduce7.png)
 
-![introduce8](./imgs/introduce8.PNG)
+![introduce8](./imgs/introduce8.png)
 
-![introduce8](./imgs/introduce9.PNG)
+![introduce8](./imgs/introduce9.png)
